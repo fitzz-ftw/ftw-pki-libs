@@ -1,0 +1,49 @@
+venv
+.venv*
+
+*.egg-info
+.pytest_cache
+__pycache__
+
+.mypy_cache
+
+# Sphinx generated files
+doc/build
+doc/build_old_theme
+.coverage
+doc/source/_static/cover.svg
+
+
+#local copies
+* copy.css
+
+# Doctest generated files
+doc/source/devel/testhome/.config
+doc/source/devel/testhome/testoutput/*
+
+
+
+# Build generated files
+dist
+build
+
+# Setuptools.scm generated file
+src/fitzzftw/patch/_version.py
+
+# Autosummary generated files
+doc/source/devel/api/
+
+# Backuped Files
+*.bak
+
+# Tox Generated Files
+.tox
+
+TAGMESSAGE.txt
+MERGEMESSAGE.txt
+old_messages/**
+doc/build_old_theme/coverage/python.txt
+
+# Old Code Snippets
+old_code_snippets
+git_dif*
