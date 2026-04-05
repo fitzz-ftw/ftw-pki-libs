@@ -1,9 +1,10 @@
 
-ftw-patch: Unicode-Safe & Whitespace-Aware Patching
-===================================================
+ftwpki-baselibs: Private Key Infrastructure Baselibraries
+==========================================================
 
 .. only:: not epub
 
+..
    .. image:: https://img.shields.io/pypi/v/ftw-patch.svg
       :target: https://pypi.org/project/ftw-patch/
       :alt: PyPI version
@@ -31,81 +32,16 @@ ftw-patch: Unicode-Safe & Whitespace-Aware Patching
 ---
 
 
-:py:mod:`ftw-patch` is a robust Python-based patch utility designed for modern 
-development workflows. While traditional patch tools often struggle with different 
-line endings, Unicode characters, or minor formatting changes, :py:mod:`ftw-patch` 
-provides advanced normalization to make patching reliable and predictable.
-
-Key Features
-------------
-
-* **Unicode-Safe:** Native handling of UTF-8 and other encodings without corruption.
-* **Smart Normalization:** Optional ignore/normalize rules for non-leading whitespace and blank lines.
-* **Context-Aware:** Dynamically loads configuration from :file:`pyproject.toml` or user-defined files.
-* **Safety First:** Built-in dry-run mode and flexible backup options (including timestamped suffixes).
-* **Cross-Platform:** Consistent behavior on Linux, macOS, and Windows.
-
-Installation
--------------
-
-Recommended: Global Installation via pipx
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-For most users, we recommend installing the application using `pipx <https://pypa.github.io/pipx/>`_. 
-It installs the package into a dedicated, isolated environment while making the executable available 
-globally in your shell.
-
-.. rubric:: Why pipx?
-
-* **Isolation:** Prevents dependency conflicts with other Python packages or your 
-  system's Python.
-* **Cleanliness:** No more cluttering of your global site-packages.
-* **Convenience:** Binaries are automatically added to your PATH.
-
-.. code-block:: bash
-
-   pipx install ftw-patch
-
-Developer Installation (pip)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-If you intend to use the package as a library or want to contribute to development, 
-use a standard virtual environment:
-
-.. code-block:: bash
-
-   # Create and activate a venv
-   python -m venv .venv
-   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-
-   # Install the package
-   pip install ftw-patch
-
-
-Quick Start
------------
-
-Once installed, use the :command:`ftwpatch` command to apply a unified diff:
-
-.. code-block:: bash
-
-   ftwpatch my_changes.patch
 
 Documentation
 -------------
-
-.. toctree::
-   :maxdepth: 2
-   :caption: User Guide:
-
-   user/use_ftwpatch
 
 .. toctree::
    :maxdepth: 1
    :caption: Developer Guides:
    
    index_get_started
-   devel/ftw_patch_module
+   devel/ftwpki_baselib_module
 
 .. toctree:: 
    :maxdepth: 1
@@ -118,8 +54,6 @@ Documentation
    :caption: Project Information:
 
    about
-   changelog
-   roadmap
    license
    genindex
    modindex
