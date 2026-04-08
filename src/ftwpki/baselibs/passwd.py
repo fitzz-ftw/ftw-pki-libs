@@ -238,8 +238,27 @@ class PasswordCli:
         """
         return f"{self.__class__.__name__}()"
 
+def get_parser() -> argparse.ArgumentParser: 
+    """
+    Get the argument parser for the password encryption tool.
+
+    This function is used by Sphinx-argparse to automatically generate
+    the CLI documentation.
+
+    :return: An initialized ArgumentParser object.
+    """
+    cli = PasswordCli()
+    return cli._setup_parser()
 
 def prog_password_enc() -> int:
+    """
+    Main entry point for the password encryption command line interface.
+
+    This function initializes the PasswordCli, parses arguments,
+    and executes the encryption/decryption logic.
+
+    :return: Exit code (0 for success, non-zero for errors).
+    """
     cli = PasswordCli()
     return cli.run()
 
