@@ -215,7 +215,7 @@ def setup(app):
 
 # -- Project information -----------------------------------------------------
 project = "FTW PKI Baselibraries"
-copyright = "2025, Fitzz TeΧnik Welt"
+copyright = "2026, Fitzz TeΧnik Welt"
 author = "Fitzz TeΧnik Welt"
 html_show_copyright = True
 language = "en"
@@ -227,7 +227,7 @@ extensions = [
     "sphinx.ext.autosummary",
     "myst_parser",             # Falls du Markdown nutzt
     "sphinxarg.ext",           # Das "tote Pferd" erst jetzt laden
-     "autoclasstoc",
+    "autoclasstoc",
     "sphinx.ext.coverage",
     "sphinx.ext.viewcode",
     "sphinx_copybutton",
@@ -241,10 +241,8 @@ exclude_patterns = []
 maximum_signature_line_length= 120
 toc_object_entries_show_parents='hide'
 suppress_warnings=[
-    # 'app.add_directive',
     'autosummary.import_cycle',
     'config.cache',
-    # 'docutils', # autoclasstoc
 ]
 
 
