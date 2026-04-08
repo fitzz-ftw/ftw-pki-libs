@@ -1,7 +1,7 @@
 # File: src/ftwpki/baselibs/request.py
 # Author: Fitzz TeXnik Welt
 # Email: FitzzTeXnikWelt@t-online.de
-# License: LGPLv2 or above
+# License: LGPLv2.1
 """
 request
 ===============================

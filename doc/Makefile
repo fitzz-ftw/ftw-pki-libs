@@ -3,6 +3,7 @@ SPHINXOPTS      ?=
 SPHINXBUILD     ?= sphinx-build
 SOURCEDIR       = source
 BUILDDIR        = build
+XMLDIR			= builxml
 AUTOSUMMERYDIR  = $(SOURCEDIR)/devel/api
 PYTHON          = python
 
@@ -46,6 +47,10 @@ htmlpure: check-sphinx
 
 coverage: check-sphinx
 	@$(SPHINXBUILD) -M coverage "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+
+html-debug:
+	@$(SPHINXBUILD)  -T -b pseudoxml "$(SOURCEDIR)" "$(XMLDIR)" $(SPHINXOPTS) $(O)
+
 
 html-coverage-full: check-sphinx
 	@echo "INFO: Starting FULL COVERAGE check..."  

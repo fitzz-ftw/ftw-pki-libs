@@ -143,7 +143,7 @@ class TestHomeEnvironment:
         os.chdir(self.output_dir)
 
     def _copy_to_user_dir(
-        self, app_name: str, source_name: str, target_name: str, get_path_func
+        self, app_name: str, source_name: str, target_name: str|None, get_path_func
     ) -> Path:
         """
         Internal helper for deploying files from testinput to user directories.
@@ -167,7 +167,7 @@ class TestHomeEnvironment:
         shutil.copy2(source_path, target_path)
         return target_path
 
-    def copy2config(self, app_name: str, source_name: str, target_name: str = None) -> Path:
+    def copy2config(self, app_name: str, source_name: str, target_name: str|None = None) -> Path:
         """
         Copy a file from testinput to the OS-specific user config directory.
 
@@ -179,7 +179,7 @@ class TestHomeEnvironment:
         """
         return self._copy_to_user_dir(app_name, source_name, target_name, user_config_path)
 
-    def copy2data(self, app_name: str, source_name: str, target_name: str = None) -> Path:
+    def copy2data(self, app_name: str, source_name: str, target_name: str|None = None) -> Path:
         """
         Copy a file from testinput to the OS-specific user data directory.
 
@@ -191,7 +191,7 @@ class TestHomeEnvironment:
         """
         return self._copy_to_user_dir(app_name, source_name, target_name, user_data_path)
 
-    def copy2cache(self, app_name: str, source_name: str, target_name: str = None) -> Path:
+    def copy2cache(self, app_name: str, source_name: str, target_name: str|None = None) -> Path:
         """
         Copy a file from testinput to the OS-specific user cache directory.
 
@@ -203,7 +203,7 @@ class TestHomeEnvironment:
         """
         return self._copy_to_user_dir(app_name, source_name, target_name, user_cache_path)
 
-    def copy2cwd(self, source_name: str, target_name: str = None) -> Path:
+    def copy2cwd(self, source_name: str, target_name: str|None = None) -> Path:
         """
         Copy a file from testinput directly to the current working directory.
 

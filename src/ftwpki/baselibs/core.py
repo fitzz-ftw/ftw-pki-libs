@@ -1,7 +1,7 @@
 # File: src/ftwpki/baselibs/core.py
 # Author: Fitzz TeXnik Welt
 # Email: FitzzTeXnikWelt@t-online.de
-# License: LGPLv2 or above
+# License: LGPLv2.1
 """
 core
 ===============================
@@ -10,7 +10,6 @@ core
 Modul core documentation
 """
 
-import os
 import stat
 from pathlib import Path
 
@@ -19,6 +18,8 @@ from cryptography.exceptions import UnsupportedAlgorithm
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.oid import NameOID
+
+from ftwpki.baselibs.exceptions import PKIEncryptionError
 
 
 def generate_rsa_key_pair(passphrase: str, key_size: int = 4096) -> tuple[bytes, bytes]:
@@ -32,11 +33,17 @@ def generate_rsa_key_pair(passphrase: str, key_size: int = 4096) -> tuple[bytes,
     # RSA Key-Objekt erzeugen
     private_key_obj = rsa.generate_private_key(public_exponent=65537, key_size=key_size)
 
+    # Verschlüsselungs-Algorithmus wählen
+    if passphrase:
+        encryption = serialization.BestAvailableEncryption(passphrase.encode())
+    else:
+        encryption = serialization.NoEncryption()
+
     # Private Key -> PKCS#8 PEM (Standard)
     private_pem = private_key_obj.private_bytes(
         encoding=serialization.Encoding.PEM,
         format=serialization.PrivateFormat.PKCS8,
-        encryption_algorithm=serialization.BestAvailableEncryption(passphrase.encode()),
+        encryption_algorithm=encryption,
     )
 
     # Public Key -> SubjectPublicKeyInfo PEM (Standard)
@@ -95,12 +102,7 @@ def save_pem(data: bytes, target_path: Path, is_private: bool = False) -> None:
     target_path.write_bytes(data)
     
     if is_private:
-        if os.name == "nt":
-            # Windows: Read/Write for current user
-            target_path.chmod(stat.S_IREAD | stat.S_IWRITE)
-        else:
-            # Linux: chmod 600
-            target_path.chmod(0o600)
+        target_path.chmod(stat.S_IREAD | stat.S_IWRITE)
 
 def get_pem_bytes(item: x509.Certificate | x509.CertificateSigningRequest) -> bytes:
     """
@@ -133,13 +135,32 @@ def load_private_key_from_pem(pem_data: bytes, passphrase: str) -> rsa.RSAPrivat
     :raises ValueError: If decryption fails or the key format is invalid.
     """
     try:
-        key = serialization.load_pem_private_key(pem_data, password=passphrase.encode())
-        if not isinstance(key, rsa.RSAPrivateKey):
-            raise ValueError("The provided key is not an RSA private key.")
-        return key
+
+        key = serialization.load_pem_private_key(pem_data, 
+                                            password=passphrase.encode() if passphrase else None)
     except (ValueError, TypeError, UnsupportedAlgorithm) as e:
         # Wir mappen die Library-Fehler auf einen sauberen ValueError für die UI/Logik
-        raise ValueError("Could not decrypt or load the private key. Check your passphrase.") from e
+        raise PKIEncryptionError("Could not decrypt or load the private key. Check your passphrase.") from e  # noqa: E501
+
+    if not isinstance(key, rsa.RSAPrivateKey):
+        raise ValueError("The provided key is not an RSA private key.")
+    return key
+
+def load_certificate_from_pem(pem_data: bytes) -> x509.Certificate:
+    """
+    Loads a PEM encoded certificate into a cryptography object.
+
+    :param pem_data: The PEM encoded certificate bytes.
+    :return: An x509.Certificate object.
+    """
+    return x509.load_pem_x509_certificate(pem_data)
+
+def load_csr_from_pem(pem_data: bytes) -> x509.CertificateSigningRequest:
+    """
+    Loads a PEM encoded CSR into a cryptography object.
+    """
+    return x509.load_pem_x509_csr(pem_data)
+
 
 if __name__ == "__main__": # pragma: no cover
     from doctest import FAIL_FAST, testfile

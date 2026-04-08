@@ -1,7 +1,7 @@
 # File: src/ftwpki/baselibs/exceptions.py
 # Author: Fitzz TeXnik Welt
 # Email: FitzzTeXnikWelt@t-online.de
-# License: LGPLv2 or above
+# License: LGPLv2.1
 """
 exceptions
 ===============================
@@ -17,7 +17,9 @@ class PKIError(Exception):
     """
     Base class for all exceptions in the fitzzpki namespace.
 
-    Inheritance: PKIError -> Exception
+    Catch Order: 
+        * PKIError
+        * Exception
     """
 
     def __repr__(self) -> str:
@@ -27,7 +29,10 @@ class PKISecurityError(PKIError):
     """
     Base error for security and cryptographic operations.
 
-    Inheritance: SecurityError -> PKIError -> Exception
+    Catch Order: 
+        * PKISecurityError
+        * PKIError
+        * Exception
     """
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}()"
@@ -36,7 +41,11 @@ class PKIEncryptionError(PKISecurityError):
     """
     Raised when an encryption operation fails.
 
-    Inheritance: EncryptionError -> SecurityError -> PKIError -> Exception
+    Catch Order: 
+        * PKIEncryptionError
+        * PKISecurityError
+        * PKIError
+        * Exception
     """
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}()"

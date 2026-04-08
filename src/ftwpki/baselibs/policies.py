@@ -1,7 +1,7 @@
 # File: src/ftwpki/baselibs/policies.py
 # Author: Fitzz TeXnik Welt
 # Email: FitzzTeXnikWelt@t-online.de
-# License: LGPLv2 or above
+# License: LGPLv2.1
 """
 policies
 ===============================
@@ -24,7 +24,7 @@ class BasePolicy(ABC):
     @abstractmethod
     def get_extensions(self, **kwargs) -> list[tuple[x509.ExtensionType, bool]]:
         """Returns a list of (extension, critical) tuples."""
-        pass
+        
 
 class RootPolicy(BasePolicy):
     """
@@ -152,9 +152,9 @@ class ServerPolicy(BasePolicy):
 
         # 4. Subject Alternative Name (SAN) - Die 'alt_names' Logik
         # Wir ziehen die Namen aus den kwargs, falls vorhanden
-        alt_names_list = kwargs.get("alt_names", [])
-        if alt_names_list:
-            dns_names = [x509.DNSName(name) for name in alt_names_list]
+        alt_names = kwargs.get("alt_names", [])
+        if alt_names:
+            dns_names = [x509.DNSName(name) for name in alt_names]
             san = x509.SubjectAlternativeName(dns_names)
             extensions.append((san, False))
 

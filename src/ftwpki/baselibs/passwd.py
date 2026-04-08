@@ -1,7 +1,7 @@
 # File: src/ftwpki/baselibs/passwd.py
 # Author: Fitzz TeXnik Welt
 # Email: FitzzTeXnikWelt@t-online.de
-# License: LGPLv2 or above
+# License: LGPLv2.1
 """
 passwd
 ===============================
@@ -12,10 +12,12 @@ Modul passwd documentation
 
 
 import argparse
+import getpass
 import os
 import stat
 import sys
-from getpass import getpass
+
+# from getpass import getpass
 from pathlib import Path
 
 from cryptography.hazmat.backends import default_backend
@@ -135,10 +137,7 @@ class PasswordManager:
 
         :param file_path: Path to the file.
         """
-        if os.name == "nt":
-            file_path.chmod(stat.S_IREAD | stat.S_IWRITE)
-        else:
-            file_path.chmod(0o600)
+        file_path.chmod(stat.S_IREAD | stat.S_IWRITE)
 
     def _derive_key_iv(self, password: str, salt: bytes) -> tuple[bytes, bytes]:
         """

@@ -25,8 +25,8 @@ ftwpki-baselibs: Private Key Infrastructure Baselibraries
       :target: https://github.com/astral-sh/ruff
       :alt: Linting: ruff
 
-   .. image:: https://img.shields.io/badge/License-GPL%20v2-blue.svg
-      :target: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+   .. image:: https://img.shields.io/badge/License-LGPL%20v2.1-blue.svg
+      :target: https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
       :alt: License: GPL v2
 
 ---
@@ -41,20 +41,14 @@ Documentation
    :caption: Developer Guides:
    
    index_get_started
-   devel/ftwpki_baselib_module
-
-.. toctree:: 
-   :maxdepth: 1
-   :caption: Externel Components
-
-   extern_packages
+   devel/ftwpki_baselibs_module
 
 .. toctree::
    :maxdepth: 1
    :caption: Project Information:
 
    about
-   license
+   license_lgpl21
    genindex
    modindex
 
@@ -81,8 +75,8 @@ Licensed under |cc-logo|
    Please cite this work as follows: 
    
    Fitzz TeXnik Welt. 
-   (2025). *ftw-patch: A Unicode-resilient replacement for the classic patch tool* 
-   (Version 1.0.0) [Software documentation]. Retrieved from https://github.com/fitzz-ftw/ftw-patch
+   (2026). *ftw-pki-baselibs: A robust Python library for Public Key Infrastructure management* 
+   (Version 1.0.0) [Software documentation]. Retrieved from https://github.com/fitzz-ftw/ftw-pki-baselibs
 
 
 

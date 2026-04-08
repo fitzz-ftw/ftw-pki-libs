@@ -1,7 +1,7 @@
 # File: src/ftwpki/baselibs/signer.py
 # Author: Fitzz TeXnik Welt
 # Email: FitzzTeXnikWelt@t-online.de
-# License: LGPLv2 or above
+# License: LGPLv2.1
 """
 signer
 ===============================
@@ -17,12 +17,13 @@ from typing import TYPE_CHECKING, cast
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
 
+# if TYPE_CHECKING:
+# This is only for type checkers (MyPy/Pyright)
+# The actual attribute might not exist at runtime in all versions
+from cryptography.hazmat.primitives.asymmetric.types import CertificateIssuerPublicKeyTypes
+
 from ftwpki.baselibs.policies import BasePolicy
 
-if TYPE_CHECKING:
-    # This is only for type checkers (MyPy/Pyright)
-    # The actual attribute might not exist at runtime in all versions
-    from cryptography.hazmat.primitives.asymmetric.types import CertificateIssuerPublicKeyTypes
 
 class CertificateSigner:
     """
@@ -54,18 +55,17 @@ class CertificateSigner:
         """
         public_key = csr.public_key()
         
-        builder = x509.CertificateBuilder().subject_name(
-            csr.subject
-        ).issuer_name(
-            self._ca_cert.subject
-        ).public_key(
-            public_key
-        ).serial_number(
-            x509.random_serial_number()
-        ).not_valid_before(
-            datetime.datetime.utcnow()
-        ).not_valid_after(
-            datetime.datetime.utcnow() + datetime.timedelta(days=validity_days)
+        builder = (
+            x509.CertificateBuilder()
+            .subject_name(csr.subject)
+            .issuer_name(self._ca_cert.subject)
+            .public_key(public_key)
+            .serial_number(x509.random_serial_number())
+            .not_valid_before(datetime.datetime.now(datetime.timezone.utc))
+            .not_valid_after(
+                datetime.datetime.now(datetime.timezone.utc)
+                + datetime.timedelta(days=validity_days)
+            )
         )
 
         # Apply extensions from the provided policy
@@ -95,7 +95,6 @@ class CertificateSigner:
         :returns: String containing the class name and issuer.
         """
         return f"{self.__class__.__name__}(issuer={self._ca_cert.subject})"
-# Hier den Code einfügen
 
 if __name__ == "__main__": # pragma: no cover
     from doctest import FAIL_FAST, testfile
