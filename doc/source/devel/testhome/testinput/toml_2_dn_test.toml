@@ -1,0 +1,29 @@
+[identity.dn]
+countryName = "DE"
+organizationName = "Fitzz TeXnik Welt"
+commonName = "Fitzz Root CA"
+
+# Wie behandle ich Anfragen für verschiedene Levels?
+[policy.intermediate.dn]
+countryName = "match"
+organizationName = "match"
+commonName = "supplied"
+
+[policy.server.dn]
+countryName = "match"
+organizationName = "match"
+organizationalUnitName = "supplied"
+commonName = "supplied"
+
+[policy.user.dn]
+countryName = "match"
+organizationName = "match"
+commonName = "supplied"
+emailAddress = "supplied"
+
+# Spezielles Level für kritische Infrastruktur (Level 2)
+[policy.server_l2.dn]
+countryName = "match"
+organizationName = "match"
+stateOrProvinceName = "match" # Strengere Vorgabe
+commonName = "supplied"
