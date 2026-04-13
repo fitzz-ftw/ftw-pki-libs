@@ -23,7 +23,10 @@ class DistinguishedNameProtocol(Protocol):
     localityName:str
     stateOrProvinceName:str
 
-
+class CSRProtocol(DistinguishedNameProtocol):
+    public_key: str
+    private_key: str
+    privatdir: str
 
 
 if __name__ == "__main__": # pragma: no cover

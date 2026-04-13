@@ -137,8 +137,10 @@ Certificate Signing Request (CSR) laden
 
 
 
-
-
+>>> from ftwpki.baselibs.core import create_csr_name
+>>> stl = ["dies ist", "ein Test"]
+>>> create_csr_name(*stl)
+'dies-ist_ein-Test.csr'
 
 
 >>> env.teardown()

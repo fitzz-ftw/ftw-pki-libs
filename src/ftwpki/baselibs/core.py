@@ -161,6 +161,9 @@ def load_csr_from_pem(pem_data: bytes) -> x509.CertificateSigningRequest:
     """
     return x509.load_pem_x509_csr(pem_data)
 
+def create_csr_name(*args: str) -> str:
+    return "_".join(args).replace(" ", "-") + ".csr"
+
 
 if __name__ == "__main__": # pragma: no cover
     from doctest import FAIL_FAST, testfile

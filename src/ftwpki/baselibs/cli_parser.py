@@ -14,7 +14,7 @@ from argparse import Action, ArgumentError, ArgumentParser, Namespace
 from pathlib import Path
 from typing import cast
 
-from ftwpki.baselibs.protocols import DistinguishedNameProtocol
+from ftwpki.baselibs.protocols import CSRProtocol, DistinguishedNameProtocol
 
 ALIAS_MAP = {
     "C": "countryName",
@@ -146,6 +146,25 @@ class DistinguishedNameParser(ArgumentParser):
         arg_parsed = cast(DistinguishedNameProtocol,
                           super().parse_args(args=args,namespace=namespace))
         return self.sync_arguments(arg_parsed)
+
+
+class CSRParser(DistinguishedNameParser):
+    def _setup_parser(self) -> None:
+        super()._setup_parser()
+        self.add_argument("-k", "--key", "--private-key", default="", dest="private_key")
+        self.add_argument(
+            "-p",
+            "--pub",
+            "--public-key",
+            dest="public_key",
+            default="",
+        )
+        self.add_argument("--privatdir", dest="privatdir", default="")
+
+    def parse_args(self, args: list[str] | None = None, 
+                   namespace: Namespace | None = None) -> CSRProtocol:
+        return cast(CSRProtocol, super().parse_args(args, namespace))
+
 
 if __name__ == "__main__": # pragma: no cover
     from doctest import FAIL_FAST, testfile
