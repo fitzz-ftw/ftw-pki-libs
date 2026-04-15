@@ -9,40 +9,10 @@ utils
 
 Modul utils documentation
 """
-import sys
-from pathlib import Path
-from tomllib import TOMLDecodeError, loads
-
-
-def toml2dn(argv: list[str]|None = None, argname: str = "--conf_file") -> dict[str, str]:
-    if argv is None:
-        argv = sys.argv[1:]
-    try:
-        index = argv.index(argname)
-    except ValueError:
-        return {}
-    try:
-        tomlfile=Path(argv[index+ 1])
-        conf_str = tomlfile.read_text()
-    except FileNotFoundError:
-        print(f"File '{argv[index + 1]}' not found!")
-        return {"dnsubject": ""}
-    try:
-        tomfile = loads(conf_str)
-    except TOMLDecodeError:
-        print(f"Could not decode file {argv[index + 1]}!")
-        return {"dnsubject": ""}
-    try:
-        dn = tomfile["identity"]["dn"]
-    except KeyError:
-        print("No table 'identity.dn' in config file!")
-        return {"dnsubject": ""}
-    dn["dnsubject"] = ""
-    return dn
-
 
 if __name__ == "__main__": # pragma: no cover
     from doctest import FAIL_FAST, testfile
+    from pathlib import Path
     
     be_verbose = False
     be_verbose = True

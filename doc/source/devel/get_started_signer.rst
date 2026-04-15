@@ -70,3 +70,39 @@ True
 True
 
 >>> env.teardown()
+
+>>> signed_cert = signer.sign(csr=csr, 
+...     policy=policy, 
+...     validity_days=365,
+...     authorityInfoAccess="http://my.server.org",
+...     )
+
+>>> signed_cert = signer.sign(csr=csr, 
+...     policy=policy, 
+...     validity_days=365,
+...     authorityInfoAccess="http:/server.org",
+...     )
+Warning: 'http:/server.org' is not a valid absolute URL.
+
+>>> signed_cert = signer.sign(csr=csr, 
+...     policy=policy, 
+...     validity_days=365,
+...     authorityInfoAccess="https://my.server.org",
+...     )
+Error: OCSP URI must be HTTP to avoid circular dependencies! Skipping: https://my.server.org
+
+>>> signed_cert = signer.sign(csr=csr, 
+...     policy=policy, 
+...     validity_days=365,
+...     authorityInfoAccess="ftp://my.server.org",
+...     )
+Warning: URI scheme 'ftp' is unusual for OCSP. Skipping.
+
+>>> signed_cert = signer.sign(csr=csr, 
+...     policy=policy, 
+...     validity_days=365,
+...     authorityInfoAccess="http://my.sürver.org",
+...     ) #doctest: +NORMALIZE_WHITESPACE
+Warning: Could not process AIA URI 'http://my.sürver.org': URI values should be passed 
+as an A-label string. This means unicode characters should be encoded via a 
+library like idna.

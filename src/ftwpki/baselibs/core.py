@@ -10,15 +10,17 @@ core
 Modul core documentation
 """
 
+import datetime
 import stat
 from pathlib import Path
 
 from cryptography import x509
 from cryptography.exceptions import UnsupportedAlgorithm
-from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.oid import NameOID
 
+from ftwpki.baselibs.data import CertificateRecord, CertificateStatus
 from ftwpki.baselibs.exceptions import PKIEncryptionError
 
 
@@ -163,6 +165,94 @@ def load_csr_from_pem(pem_data: bytes) -> x509.CertificateSigningRequest:
 
 def create_csr_name(*args: str) -> str:
     return "_".join(args).replace(" ", "-") + ".csr"
+
+def cert_to_record(cert: x509.Certificate, status: CertificateStatus = "V") -> CertificateRecord:
+    """
+    Converts an x509.Certificate object into a standardized CertificateRecord.
+    This is a pure function for data transformation.
+    """
+    return CertificateRecord(
+        status=status.upper(),
+        expiry=cert.not_valid_after_utc,
+        revocation_date="",
+        serial=format(cert.serial_number, "02X"),
+        subject=cert.subject.rfc4514_string(),
+    )
+
+def revoke_record(record: CertificateRecord, reason: str = "") -> CertificateRecord:
+    """
+    Returns a new CertificateRecord with status 'R' and current timestamp.
+
+    :param record: The existing valid record.
+    :param reason: Optional reason for revocation (e.g., 'keyCompromise').
+    :return: A new record with updated status and revocation date.
+    """
+    # Aktueller UTC-Zeitstempel im OpenSSL-Format: YYMMDDHHMMSSZ
+    now = datetime.datetime.now(datetime.timezone.utc)
+    rev_ts = now.strftime("%y%m%d%H%M%SZ")
+
+    # Wenn ein Grund angegeben wurde, wird er mit Komma angehängt
+    rev_field = f"{rev_ts},{reason}" if reason else rev_ts
+
+    # Da CertificateRecord ein NamedTuple (immutable) ist, nutzen wir _replace
+    return record._replace(status="R", revocation_date=rev_field)
+
+def create_crl(
+    revoked_records: list[CertificateRecord],
+    ca_cert: x509.Certificate,
+    ca_key: rsa.RSAPrivateKey,
+    next_update_days: int = 30,
+) -> x509.CertificateRevocationList:
+    """
+    Erzeugt eine signierte CRL aus einer Liste von CertificateRecords.
+    """
+    OPENSSL_REASON_MAP = {
+        "unspecified": "unspecified",
+        "keyCompromise": "key_compromise",
+        "CACompromise": "ca_compromise",
+        "affiliationChanged": "affiliation_changed",
+        "superseded": "superseded",
+        "cessationOfOperation": "cessation_of_operation",
+        "certificateHold": "certificate_hold",
+        "privilegeWithdrawn": "privilege_withdrawn",
+        "AACompromise": "aa_compromise",
+    }
+    now = datetime.datetime.now(datetime.timezone.utc)
+    builder = x509.CertificateRevocationListBuilder()
+
+    builder = builder.issuer_name(ca_cert.subject)
+    builder = builder.last_update(now)
+    builder = builder.next_update(now + datetime.timedelta(days=next_update_days))
+
+    for record in revoked_records:
+        # Nur Records im Status 'R' (Revoked) gehören in die CRL
+        if record.status != "R":
+            continue
+
+        # Zerlege revocation_date (YYMMDDHHMMSSZ[,reason])
+        parts = record.revocation_date.split(",")
+        rev_date = datetime.datetime.strptime(parts[0], "%y%m%d%H%M%SZ").replace(
+            tzinfo=datetime.timezone.utc
+        )
+
+        rev_builder = x509.RevokedCertificateBuilder()
+        rev_builder = rev_builder.serial_number(int(record.serial, 16))
+        rev_builder = rev_builder.revocation_date(rev_date)
+
+        # Grund hinzufügen, falls vorhanden
+        if len(parts) > 1 and parts[1]:
+            try:
+                reason_str = parts[1]
+                attr_name = OPENSSL_REASON_MAP.get(reason_str, reason_str)
+
+                reason_oid = getattr(x509.ReasonFlags, attr_name)
+                rev_builder = rev_builder.add_extension(x509.CRLReason(reason_oid), critical=False)
+            except AttributeError:
+                pass  # Unbekannte Gründe ignorieren
+
+        builder = builder.add_revoked_certificate(rev_builder.build())
+
+    return builder.sign(ca_key, hashes.SHA512())
 
 
 if __name__ == "__main__": # pragma: no cover

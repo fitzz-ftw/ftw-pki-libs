@@ -11,7 +11,7 @@ Modul protocols documentation
 """
 
 from pathlib import Path
-from typing import Protocol
+from typing import Literal, Protocol
 
 
 class DistinguishedNameProtocol(Protocol): 
@@ -28,6 +28,20 @@ class CSRProtocol(DistinguishedNameProtocol):
     private_key: str
     privatdir: str
 
+PolicyType = Literal["match", "optional", "supplied", "no"]
+
+class PolicyProtocol(Protocol):
+    policy_name: str
+    countryName: PolicyType
+    stateOrProvinceName: PolicyType
+    localityName: PolicyType
+    organizationName: PolicyType
+    organizationalUnitName: PolicyType
+    commonName: PolicyType
+
+class SigningProtocol(PolicyProtocol):
+    private_key:str
+    private_dir:str
 
 if __name__ == "__main__": # pragma: no cover
     from doctest import FAIL_FAST, testfile

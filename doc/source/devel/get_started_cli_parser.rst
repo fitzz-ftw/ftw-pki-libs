@@ -64,3 +64,49 @@ Namespace(countryName='de',
     private_key='', 
     public_key='', 
     privatdir='')
+
+
+>>> from ftwpki.baselibs.cli_parser import PolicyParser
+
+>>> pp = PolicyParser()
+>>> pp #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+PolicyParser(prog='...', 
+    usage=None, 
+    description=None, 
+    formatter_class=<class 'argparse.HelpFormatter'>, 
+    conflict_handler='error', 
+    add_help=True)
+
+>>> pp.parse_args(["-C", "match"]) #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+Namespace(countryName='match', 
+    stateOrProvinceName='no', 
+    localityName='no', 
+    organizationName='no', 
+    organizationalUnitName='no', 
+    commonName='no', 
+    policy_name=None, 
+    conf_file=None)
+
+>>> from ftwpki.baselibs.cli_parser import CSRSigningParser
+
+>>> csp=CSRSigningParser()
+
+>>> csp  #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+CSRSigningParser(prog='...', 
+    usage=None, 
+    description=None, 
+    formatter_class=<class 'argparse.HelpFormatter'>, 
+    conflict_handler='error', 
+    add_help=True)
+
+>>> csp.parse_args(["-C", "match"])  #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+Namespace(countryName='match', 
+    stateOrProvinceName='no', 
+    localityName='no', 
+    organizationName='no', 
+    organizationalUnitName='no', 
+    commonName='no', 
+    policy_name=None, 
+    conf_file=None, 
+    private_key=None, 
+    private_dir=None)

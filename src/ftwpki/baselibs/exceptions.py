@@ -50,6 +50,10 @@ class PKIEncryptionError(PKISecurityError):
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}()"
 
+class PKIValidationError(PKISecurityError):
+    def __init__(self, dut:str, operation:str, orig:str) -> None:
+        msg = f"No match {dut} {operation} {orig}"
+        super().__init__(msg)
 
 
 if __name__ == "__main__": # pragma: no cover

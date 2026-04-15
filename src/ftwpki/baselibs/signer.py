@@ -12,15 +12,13 @@ Modul signer documentation
 
 import datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, cast
+from typing import cast
+from urllib.parse import urlparse
 
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
-
-# if TYPE_CHECKING:
-# This is only for type checkers (MyPy/Pyright)
-# The actual attribute might not exist at runtime in all versions
 from cryptography.hazmat.primitives.asymmetric.types import CertificateIssuerPublicKeyTypes
+from cryptography.x509.oid import AuthorityInformationAccessOID
 
 from ftwpki.baselibs.policies import BasePolicy
 
@@ -53,6 +51,7 @@ class CertificateSigner:
                 unsupported.
         :returns: The signed certificate object.
         """
+        authority_info_access = kwargs.pop("authorityInfoAccess", None)
         public_key = csr.public_key()
         
         builder = (
@@ -77,6 +76,8 @@ class CertificateSigner:
         aki = x509.AuthorityKeyIdentifier.from_issuer_public_key(ca_public_key)
         builder = builder.add_extension(aki, critical=False)
 
+        builder = self._add_aia_extension(builder=builder, aia_uri=authority_info_access)
+
         return builder.sign(self._ca_key, hashes.SHA512())
 
     def get_pem(self, cert: x509.Certificate) -> bytes:
@@ -95,6 +96,54 @@ class CertificateSigner:
         :returns: String containing the class name and issuer.
         """
         return f"{self.__class__.__name__}(issuer={self._ca_cert.subject})"
+
+    def _add_aia_extension(self, builder, aia_uri: str | None):
+        """
+        Adds the AIA extension for OCSP.
+        Skips if aia_uri is empty, invalid, or uses HTTPS (to avoid circular dependencies).
+        """
+        if not aia_uri or not aia_uri.strip():
+            return builder
+
+        # Extraktion der URL (unterstützt "OCSP;URI:http://..." oder "http://...")
+        url_candidate = aia_uri.split("URI:")[-1].strip()
+
+        try:
+            parsed = urlparse(url_candidate)
+
+            # 1. Validitäts-Check (Schema und Host müssen da sein)
+            if not all([parsed.scheme, parsed.netloc]):
+                print(f"Warning: '{url_candidate}' is not a valid absolute URL.")
+                return builder
+
+            # 2. Endlosschleifen-Prävention: HTTPS verbieten
+            if parsed.scheme.lower() == "https":
+                print(
+                    f"Error: OCSP URI must be HTTP to avoid circular dependencies! Skipping: {url_candidate}"  # noqa: E501
+                )
+                return builder
+
+            # 3. Optional: Nur HTTP erlauben (falls jemand ftp:// oder ähnliches versucht)
+            if parsed.scheme.lower() != "http":
+                print(f"Warning: URI scheme '{parsed.scheme}' is unusual for OCSP. Skipping.")
+                return builder
+
+            builder = builder.add_extension(
+                x509.AuthorityInformationAccess(
+                    [
+                        x509.AccessDescription(
+                            AuthorityInformationAccessOID.OCSP,
+                            x509.UniformResourceIdentifier(url_candidate),
+                        )
+                    ]
+                ),
+                critical=False,
+            )
+        except Exception as e:
+            print(f"Warning: Could not process AIA URI '{aia_uri}': {e}")
+
+        return builder
+
 
 if __name__ == "__main__": # pragma: no cover
     from doctest import FAIL_FAST, testfile

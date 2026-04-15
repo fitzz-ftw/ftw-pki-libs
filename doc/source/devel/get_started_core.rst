@@ -75,6 +75,8 @@ Traceback (most recent call last):
 ftwpki.baselibs.exceptions.PKIEncryptionError: Could not decrypt or load the private key. Check your passphrase.
 
 
+>>> private_key_obj= load_private_key_from_pem(priv_pem, passw)
+
 >>> from pathlib import Path
 >>> from fitzzftw.develtool.testinfra import TestHomeEnvironment
 >>> env = TestHomeEnvironment(Path("doc/source/devel/testhome"))
@@ -142,5 +144,38 @@ Certificate Signing Request (CSR) laden
 >>> create_csr_name(*stl)
 'dies-ist_ein-Test.csr'
 
+>>> from ftwpki.baselibs.core import cert_to_record
+
+>>> cert_record = cert_to_record(cert_obj)
+>>> cert_record # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+CertificateRecord(status='V', 
+    expiry=datetime.datetime(...), 
+    revocation_date='', 
+    serial='...', 
+    subject='CN=FTW Dev Root CA,O=FTW Projekte,L=Frankfurt,ST=Hessen,C=DE', 
+    filename='unknown')
+
+>>> from ftwpki.baselibs.core import revoke_record
+
+>>> rev_record = revoke_record(cert_record, "corrupted")
+>>> rev_record2 = revoke_record(cert_record)
+>>> rev_record3 = revoke_record(cert_record, "keyCompromise")
+>>> rev_record # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+CertificateRecord(status='R', 
+    expiry=datetime.datetime(2036, 4, 4, 14, 20, 39, tzinfo=datetime.timezone.utc), 
+    revocation_date='...,corrupted', 
+    serial='5CE58D3B36B3C88D9F15772D10CC51A54203FEF0', 
+    subject='CN=FTW Dev Root CA,O=FTW Projekte,L=Frankfurt,ST=Hessen,C=DE', 
+    filename='unknown')
+
+
+>>> from ftwpki.baselibs.core import create_crl
+
+>>> crl=create_crl(revoked_records=[rev_record, rev_record2, rev_record3, cert_record],
+...     ca_cert=cert_obj,
+...     ca_key=private_key_obj)
+
+>>> crl # doctest: +ELLIPSIS
+<cryptography.hazmat.bindings._rust.x509.CertificateRevocationList object at ...>
 
 >>> env.teardown()
