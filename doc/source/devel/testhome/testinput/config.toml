@@ -1,0 +1,25 @@
+[fallback]
+# Identität (verschlüsselt & versteckt)
+private_keys = "~/.config/ftwpki/.private"
+passphrases  = "~/.config/ftwpki/.private"
+
+# Infrastruktur-Ressourcen (könnten später URLs werden)
+csr_configs  = "~/.config/ftwpki/csr"
+policies     = "~/.config/ftwpki/policies"
+
+# Öffentliche Daten (Standards zur einfachen Nutzung)
+public_data  = "~/.local/share/ftwpki"
+certs        = "~/.local/share/ftwpki/certs"
+chains       = "~/.local/share/ftwpki/chains"
+
+# Dateiendungen nur für öffentliche/halbprivat Daten
+ext_cert     = ".crt"
+ext_public   = ".pub"
+ext_chain    = ".pem"
+ext_csr_conf = ".toml"
+ext_policy   = ".policy"
+ext_signedcert= ".zip.enc"
+
+[intermediate]
+# Überschreibt bei Bedarf die Pfade für Intermediate-spezifische Regeln
+policies     = "~/.config/ftwpki/policies/intermediate"

@@ -254,6 +254,14 @@ def create_crl(
 
     return builder.sign(ca_key, hashes.SHA512())
 
+def get_subject_dict(item: x509.Certificate | x509.CertificateSigningRequest) -> dict[str, str]:
+    """
+    Extracts the subject DN from a certificate or CSR and returns it as a dictionary.
+
+    The keys are the attribute names (e.g., 'commonName', 'countryName').
+    """
+    # Da beide Typen das 'subject'-Attribut haben, ist der Zugriff identisch
+    return {attr.oid._name: str(attr.value) for attr in item.subject}
 
 if __name__ == "__main__": # pragma: no cover
     from doctest import FAIL_FAST, testfile

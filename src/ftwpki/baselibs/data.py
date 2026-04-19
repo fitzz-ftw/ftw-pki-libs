@@ -44,6 +44,28 @@ class CertificateRecord(NamedTuple):
             return f"{self.status}\t{self.revocation_date}\t{expiry_str}\t{self.serial}\t{self.filename}\t{self.subject}"  # noqa: E501
         return f"{self.status}\t{expiry_str}\t{self.revocation_date}\t{self.serial}\t{self.filename}\t{self.subject}"  # noqa: E501
 
+class ValidationError(NamedTuple):
+    field: str
+    message: str
+    invalid_value: str = ""
+
+    def __str__(self):
+        """Schöne Formatierung für die Konsolenausgabe"""
+        val_str = f" (Got: '{self.invalid_value}')" if self.invalid_value else ""
+        return f"  - [{self.field}]: {self.message}{val_str}"
+
+
+class ValidationResult(NamedTuple):
+    is_valid: bool
+    errors: list[ValidationError]
+
+
+class ValidityDateCheckResult(NamedTuple):
+    not_after: datetime
+    is_shortened: bool
+    original_requested_days: int
+    actual_days: int
+
 if __name__ == "__main__": # pragma: no cover
     from doctest import FAIL_FAST, testfile
     

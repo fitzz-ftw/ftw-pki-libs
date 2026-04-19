@@ -13,14 +13,14 @@ Modul signer documentation
 import datetime
 from pathlib import Path
 from typing import cast
-from urllib.parse import urlparse
 
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives.asymmetric.types import CertificateIssuerPublicKeyTypes
-from cryptography.x509.oid import AuthorityInformationAccessOID
 
 from ftwpki.baselibs.policies import BasePolicy
+from ftwpki.baselibs.validate import validate_uri
 
 
 class CertificateSigner:
@@ -28,7 +28,7 @@ class CertificateSigner:
     Authority for signing Certificate Signing Requests.
     """
 
-    def __init__(self, ca_cert: x509.Certificate, ca_key):
+    def __init__(self, ca_cert: x509.Certificate, ca_key: rsa.RSAPrivateKey):
         """
         Initialize with CA certificate and private key.
 
@@ -51,7 +51,10 @@ class CertificateSigner:
                 unsupported.
         :returns: The signed certificate object.
         """
-        authority_info_access = kwargs.pop("authorityInfoAccess", None)
+        authority_info_access = kwargs.pop("ocspURI", "")
+        crl_uri = kwargs.pop("crlURI", "")
+        ca_issuer_uri = kwargs.pop("caIssuerURI", "")
+
         public_key = csr.public_key()
         
         builder = (
@@ -75,8 +78,13 @@ class CertificateSigner:
         ca_public_key = cast(CertificateIssuerPublicKeyTypes, self._ca_cert.public_key())
         aki = x509.AuthorityKeyIdentifier.from_issuer_public_key(ca_public_key)
         builder = builder.add_extension(aki, critical=False)
+        builder = self._add_authority_information_access(builder=builder, 
+                                                             ocsp_uri=authority_info_access,
+                                                             issuer_uri=ca_issuer_uri)
+        builder = self._add_crl_distribution_points(builder,crl_uri)
 
-        builder = self._add_aia_extension(builder=builder, aia_uri=authority_info_access)
+        skid = x509.SubjectKeyIdentifier.from_public_key(public_key)
+        builder = builder.add_extension(skid, critical=False)
 
         return builder.sign(self._ca_key, hashes.SHA512())
 
@@ -97,53 +105,48 @@ class CertificateSigner:
         """
         return f"{self.__class__.__name__}(issuer={self._ca_cert.subject})"
 
-    def _add_aia_extension(self, builder, aia_uri: str | None):
+    def _add_authority_information_access(
+        self, builder: x509.CertificateBuilder, ocsp_uri: str = "", issuer_uri: str = ""
+    ) -> x509.CertificateBuilder:
         """
-        Adds the AIA extension for OCSP.
+        Adds the AIA extension (OCSP and/or CA Issuers).
         Skips if aia_uri is empty, invalid, or uses HTTPS (to avoid circular dependencies).
         """
-        if not aia_uri or not aia_uri.strip():
-            return builder
+        descriptions: list[x509.AccessDescription] = []
+        if ocsp_uri:= validate_uri(ocsp_uri.strip(),True, "oscp").strip():
+            descriptions.append(x509.AccessDescription(
+                x509.OID_OCSP, x509.UniformResourceIdentifier(ocsp_uri)
+            ))
+        if issuer_uri:= validate_uri(issuer_uri.strip()).strip():
+            descriptions.append(x509.AccessDescription(
+                x509.OID_CA_ISSUERS, x509.UniformResourceIdentifier(issuer_uri)
+            ))
 
-        # Extraktion der URL (unterstützt "OCSP;URI:http://..." oder "http://...")
-        url_candidate = aia_uri.split("URI:")[-1].strip()
-
-        try:
-            parsed = urlparse(url_candidate)
-
-            # 1. Validitäts-Check (Schema und Host müssen da sein)
-            if not all([parsed.scheme, parsed.netloc]):
-                print(f"Warning: '{url_candidate}' is not a valid absolute URL.")
-                return builder
-
-            # 2. Endlosschleifen-Prävention: HTTPS verbieten
-            if parsed.scheme.lower() == "https":
-                print(
-                    f"Error: OCSP URI must be HTTP to avoid circular dependencies! Skipping: {url_candidate}"  # noqa: E501
-                )
-                return builder
-
-            # 3. Optional: Nur HTTP erlauben (falls jemand ftp:// oder ähnliches versucht)
-            if parsed.scheme.lower() != "http":
-                print(f"Warning: URI scheme '{parsed.scheme}' is unusual for OCSP. Skipping.")
-                return builder
-
+        if descriptions:
             builder = builder.add_extension(
-                x509.AuthorityInformationAccess(
-                    [
-                        x509.AccessDescription(
-                            AuthorityInformationAccessOID.OCSP,
-                            x509.UniformResourceIdentifier(url_candidate),
-                        )
-                    ]
-                ),
-                critical=False,
+                x509.AuthorityInformationAccess(descriptions), 
+                critical=False
             )
-        except Exception as e:
-            print(f"Warning: Could not process AIA URI '{aia_uri}': {e}")
-
         return builder
 
+    def _add_crl_distribution_points(
+        self, builder: x509.CertificateBuilder, crl_uri: str = ""
+    ) -> x509.CertificateBuilder:
+        """
+        Adds the CRL Distribution Points (CDP) extension.
+        Forced to HTTP to prevent circular dependencies during validation.
+        """
+        if validated_crl := validate_uri(crl_uri, no_https=True, uri_type="crl"):
+            dist_point = x509.DistributionPoint(
+                full_name=[x509.UniformResourceIdentifier(validated_crl)],
+                relative_name=None,
+                reasons=None,
+                crl_issuer=None,
+            )
+            builder = builder.add_extension(
+                x509.CRLDistributionPoints([dist_point]), critical=False
+            )
+        return builder
 
 if __name__ == "__main__": # pragma: no cover
     from doctest import FAIL_FAST, testfile

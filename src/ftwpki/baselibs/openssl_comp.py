@@ -11,6 +11,7 @@ Modul openssl_comp documentation
 """
 
 import shutil
+import subprocess
 from pathlib import Path
 
 from ftwpki.baselibs.core import revoke_record
@@ -146,6 +147,13 @@ class DbOpensslFile:
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(DBFile: {self._path.as_posix()})"
+
+def get_cert_text(pem_path) -> str:  # not Windows testable
+    result = subprocess.run(
+        ["openssl", "x509", "-in", pem_path, "-text", "-noout"], capture_output=True, text=True
+    )
+    return result.stdout
+
 
 if __name__ == "__main__": # pragma: no cover
     from doctest import FAIL_FAST, testfile

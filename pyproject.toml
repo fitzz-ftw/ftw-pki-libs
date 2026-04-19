@@ -7,7 +7,7 @@ include-package-data = true
 [tool.setuptools.package-dir]
 "" = "src"
 [tool.setuptools.packages.find]
-include = ["ftwpki*","fitzzftw*"]
+include = ["ftwpki*", "fitzzftw*"]
 namespaces = true
 where = ["src"]
 
@@ -30,7 +30,7 @@ classifiers = [
   "Programming Language :: Python :: 3.15",
   "Operating System :: OS Independent",
 ]
-dependencies = ["platformdirs","cryptography"]
+dependencies = ["platformdirs", "cryptography", "smime"]
 description = ""
 dynamic = ["version"]
 name = "ftw-pki-libs"
@@ -42,7 +42,6 @@ requires-python = ">=3.11"
 # Homepage = "https://github.com/fitzz-ftw/ftw-patch"
 # Issues = "https://github.com/fitzz-ftw/ftw-patch/issues"
 # Repository = "https://github.com/fitzz-ftw/ftw-patch.git"
-
 
 [project.optional-dependencies]
 doc = [
@@ -107,13 +106,18 @@ testpaths = [
 
 [tool.coverage.run]
 branch = true
-omit = ["**/_version.py", 
+omit = [
+  "**/_version.py",
 ]
 
 source = ["ftwpki.baselibs"]
 
 [tool.coverage.report]
-exclude_also = ["if *__name__ *=*[\"']__main__.*"]
+exclude_also = [
+  "if *__name__ *=*[\"']__main__.*",
+  "# for future use",
+  "# not Windows testable",
+]
 fail_under = 100
 show_missing = true
 #format = "text"

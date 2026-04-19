@@ -11,10 +11,10 @@ Modul toml_utils documentation
 """
 
 import sys
-from argparse import ArgumentError
+from argparse import ArgumentError  # noqa: F401
 from pathlib import Path
 from tomllib import TOMLDecodeError, loads
-from typing import NoReturn, cast
+from typing import cast
 
 
 def list_policy_sections(data:dict, policy_type:str) -> bool:
@@ -23,6 +23,16 @@ def list_policy_sections(data:dict, policy_type:str) -> bool:
             print(k, flush=True)
     return True
     # raise ArgumentError(None,message="No or wrong policyname given")
+
+# SECTION -  Alternative Listing
+# def list_policy_sections(data: dict, policy_type: str) -> bool:
+#     print(f"Available policies for {policy_type}:", flush=True)
+#     for k, v in data.items():
+#         # Verhindert, dass die globale 'ext' Sektion selbst als Policy gelistet wird
+#         if k != policy_type and isinstance(v, dict) and policy_type in v:
+#             print(f"  - {k}", flush=True)
+#     return True
+#!SECTION
 
 def toml2dn(argv: list[str] | None = None, argname: str = "--conf_file") -> dict[str, str]:
     if argv is None:
@@ -85,7 +95,7 @@ def _get_toml_policy_data(argv: list[str] | None,
     else:
         section_name = cast(str, section_name)
         try:
-            if policy_type == "ext": # pragma: no cover for future use
+            if policy_type == "ext": # for future use
                 extensions = data.get("ext", {}).copy()
                 specific_ext = data.get(section_name, {}).get("ext", {})
                 extensions.update(specific_ext)
@@ -98,7 +108,7 @@ def _get_toml_policy_data(argv: list[str] | None,
 
 def toml2dn_policy(
     argv: list[str] | None = None,
-    argconfname: str = "--conf_file",
+    argconfname: str = "--conf-file",
     argsecname: str = "--policy-name",
     filename: str | None = None,
     section: str | None = None,
@@ -107,11 +117,11 @@ def toml2dn_policy(
 
 def toml2ext_policy( 
     argv: list[str] | None = None,
-    argconfname: str = "--conf_file",
+    argconfname: str = "--conf-file",
     argsecname: str = "--policy-name",
     filename: str | None = None,
     section: str | None = None,
-) -> dict[str, str]:  # pragma: no cover, for future use
+) -> dict[str, str]:
     """
     Loads extensions. Global 'policy.ext' is overwritten by 'policy.<section>.ext'.
     """
@@ -119,11 +129,11 @@ def toml2ext_policy(
 
 def toml2san_policy(
     argv: list[str] | None = None,
-    argconfname: str = "--conf_file",
+    argconfname: str = "--conf-file",
     argsecname: str = "--policy-name",
     filename: str | None = None,
     section: str | None = None,
-) -> dict[str, str | int]:  # pragma: no cover, for future use
+) -> dict[str, str | int]:  # for future use
     """
     Loads SAN policy. Note: Validation logic currently not implemented.
     """

@@ -128,6 +128,14 @@ Zertifikat laden
 >>> cert_obj.subject
 <Name(C=DE,ST=Hessen,L=Frankfurt,O=FTW Projekte,CN=FTW Dev Root CA)>
 
+>>> from ftwpki.baselibs.core import get_subject_dict
+
+>>> get_subject_dict(cert_obj) #doctest: +NORMALIZE_WHITESPACE
+{'countryName': 'DE', 
+ 'stateOrProvinceName': 'Hessen', 
+ 'localityName': 'Frankfurt', 
+ 'organizationName': 'FTW Projekte', 
+ 'commonName': 'FTW Dev Root CA'}
 
 Certificate Signing Request (CSR) laden
 

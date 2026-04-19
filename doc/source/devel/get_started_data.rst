@@ -23,3 +23,15 @@ CertificateRecord(status='V',
 
 >>> print(cr.openssl_index_line) # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
 V   ...           0x20    unknown test
+
+>>> from ftwpki.baselibs.data import ValidationError
+
+>>> val_error = ValidationError(field="CN",
+...     message="Does not 'MATCH'!",
+...     invalid_value="Wrong value")
+
+>>> val_error
+ValidationError(field='CN', message="Does not 'MATCH'!", invalid_value='Wrong value')
+
+>>> print(val_error)
+  - [CN]: Does not 'MATCH'! (Got: 'Wrong value')

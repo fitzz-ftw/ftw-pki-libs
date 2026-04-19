@@ -10,15 +10,23 @@ cli_parser
 Modul cli_parser documentation
 """
 
-from argparse import Action, ArgumentError, ArgumentParser, Namespace
+from argparse import (
+    Action,
+    ArgumentError,
+    ArgumentParser,
+    Namespace,
+)
 from pathlib import Path
 from typing import cast
 
 from ftwpki.baselibs.protocols import (
+    CertImportProtocol,
     CSRProtocol,
     DistinguishedNameProtocol,
+    IntermedImportProtocol,
     PolicyProtocol,
     SigningProtocol,
+    SignParserProtocol,
 )
 
 ALIAS_MAP = {
@@ -70,7 +78,12 @@ class DistinguishedNameParser(ArgumentParser):
         exit_on_error: bool = False,
         **kwargs,
     ) -> None:
-        super().__init__(prog, usage, description, epilog, exit_on_error=exit_on_error, **kwargs)
+        super().__init__(prog, 
+                         usage, 
+                         description, 
+                         epilog, 
+                         exit_on_error=exit_on_error,
+                         **kwargs)
         self._setup_parser()
 
     def _setup_parser(self) -> None:
@@ -176,7 +189,7 @@ class PolicyParser(ArgumentParser):
 
     def _setup_parser(self) -> None:
         # Die Felder, die wir aus dem DistinguishedNameParser kennen
-        fields = {
+        self.fields = {
             "C": "countryName",
             "ST": "stateOrProvinceName",
             "L": "localityName",
@@ -187,7 +200,7 @@ class PolicyParser(ArgumentParser):
 
         choices = ["match", "optional", "supplied", "no"]
 
-        for alias, full_name in fields.items():
+        for alias, full_name in self.fields.items():
             self.add_argument(
                 f"-{alias}",
                 f"--{full_name}",
@@ -197,7 +210,7 @@ class PolicyParser(ArgumentParser):
                 help=f"Policy für {full_name} (Default: %(default)s)",
             )
         self.add_argument(
-            "-P",
+            "-p",
             "--policy-name",
             dest="policy_name",
             default=None,
@@ -213,7 +226,11 @@ class PolicyParser(ArgumentParser):
     def parse_args(
         self, args: list[str] | None = None, namespace: Namespace | None = None
     ) -> PolicyProtocol:
-        return cast(PolicyProtocol, super().parse_args(args=args, namespace=namespace))
+        ret_args = cast(PolicyProtocol, super().parse_args(args=args, namespace=namespace))
+        ret_args.policy = {}
+        for v in self.fields.values():
+            ret_args.policy[v] = getattr(ret_args, v, "no")
+        return cast(PolicyProtocol, ret_args)
 
 
 class CSRSigningParser(PolicyParser):
@@ -221,11 +238,91 @@ class CSRSigningParser(PolicyParser):
         super()._setup_parser()
         self.add_argument("-k", "--key", "--private-key", dest="private_key")
         self.add_argument("--private-dir", dest="private_dir")
+        self.add_argument(
+            "-c",
+            "--cert",
+            "--certificate",
+            dest="certificate",
+            default="",
+            help="Certificate to sign.",
+        )
+        self.add_argument(
+            "-d",
+            "--days",
+            dest="validity_days",
+            type=int,
+            default=365,
+            help="Days of validity of the signed certificate (Default: %(default)s)",
+        )
+        self.add_argument(
+            "-P",
+            "--path-length",
+            dest="path_length",
+            type=int,
+            default=0,
+            help="Length of the path for intermediate certificates.",
+        )
+        self.add_argument("passphrasefile")
+        self.add_argument("certificat_sign_request")
 
     def parse_args(
         self, args: list[str] | None = None, namespace: Namespace | None = None
-    ) -> SigningProtocol:
+    ) -> SignParserProtocol:
         return cast(SigningProtocol, super().parse_args(args=args, namespace=namespace))
+
+
+class CertImportParser(ArgumentParser):
+    def __init__(
+        self,
+        prog: str | None = None,
+        usage: str | None = None,
+        description: str | None = None,
+        epilog: str | None = None,
+        exit_on_error: bool = False,
+        argument_default="",
+        **kwargs,
+    ) -> None:
+        super().__init__(prog, usage, description, epilog, exit_on_error=exit_on_error, **kwargs)
+        self._setup_parser()
+
+    def _setup_parser(self) -> None:
+        self.add_argument("enc_zipfile",
+                          help="Encrypted certifikate zipfile.")
+        self.add_argument(
+            "--keyfile", "-k", 
+            dest="private_keyfile",
+            required=True, 
+            help="Name des Private Keys"
+        )
+
+    def parse_args(self, args: list[str] | None = None, 
+                   namespace: Namespace|None=None) -> CertImportProtocol:
+        return cast(CertImportProtocol, 
+                    super().parse_args(args,namespace))
+
+
+class IntermedImportParser(CertImportParser):
+
+    def _setup_parser(self) -> None:
+        self.add_argument("passphrase_file", help="Name of the file with teh passphrase")
+        super()._setup_parser()
+        self.add_argument(
+            "--policies",
+            default="",
+            dest="policies",
+            help="Directory with poicies files",
+        )
+        self.add_argument(
+            "-p", "--policy", 
+            dest="policy", 
+            help="The name of the policy to use", 
+            required=True,
+        )
+
+    def parse_args(self, args: list[str] | None = None, 
+                   namespace: Namespace|None=None) -> IntermedImportProtocol:
+        return cast(IntermedImportProtocol,
+                    super().parse_args(args, namespace))
 
 
 if __name__ == "__main__":  # pragma: no cover

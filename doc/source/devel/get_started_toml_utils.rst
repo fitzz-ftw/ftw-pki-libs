@@ -61,7 +61,7 @@ user
 server_l2
 {'commonName': 'error'}
 
->>> argv=["--conf_file", "toml_2_dn_test.toml", "--policy-name", "intermediate"]
+>>> argv=["--conf-file", "toml_2_dn_test.toml", "--policy-name", "intermediate"]
 >>> toml2dn_policy(argv)
 {'countryName': 'match', 'organizationName': 'match', 'commonName': 'supplied'}
 
@@ -87,5 +87,23 @@ Error loading TOML 'not_exists.toml': [Errno 2] No such file or directory: 'not_
 
 >>> toml2dn_policy(filename="toml_2_dn_test.toml", section="secureintermediate") #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
 {}
+
+>>> from ftwpki.baselibs.toml_utils import toml2ext_policy
+
+>>> ext_only_toml=env.copy2cwd("toml_2_ext_test_only.toml")
+
+>>> toml2ext_policy(filename="toml_2_ext_test_only.toml")
+secureintermediate
+{'commonName': 'error'}
+
+>>> toml2ext_policy(filename="toml_2_ext_test_only.toml", section="intermediate") #doctest: +NORMALIZE_WHITESPACE
+{'ocspURI': 'http://ocsp.deine-pki.test', 
+ 'crlURI': 'http://pki.deine-pki.test/crl', 
+ 'caIssuerURI': 'http://pki.deine-pki.test/ca.crt'}
+
+>>> toml2ext_policy(filename="toml_2_ext_test_only.toml", section="secureintermediate") #doctest: +NORMALIZE_WHITESPACE
+{'ocspURI': 'http://ocsp.deine-pki.test', 
+ 'crlURI': 'http://pki.deine-pki.test/crl_intermediate', 
+ 'caIssuerURI': 'http://pki.deine-pki.test/ca.crt'}
 
 >>> env.teardown()

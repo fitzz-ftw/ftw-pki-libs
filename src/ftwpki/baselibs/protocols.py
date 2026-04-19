@@ -38,10 +38,27 @@ class PolicyProtocol(Protocol):
     organizationName: PolicyType
     organizationalUnitName: PolicyType
     commonName: PolicyType
+    policy: dict[str,PolicyType]
 
 class SigningProtocol(PolicyProtocol):
     private_key:str
     private_dir:str
+    certificate:str
+    certificat_sign_request:str
+    path_length:int
+    validity_days:int
+
+class SignParserProtocol(SigningProtocol):
+    passphrasefile:str
+
+class CertImportProtocol(Protocol):
+    private_keyfile:str
+    enc_zipfile:str
+
+class IntermedImportProtocol(Protocol):
+    passphrase_file:str
+    policies:str
+    policy:str
 
 if __name__ == "__main__": # pragma: no cover
     from doctest import FAIL_FAST, testfile

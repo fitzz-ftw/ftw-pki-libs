@@ -1,0 +1,8 @@
+[policy.ext]
+# Die "Problemkinder" für die Coverage:
+ocspURI = "http://ocsp.deine-pki.test"
+crlURI = "http://pki.deine-pki.test/crl"
+caIssuerURI = "http://pki.deine-pki.test/ca.crt"
+
+[policy.secureintermediate.ext]
+crlURI = "http://pki.deine-pki.test/crl_intermediate"

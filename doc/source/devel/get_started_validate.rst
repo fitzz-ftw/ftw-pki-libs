@@ -18,19 +18,18 @@
 ValidatorDN({'C': 'match', 'A': 'optional'})
 
 >>> val_dn.validate(csr1)
-True
+ValidationResult(is_valid=True, errors=[])
+
 
 >>> val_dn.validate(csr2)
-Traceback (most recent call last):
-    ...
-ftwpki.baselibs.exceptions.PKIValidationError: No match C:en MATCH de
+ValidationResult(is_valid=False, errors=[ValidationError(field='C:de', message='MATCH', invalid_value='en')])
 
 >>> val_dn.validate(csr3)
-Traceback (most recent call last):
-    ...
-ftwpki.baselibs.exceptions.PKIValidationError: No match D DISALLOWED empty
+ValidationResult(is_valid=False, errors=[ValidationError(field='D', message='DISALLOWED', invalid_value='')])
 
 >>> val_dn.validate(csr4)
+ValidationResult(is_valid=True, errors=[])
+
 True
 
 >>> val_dn2= ValidatorDN(policy2, issuer)
@@ -38,11 +37,11 @@ True
 ValidatorDN({'C': 'match', 'B': 'supplied'})
 
 >>> val_dn2.validate(csr1)
-Traceback (most recent call last):
-    ...
-ftwpki.baselibs.exceptions.PKIValidationError: No match B SUPPLIED any_value
+ValidationResult(is_valid=False, errors=[ValidationError(field='B', message='SUPPLIED', invalid_value='')])
 
 >>> val_dn2.validate(csr5)
+ValidationResult(is_valid=True, errors=[])
+
 True
 
 >>> val_dn3= ValidatorDN(policy3, issuer)
@@ -50,6 +49,42 @@ True
 ValidatorDN({'C': 'mach'})
 
 >>> val_dn3.validate(csr1)
-Traceback (most recent call last):
-    ...
-ftwpki.baselibs.exceptions.PKIValidationError: No match C UNKNOWN_POLICY_MODE defined mode: mach
+ValidationResult(is_valid=False, errors=[ValidationError(field='C', message='UNKNOWN_POLICY_MODE', invalid_value='mach')])
+
+
+>>> from ftwpki.baselibs.validate import validate_uri
+
+>>> validate_uri(None)
+Warning: Could not process URI 'None': 'NoneType' object has no attribute 'split'
+''
+
+>>> from fitzzftw.develtool.testinfra import TestHomeEnvironment
+>>> from pathlib import Path
+>>> env = TestHomeEnvironment(Path("doc/source/devel/testhome"))
+>>> env.setup(True)
+>>> crt_path = env.copy2cwd("test_short.crt.pem")
+>>> from ftwpki.baselibs.core import (
+...     load_certificate_from_pem,
+... )
+
+>>> cert_obj = load_certificate_from_pem(Path(crt_path).read_bytes())
+
+>>> cert_obj
+<Certificate(subject=<Name(C=DE,ST=,L=,O=Fitzz TeXnik Welt,OU=,CN=node-01.internal)>, ...)>
+
+>>> from ftwpki.baselibs.validate import validate_and_clamp_validity
+
+>>> validate_and_clamp_validity(cert_obj, 3650) #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+ValidityDateCheckResult(not_after=datetime.datetime(...), 
+    is_shortened=True, 
+    original_requested_days=3650, 
+    actual_days=...)
+
+>>> validate_and_clamp_validity(cert_obj, 36) #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+ValidityDateCheckResult(not_after=datetime.datetime(...), 
+    is_shortened=False, 
+    original_requested_days=36, 
+    actual_days=36)
+
+>>> env.clean_home()
+>>> env.teardown()

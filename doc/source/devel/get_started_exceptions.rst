@@ -62,3 +62,14 @@ True
 >>> repr(PKIEncryptionError())
 'PKIEncryptionError()'
 
+>>> from ftwpki.baselibs.exceptions import PKIValidationError
+
+>>> pve=PKIValidationError(dut="OU", operation="MATCH", orig="IT")
+
+>>> pve
+PKIValidationError()
+
+>>> raise pve
+Traceback (most recent call last):
+    ...
+ftwpki.baselibs.exceptions.PKIValidationError: No match OU MATCH IT
