@@ -13,8 +13,10 @@ Modul toml_utils documentation
 import sys
 from argparse import ArgumentError  # noqa: F401
 from pathlib import Path
-from tomllib import TOMLDecodeError, loads
+from tomllib import TOMLDecodeError, load, loads
 from typing import cast
+
+from ftwpki.baselibs.app_dirs import PKIDirs
 
 
 def list_policy_sections(data:dict, policy_type:str) -> bool:
@@ -24,15 +26,6 @@ def list_policy_sections(data:dict, policy_type:str) -> bool:
     return True
     # raise ArgumentError(None,message="No or wrong policyname given")
 
-# SECTION -  Alternative Listing
-# def list_policy_sections(data: dict, policy_type: str) -> bool:
-#     print(f"Available policies for {policy_type}:", flush=True)
-#     for k, v in data.items():
-#         # Verhindert, dass die globale 'ext' Sektion selbst als Policy gelistet wird
-#         if k != policy_type and isinstance(v, dict) and policy_type in v:
-#             print(f"  - {k}", flush=True)
-#     return True
-#!SECTION
 
 def toml2dn(argv: list[str] | None = None, argname: str = "--conf_file") -> dict[str, str]:
     if argv is None:
@@ -115,6 +108,7 @@ def toml2dn_policy(
 ) -> dict[str, str]:
     return _get_toml_policy_data(argv, argconfname, argsecname, "dn", filename,section)
 
+
 def toml2ext_policy( 
     argv: list[str] | None = None,
     argconfname: str = "--conf-file",
@@ -127,6 +121,7 @@ def toml2ext_policy(
     """
     return _get_toml_policy_data(argv, argconfname, argsecname, "ext", filename,section)
 
+
 def toml2san_policy(
     argv: list[str] | None = None,
     argconfname: str = "--conf-file",
@@ -138,6 +133,19 @@ def toml2san_policy(
     Loads SAN policy. Note: Validation logic currently not implemented.
     """
     return _get_toml_policy_data(argv, argconfname, argsecname, "san", filename, section)
+
+
+def toml2config(section:str="") -> dict[str, str]:
+    conf_file_path= PKIDirs().user_config_path / "config.toml"
+    with conf_file_path.open("rb") as f:
+        raw_dic = load(f)
+    ret_dict:dict[str,str] = raw_dic["fallback"].copy()
+    if section:
+        try:
+            ret_dict.update(raw_dic[section])
+        except KeyError:
+            ...
+    return ret_dict
 
 if __name__ == "__main__": # pragma: no cover
     from doctest import FAIL_FAST, testfile
@@ -169,3 +177,4 @@ if __name__ == "__main__": # pragma: no cover
             print(f"\nDocTests failed: {test_failed} tests.")
     else:
         print(f"⚠️ Warning: Test file {test_file.name} not found.")
+

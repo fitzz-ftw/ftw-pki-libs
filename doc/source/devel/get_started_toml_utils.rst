@@ -106,4 +106,65 @@ secureintermediate
  'crlURI': 'http://pki.deine-pki.test/crl_intermediate', 
  'caIssuerURI': 'http://pki.deine-pki.test/ca.crt'}
 
+>>> from ftwpki.baselibs.config_file_create import toml_conf_str, write_example_config
+>>> write_example_config(toml_conf_str)
+
+>>> from ftwpki.baselibs.toml_utils import toml2config
+
+>>> toml2config() #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+{'private_keys': '~/.config/ftwpki/.private', 
+ 'passphrases': '~/.config/ftwpki/.private', 
+ 'csr_configs': '~/.config/ftwpki/csr', 
+ 'policies': '~/.config/ftwpki/policies', 
+ 'public_data': '~/.local/share/ftwpki', 
+ 'certs': '~/.local/share/ftwpki/certs', 
+ 'chains': '~/.local/share/ftwpki/chains', 
+ 'ext_cert': '.crt', 
+ 'ext_public': '.pub', 
+ 'ext_chain': '.pem', 
+ 'ext_csr_conf': '.toml', 
+ 'ext_policy': '.policy', 
+ 'ext_signedcert': '.zip.enc'}
+
+>>> toml2config("intermediate") #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+{'private_keys': '~/.config/ftwpki/.private', 
+ 'passphrases': '~/.config/ftwpki/.private', 
+ 'csr_configs': '~/.config/ftwpki/csr', 
+ 'policies': '~/.config/ftwpki/policies/intermediate', 
+ 'public_data': '~/.local/share/ftwpki', 
+ 'certs': '~/.local/share/ftwpki/certs', 
+ 'chains': '~/.local/share/ftwpki/chains', 
+ 'ext_cert': '.crt', 
+ 'ext_public': '.pub', 
+ 'ext_chain': '.pem', 
+ 'ext_csr_conf': '.toml', 
+ 'ext_policy': '.policy', 
+ 'ext_signedcert': '.zip.enc'}
+
+>>> toml2config("inter") #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+{'private_keys': '~/.config/ftwpki/.private', 
+ 'passphrases': '~/.config/ftwpki/.private', 
+ 'csr_configs': '~/.config/ftwpki/csr', 
+ 'policies': '~/.config/ftwpki/policies', 
+ 'public_data': '~/.local/share/ftwpki', 
+ 'certs': '~/.local/share/ftwpki/certs', 
+ 'chains': '~/.local/share/ftwpki/chains', 
+ 'ext_cert': '.crt', 
+ 'ext_public': '.pub', 
+ 'ext_chain': '.pem', 
+ 'ext_csr_conf': '.toml', 
+ 'ext_policy': '.policy', 
+ 'ext_signedcert': '.zip.enc'}
+
+>>> from ftwpki.baselibs.app_dirs import PKIDirs
+
+>>> conf_file =PKIDirs().user_config_path / "config.toml"
+>>> conf_file.unlink()
+
+>>> toml2config("inter") #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+Traceback (most recent call last):
+    ...
+FileNotFoundError: [Errno 2] No such file or directory: '...config/ftwpki/config.toml'
+
+>>> env.clean_home()
 >>> env.teardown()
