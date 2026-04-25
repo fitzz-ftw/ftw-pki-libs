@@ -58,7 +58,7 @@ doc = [
 
 dev = ["ftw-pki-libs[test,doc,lint]", "esbonio==0.16.5"]
 lint = ["ruff"]
-test = ["pytest", "pytest-mock", "pytest-cov"]
+test = ["pytest", "pytest-mock", "pytest-cov","ftw-devtools"]
 
 [[project.authors]]
 email = "FitzzTeXnikWelt@t-online.de"

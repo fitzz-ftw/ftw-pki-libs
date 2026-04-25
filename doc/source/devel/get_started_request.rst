@@ -62,7 +62,7 @@ Request speichern
 --------------------
 
 
->>> from fitzzftw.develtool.testinfra import TestHomeEnvironment
+>>> from fitzzftw.devtools.testinfra import TestHomeEnvironment
 >>> from pathlib import Path
 >>> env = TestHomeEnvironment(Path("doc/source/devel/testhome"))
 >>> env.setup(True)

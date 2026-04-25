@@ -78,7 +78,7 @@ ftwpki.baselibs.exceptions.PKIEncryptionError: Could not decrypt or load the pri
 >>> private_key_obj= load_private_key_from_pem(priv_pem, passw)
 
 >>> from pathlib import Path
->>> from fitzzftw.develtool.testinfra import TestHomeEnvironment
+>>> from fitzzftw.devtools.testinfra import TestHomeEnvironment
 >>> env = TestHomeEnvironment(Path("doc/source/devel/testhome"))
 >>> env.setup(True)
 

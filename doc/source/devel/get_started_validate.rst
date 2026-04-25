@@ -58,7 +58,7 @@ ValidationResult(is_valid=False, errors=[ValidationError(field='C', message='UNK
 Warning: Could not process URI 'None': 'NoneType' object has no attribute 'split'
 ''
 
->>> from fitzzftw.develtool.testinfra import TestHomeEnvironment
+>>> from fitzzftw.devtools.testinfra import TestHomeEnvironment
 >>> from pathlib import Path
 >>> env = TestHomeEnvironment(Path("doc/source/devel/testhome"))
 >>> env.setup(True)
