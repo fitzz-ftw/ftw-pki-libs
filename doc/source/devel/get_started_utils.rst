@@ -1,3 +1,6 @@
+Utilities
+=========
+
 >>> from fitzzftw.devtools.testinfra import TestHomeEnvironment
 >>> from pathlib import Path
 >>> env = TestHomeEnvironment(Path("doc/source/devel/testhome"))
@@ -68,12 +71,14 @@ True
 True
 
 Test 1: Ein faules Ei in der Mitte der Kette
+
 >>> validate_and_format_chain(ca_cert_pem, b"MUELL", ca_cert_pem) #doctest: +ELLIPSIS
 Traceback (most recent call last):
     ...
 ValueError: 'Chainpart 2' ist kein gültiges PEM-Zertifikat: ...
 
 Test 2: Falscher Typ in der Kette
+
 >>> validate_and_format_chain(ca_cert_pem, str(123))
 Traceback (most recent call last):
     ...
@@ -82,7 +87,9 @@ TypeError: 'Chainpart 2' muss vom Typ 'bytes' sein, nicht str.
 >>> from ftwpki.baselibs.utils import create_encrypted_zipfile
 
 Wir erstellen das Paket
-signed_pem und user_cert_pem sind hier zum Testen identisch mit der CA
+signed_pem und user_cert_pem sind hier zum Testen identisch mit 
+der CA
+
 >>> p7m_bytes = create_encrypted_zipfile(
 ...     ca_cert, 
 ...     ca_cert, 
@@ -90,6 +97,7 @@ signed_pem und user_cert_pem sind hier zum Testen identisch mit der CA
 ... )
 
 Prüfen, ob wir Daten zurückbekommen haben
+
 >>> isinstance(p7m_bytes, bytes)
 True
 
@@ -97,12 +105,15 @@ True
 True
 
 Technischer Check: Enthält das Ergebnis die S/MIME Header?
+
 >>> b"Content-Type: application/pkcs7-mime" in p7m_bytes
 True
 >>> b"smime.p7m" in p7m_bytes
 True
 
-Optional: Prüfen, ob der Content-Transfer-Encoding Header vorhanden ist
+Optional: Prüfen, ob der Content-Transfer-Encoding Header 
+vorhanden ist
+
 >>> b"base64" in p7m_bytes.lower()
 True
 
@@ -113,7 +124,9 @@ True
 
 
 1. Entschlüsseln
-p7m_bytes ist das Ergebnis von create_encrypted_zipfile aus dem vorherigen Test
+p7m_bytes ist das Ergebnis von create_encrypted_zipfile aus dem 
+vorherigen Test
+
 >>> decrypted_zip_bytes = decrypt_bytedata(
 ...     p7m_bytes,
 ...     ca_key,
@@ -121,15 +134,18 @@ p7m_bytes ist das Ergebnis von create_encrypted_zipfile aus dem vorherigen Test
 ... )
 
 1. Validierung: Sind es ZIP-Bytes?
+
 >>> decrypted_zip_bytes.startswith(b"PK\x03\x04")
 True
 
 1. Inhalt prüfen: Ist unsere Kette drin?
+
 >>> with zipfile.ZipFile(io.BytesIO(decrypted_zip_bytes)) as zf:
 ...     "certificate_chain.pem" in zf.namelist()
 True
 
 1. Kette extrahieren und Typ-Check
+
 >>> with zipfile.ZipFile(io.BytesIO(decrypted_zip_bytes)) as zf:
 ...     extracted_chain = zf.read("certificate_chain.pem")
 >>> b"-----BEGIN CERTIFICATE-----" in extracted_chain

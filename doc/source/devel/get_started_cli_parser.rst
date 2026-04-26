@@ -1,3 +1,6 @@
+Command Line Interface Parsers
+================================
+
 
 >>> from ftwpki.baselibs.cli_parser import DistinguishedNameParser
 
@@ -130,7 +133,7 @@ Namespace(countryName='match',
 
 >>> from ftwpki.baselibs.cli_parser import CertImportParser
 
->>> cip=CertImportParser()
+>>> cip=CertImportParser(exit_on_error=False)
 >>> cip #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
 CertImportParser(prog='...', 
     usage=None, 
@@ -142,6 +145,8 @@ CertImportParser(prog='...',
 >>> cip.parse_args([ "signed_certificat.zip.enc"])  #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
 Traceback (most recent call last):
     ...
+argparse.ArgumentError: the following arguments are required: --keyfile/-k
+
 SystemExit: 2
 
 usage: cli_parser.py [-h] --keyfile PRIVATE_KEYFILE enc-zipfile

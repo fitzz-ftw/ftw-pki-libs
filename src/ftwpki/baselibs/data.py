@@ -10,7 +10,7 @@ data
 Modul data documentation
 """
 
-import datetime
+from datetime import datetime
 from pathlib import Path
 from typing import Literal, NamedTuple
 
@@ -28,7 +28,7 @@ class CertificateRecord(NamedTuple):
     Used for database logging and index.txt compatibility.
     """
     status: CertificateStatus 
-    expiry: datetime.datetime
+    expiry: datetime
     revocation_date: str   # Format: YYMMDDHHMMSSZ,reason or empty
     serial: str            # Hexadecimal string
     subject: str  # Subject DN (RFC4514 format)

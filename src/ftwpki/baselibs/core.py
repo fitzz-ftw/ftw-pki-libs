@@ -13,6 +13,7 @@ Modul core documentation
 import datetime
 import stat
 from pathlib import Path
+from typing import cast
 
 from cryptography import x509
 from cryptography.exceptions import UnsupportedAlgorithm
@@ -172,7 +173,7 @@ def cert_to_record(cert: x509.Certificate, status: CertificateStatus = "V") -> C
     This is a pure function for data transformation.
     """
     return CertificateRecord(
-        status=status.upper(),
+        status=cast(CertificateStatus,status.upper()),
         expiry=cert.not_valid_after_utc,
         revocation_date="",
         serial=format(cert.serial_number, "02X"),

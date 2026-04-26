@@ -1,4 +1,5 @@
-
+Validating
+===========
 
 >>> policy={"C": "match", "A":"optional"}
 >>> policy2={"C": "match","B":"supplied"}
@@ -69,8 +70,11 @@ Warning: Could not process URI 'None': 'NoneType' object has no attribute 'split
 
 >>> cert_obj = load_certificate_from_pem(Path(crt_path).read_bytes())
 
->>> cert_obj
-<Certificate(subject=<Name(C=DE,ST=,L=,O=Fitzz TeXnik Welt,OU=,CN=node-01.internal)>, ...)>
+>>> cert_obj # doctest: +ELLIPSIS
+<Certificate(subject=<Name(...)>, ...)>
+
+>>> cert_obj.subject.rfc4514_string()
+'CN=node-01.internal,OU=,O=Fitzz TeXnik Welt,L=,ST=,C=DE'
 
 >>> from ftwpki.baselibs.validate import validate_and_clamp_validity
 

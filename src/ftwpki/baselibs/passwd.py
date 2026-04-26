@@ -11,11 +11,8 @@ Modul passwd documentation
 """
 
 
-import argparse
-import getpass
 import os
 import stat
-import sys
 
 # from getpass import getpass
 from pathlib import Path
@@ -159,109 +156,6 @@ class PasswordManager:
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(private_dir={str(self._private_dir)!r})"
-
-class PasswordCli:
-    """
-    CLI for encrypting password files using the PasswordManager.
-    """
-
-    def __init__(self):
-        """
-        Initialize the CLI with an argument parser.
-        """
-        self._parser = self._setup_parser()
-
-    def _setup_parser(self) -> argparse.ArgumentParser:
-        """
-        Configure the argument parser for target, source, and output directory.
-
-        :returns: The configured ArgumentParser instance.
-        """
-        parser = argparse.ArgumentParser(
-            description="Encrypt a passphrase file into the private directory."
-        )
-
-        parser.add_argument("target_file", help="Name of the encrypted output file")
-
-        parser.add_argument(
-            "-p",
-            "--passphrase-file",
-            default="password.txt",
-            help="Source file containing the passphrase (default: password.txt)",
-        )
-
-        parser.add_argument(
-            "-o",
-            "--outdir",
-            default=".private",
-            help="Target directory for encrypted files (default: .private)",
-        )
-
-        return parser
-
-    def run(self, args_list: list[str] | None = None) -> int:
-        """
-        Execute the encryption process.
-
-        :param args_list: Command line arguments.
-        :returns: Exit code (0 for success, 1 for error).
-        """
-        args = self._parser.parse_args(args_list)
-        manager = PasswordManager(private_dir=args.outdir)
-
-        try:
-            password = getpass.getpass(f"Password for '{args.target_file}': ")
-
-            if not password:
-                print("Error: Password is required.", file=sys.stderr)
-                return 1
-
-            manager.encrypt_password_file(
-                input_file=args.passphrase_file,
-                output_filename=args.target_file,
-                password=password,
-            )
-
-            return 0
-
-        except KeyboardInterrupt:
-            return 1
-        except Exception as err:
-            print(f"Error: {err}", file=sys.stderr)
-            return 1
-
-    def __repr__(self) -> str:
-        """
-        Return the canonical string representation.
-
-        :returns: String containing the class name.
-        """
-        return f"{self.__class__.__name__}()"
-
-def get_parser() -> argparse.ArgumentParser: 
-    """
-    Get the argument parser for the password encryption tool.
-
-    This function is used by Sphinx-argparse to automatically generate
-    the CLI documentation.
-
-    :return: An initialized ArgumentParser object.
-    """
-    cli = PasswordCli()
-    return cli._setup_parser()
-
-def prog_password_enc() -> int:
-    """
-    Main entry point for the password encryption command line interface.
-
-    This function initializes the PasswordCli, parses arguments,
-    and executes the encryption/decryption logic.
-
-    :return: Exit code (0 for success, non-zero for errors).
-    """
-    cli = PasswordCli()
-    return cli.run()
-
 
 if __name__ == "__main__": # pragma: no cover
     from doctest import FAIL_FAST, testfile

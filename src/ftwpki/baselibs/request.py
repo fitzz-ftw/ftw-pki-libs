@@ -69,7 +69,7 @@ class CertificateRequest:
 
         :returns: String containing the class name and subject.
         """
-        return f"{self.__class__.__name__}(subject={self._subject})"
+        return f"{self.__class__.__name__}(subject=<Name({self._subject.rfc4514_string()})>)"
 
 
 

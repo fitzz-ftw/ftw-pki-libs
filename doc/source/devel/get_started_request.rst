@@ -56,7 +56,8 @@ Repräsentation
 Die String-Repräsentation erlaubt ein schnelles Debugging der Identität.
 
 >>> req
-CertificateRequest(subject=<Name(C=DE,ST=,L=,O=Fitzz TeXnik Welt,OU=,CN=node-01.internal)>)
+CertificateRequest(subject=<Name(CN=node-01.internal,OU=,O=Fitzz TeXnik Welt,L=,ST=,C=DE)>)
+
 
 Request speichern
 --------------------
@@ -85,4 +86,5 @@ True
 >>> b"BEGIN CERTIFICATE REQUEST" in csr_path.read_bytes()
 True
 
+>>> env.clean_home()
 >>> env.teardown()

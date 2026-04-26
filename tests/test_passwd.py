@@ -1,10 +1,11 @@
-from pathlib import Path
 import sys
+from pathlib import Path
 
 import pytest
 
 from ftwpki.baselibs.exceptions import PKIEncryptionError, PKISecurityError
-from ftwpki.baselibs.passwd import PasswordCli, prog_password_enc
+
+# from ftwpki.baselibs.passwd import PasswordCli, prog_password_enc
 
 
 def test_encrypt_password_file_raises_pki_encryption_error(tmp_path, monkeypatch):
@@ -73,85 +74,3 @@ def test_decrypt_padding_error_raises_security_error(tmp_path):
     with pytest.raises(PKISecurityError):
         mgr.decrypt_password_file("test.enc", password="falsches_passwort")
 
-def test_runner_success(tmp_path, monkeypatch, capsys):
-    """Deckt den Erfolgsfall ab (Return 0)."""
-    # 1. Setup: Input-Datei erstellen
-    in_file = tmp_path / "source.txt"
-    in_file.write_text("geheim")
-    runner = PasswordCli()
-
-    monkeypatch.setattr("ftwpki.baselibs.passwd.getpass.getpass", lambda _: "mein_passwort")
-
-    # Korrektur: target_file ist positional, passphrase-file nutzt -p
-    args = [
-        "-p",
-        str(in_file),
-        "-o",
-        str(tmp_path / "out"),
-        "target.enc",  # Positionales Argument am Ende
-    ]
-
-    exit_code = runner.run(args)
-    assert exit_code == 0
-
-
-def test_runner_empty_password(tmp_path, monkeypatch, capsys):
-    """Deckt Zeile 210-212 ab (Leeres Passwort -> Return 1)."""
-    runner = PasswordCli()
-    monkeypatch.setattr("getpass.getpass", lambda _: "")  # Leere Eingabe
-
-    exit_code = runner.run(["test.enc"])
-
-    assert exit_code == 1
-    out, err = capsys.readouterr()
-    assert "Error: Password is required." in err
-
-
-def test_runner_keyboard_interrupt(tmp_path, monkeypatch):
-    """Deckt Zeile 222-223 ab (Strg+C -> Return 1)."""
-    runner = PasswordCli()
-
-    def mock_interrupt(_):
-        raise KeyboardInterrupt()
-
-    monkeypatch.setattr("getpass.getpass", mock_interrupt)
-
-    exit_code = runner.run(["test.enc"])
-    assert exit_code == 1
-
-
-def test_runner_general_exception(tmp_path, monkeypatch, capsys):
-    """Deckt Zeile 224-227 ab (Allgemeiner Fehler -> Return 1)."""
-    runner = PasswordCli()
-    monkeypatch.setattr("getpass.getpass", lambda _: "pass")
-
-    # Fehler provozieren, indem wir die Manager-Klasse sabotieren
-    def mock_encrypt(*args, **kwargs):
-        raise Exception("Unerwarteter Dateisystemfehler")
-
-    # Pfad zum PasswordManager anpassen, falls er anders importiert wird
-    monkeypatch.setattr(
-        "ftwpki.baselibs.passwd.PasswordManager.encrypt_password_file", mock_encrypt
-    )
-
-    exit_code = runner.run(["test.enc"])
-    assert exit_code == 1
-    _, err = capsys.readouterr()
-    assert "Error: Unerwarteter Dateisystemfehler" in err
-
-
-def test_prog_password_enc_entrypoint(monkeypatch):
-    """
-    Deckt die Zeilen 242-244 ab, indem die Hauptfunktion
-    mit einem Help-Argument aufgerufen wird.
-    """
-    # Wir simulieren den Aufruf mit '--help', damit der Parser
-    # sofort terminiert und wir nicht echtes Password-Handling brauchen.
-    monkeypatch.setattr(sys, "argv", ["passwd.py", "--help"])
-
-    # argparse ruft bei --help intern sys.exit(0) auf.
-    with pytest.raises(SystemExit) as excinfo:
-        prog_password_enc()
-
-    # Sicherstellen, dass er mit Code 0 (Erfolg/Help) beendet wurde
-    assert excinfo.value.code == 0

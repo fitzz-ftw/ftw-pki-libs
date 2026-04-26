@@ -10,6 +10,7 @@ cli_parser
 Modul cli_parser documentation
 """
 
+import sys
 from argparse import (
     Action,
     ArgumentError,
@@ -25,7 +26,6 @@ from ftwpki.baselibs.protocols import (
     DistinguishedNameProtocol,
     IntermedImportProtocol,
     PolicyProtocol,
-    SigningProtocol,
     SignParserProtocol,
 )
 
@@ -38,6 +38,7 @@ ALIAS_MAP = {
     "OU": "organizationalUnitName",
 }
 
+# ArgumentParser().error()
 
 class SubjAction(Action):
     @staticmethod
@@ -67,8 +68,25 @@ class SubjAction(Action):
         except Exception as e:
             raise ArgumentError(self, f"Ungültiges Subj-Format: {e}")
 
+class ArgparseFix311(ArgumentParser):
+    """
+    Fix for Python 3.11 argparse behavior where exit_on_error=False
+    is sometimes ignored, leading to SystemExit instead of ArgumentError.
+    """
 
-class DistinguishedNameParser(ArgumentParser):
+    def error(self, message):
+        if sys.version_info[:2] == (3, 11): # py 3.11 only no cover
+            # Force ArgumentError to satisfy doctests and library usage
+            raise ArgumentError(None, message)
+        super().error(message)  # not py 3.11 no cover
+
+    def exit(self, status=0, message=None):
+        if sys.version_info[:2] == (3, 11) and status != 0:  # py 3.11 only no cover
+            self.error(message or f"Exited with status {status}")
+        super().exit(status, message)  # not py 3.11 no cover
+
+
+class DistinguishedNameParser(ArgparseFix311):
     def __init__(
         self,
         prog: str | None = None,
@@ -78,12 +96,7 @@ class DistinguishedNameParser(ArgumentParser):
         exit_on_error: bool = False,
         **kwargs,
     ) -> None:
-        super().__init__(prog, 
-                         usage, 
-                         description, 
-                         epilog, 
-                         exit_on_error=exit_on_error,
-                         **kwargs)
+        super().__init__(prog, usage, description, epilog, exit_on_error=exit_on_error, **kwargs)
         self._setup_parser()
 
     def _setup_parser(self) -> None:
@@ -175,7 +188,7 @@ class CSRParser(DistinguishedNameParser):
         return cast(CSRProtocol, super().parse_args(args, namespace))
 
 
-class PolicyParser(ArgumentParser):
+class PolicyParser(ArgparseFix311):
     """
     Parser für Zertifikats-Policies.
     Legt fest, wie mit DN-Feldern bei der Signierung verfahren wird.
@@ -268,10 +281,10 @@ class CSRSigningParser(PolicyParser):
     def parse_args(
         self, args: list[str] | None = None, namespace: Namespace | None = None
     ) -> SignParserProtocol:
-        return cast(SigningProtocol, super().parse_args(args=args, namespace=namespace))
+        return cast(SignParserProtocol, super().parse_args(args=args, namespace=namespace))
 
 
-class CertImportParser(ArgumentParser):
+class CertImportParser(ArgparseFix311):
     def __init__(
         self,
         prog: str | None = None,

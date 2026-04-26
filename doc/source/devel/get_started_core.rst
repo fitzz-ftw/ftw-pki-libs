@@ -33,15 +33,20 @@ Vollständiger Name
 >>> dn_full = create_distinguished_name(
 ...     "My Node", "DE", "NRW", "RS", "Fritz", "Dev-Unit", "fritz@example.org"
 ... )
->>> str(dn_full)
-'<Name(C=DE,ST=NRW,L=RS,O=Fritz,OU=Dev-Unit,1.2.840.113549.1.9.1=fritz@example.org,CN=My Node)>'
+>>> str(dn_full) # doctest: +ELLIPSIS
+'<Name(...)>'
+
+>>> str(dn_full.rfc4514_string())
+'CN=My Node,1.2.840.113549.1.9.1=fritz@example.org,OU=Dev-Unit,O=Fritz,L=RS,ST=NRW,C=DE'
 
 Minimaler Name (Punkte unterdrücken optionale Felder)
 
 >>> dn_min = create_distinguished_name("Small Node", "DE", "NRW", "RS", "Fritz", ".", ".")
->>> str(dn_min)
-'<Name(C=DE,ST=NRW,L=RS,O=Fritz,CN=Small Node)>'
+>>> str(dn_min)# doctest: +ELLIPSIS
+'<Name(...)>'
 
+>>> str(dn_min.rfc4514_string())
+'CN=Small Node,O=Fritz,L=RS,ST=NRW,C=DE'
 
 5. Transformationen (get_pem_bytes & create_chain_bytes)
 -----------------------------------------------------------
@@ -125,8 +130,8 @@ Zertifikat laden
 >>> from ftwpki.baselibs.core import load_certificate_from_pem
 
 >>> cert_obj = load_certificate_from_pem(cert_path.read_bytes())
->>> cert_obj.subject
-<Name(C=DE,ST=Hessen,L=Frankfurt,O=FTW Projekte,CN=FTW Dev Root CA)>
+>>> cert_obj.subject.rfc4514_string()
+'CN=FTW Dev Root CA,O=FTW Projekte,L=Frankfurt,ST=Hessen,C=DE'
 
 >>> from ftwpki.baselibs.core import get_subject_dict
 
@@ -142,7 +147,9 @@ Certificate Signing Request (CSR) laden
 >>> from ftwpki.baselibs.core import load_csr_from_pem
 
 >>> csr_obj = load_csr_from_pem(csr_path.read_bytes())
->>> csr_obj.subject
+>>> csr_obj.subject.rfc4514_string()
+'CN=node-01.internal,OU=,O=Fitzz TeXnik Welt,L=,ST=,C=DE'
+
 <Name(C=DE,ST=,L=,O=Fitzz TeXnik Welt,OU=,CN=node-01.internal)>
 
 

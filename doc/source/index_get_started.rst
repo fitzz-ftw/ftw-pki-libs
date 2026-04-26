@@ -16,3 +16,12 @@ supported Python versions (3.11 - 3.15).
    devel/get_started_policies
    devel/get_started_request
    devel/get_started_signer
+   devel/get_started_data
+   devel/get_started_openssl_comp
+   devel/get_started_protocols
+   devel/get_started_toml_utils
+   devel/get_started_utils
+   devel/get_started_validate
+   devel/get_started_config_file_create
+   devel/get_started_cli_parser
+
