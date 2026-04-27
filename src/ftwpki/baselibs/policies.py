@@ -24,7 +24,9 @@ class BasePolicy(ABC):
     @abstractmethod
     def get_extensions(self, **kwargs) -> list[tuple[x509.ExtensionType, bool]]:
         """Returns a list of (extension, critical) tuples."""
-        
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}()"       
 
 class RootPolicy(BasePolicy):
     """
@@ -57,9 +59,9 @@ class RootPolicy(BasePolicy):
 
 class IntermediatePolicy(BasePolicy):
     def __init__(self,**kwargs):
-        path_length = kwargs.pop("path_length", 0)
+        self._path_length = kwargs.pop("path_length", 0)
         super().__init__(**kwargs)
-        self._basic_constraints = x509.BasicConstraints(ca=True, path_length=path_length)
+        self._basic_constraints = x509.BasicConstraints(ca=True, path_length=self._path_length)
         self._key_usage = x509.KeyUsage(
             digital_signature=True,
             content_commitment=False,
@@ -77,6 +79,10 @@ class IntermediatePolicy(BasePolicy):
             (self._basic_constraints, True),
             (self._key_usage, True)
         ]
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(path_length: {self._path_length})"
+
 
 class UserPolicy(BasePolicy):
     def __init__(self, **kwargs) -> None:
