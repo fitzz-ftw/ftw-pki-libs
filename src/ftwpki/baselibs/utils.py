@@ -161,6 +161,32 @@ def get_cert_text(pem_path: str) -> str:
         lines.append(format_extension(ext, indent=1))
 
     return "\n".join(lines)
+def get_cert_text_from_cert(pem_bytes: bytes) -> str:
+    """
+    Gibt die menschenlesbare Zusammenfassung des Zertifikats zurück.
+    Ersetzt den Aufruf von 'openssl x509 -text'.
+    """
+    # cert_bytes = pem_bytes
+    # cert = x509.load_pem_x509_certificate(cert_bytes)
+    cert=pem_bytes
+
+    lines = [
+        f"Subject:\n\t {cert.subject.rfc4514_string()}",
+        f"Issuer:\n\t {cert.issuer.rfc4514_string()}",
+        f"Serial Number:\n\t {cert.serial_number}",
+        f"Not Before:\n\t {cert.not_valid_before_utc}",
+        f"Not After:\n\t {cert.not_valid_after_utc}",
+        f"Version:\n\t {cert.version.name}",
+    ]
+
+    # Extensions hinzufügen (ähnlich wie OpenSSL)
+    lines.append("Extensions:")
+    for ext in cert.extensions:
+        # lines.append(f"    {ext.oid._name}: {ext.value}")
+        lines.append(format_extension(ext, indent=1))
+
+    return "\n".join(lines)
+
 
 if __name__ == "__main__": # pragma: no cover
     from doctest import FAIL_FAST, testfile

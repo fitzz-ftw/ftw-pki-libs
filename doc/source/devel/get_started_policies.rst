@@ -12,6 +12,10 @@ Die ``RootPolicy`` setzt die grundlegenden Berechtigungen für eine Stamm-Zertif
 
 >>> from ftwpki.baselibs.policies import RootPolicy
 >>> policy = RootPolicy()
+
+>>> policy
+RootPolicy()
+
 >>> extensions = policy.get_extensions()
 
 Prüfung der Basic Constraints (CA: True, Path Length: None)
@@ -33,6 +37,10 @@ Zertifikatskette zu begrenzen.
 Erlaubt noch eine weitere CA-Ebene
 
 >>> policy = IntermediatePolicy(path_length=1)
+
+>>> policy
+IntermediatePolicy(path_length: 1)
+
 >>> extensions = policy.get_extensions()
 
 >>> bc, _ = extensions[0]

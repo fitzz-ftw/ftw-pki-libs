@@ -229,6 +229,11 @@ class PolicyParser(ArgparseFix311):
             default=None,
             help="Name of the policy. (Default: %(default)s)",
         )
+        self.add_argument("-t", "--policy-type",
+                          dest="policy_type",
+                          choices=["intermediate","server","user","client","standalone"],
+                          default="server",
+                          help="The type of the policy. (Default: %(default)s)")
         self.add_argument(
             "--conf-file",
             dest="conf_file",

@@ -67,6 +67,28 @@ for more details. MalformedFraming
 ...     encipher_only=True, decipher_only=False
 ... )
 
+>>> from ftwpki.baselibs.utils import get_cert_text_from_cert
+>>> print(get_cert_text_from_cert(ca_cert)) #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+Subject:
+        CN=FTW Dev Root CA,O=FTW Projekte,L=Frankfurt,ST=Hessen,C=DE
+Issuer:
+        CN=FTW Dev Root CA,O=FTW Projekte,L=Frankfurt,ST=Hessen,C=DE
+Serial Number:
+        ...
+Not Before:
+        20...
+Not After:
+        20...
+Version:
+        v3
+Extensions:
+    basicConstraints:
+            CA=Yes, path_length=None
+    keyUsage:
+            key_cert_sign, crl_sign
+    subjectKeyIdentifier:
+            b'...'
+
 >>> class StubExt2:
 ...     value = val
 ...     class oid:

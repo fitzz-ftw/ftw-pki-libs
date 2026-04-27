@@ -154,7 +154,52 @@ def get_cert_text(pem_path) -> str:  # not Windows testable
     )
     return result.stdout
 
+def openssl_decrypt_smime_file(input_file: str, 
+                               key_file: str, 
+                               password: str) -> bool:  # not Windows testable
+    """
+    Entschlüsselt die Datei im cwd.
+    Output-Name wird durch rstrip(".enc") gebildet.
+    """
+    # Infile: transport.zip.enc -> Outfile: transport.zip
+    output_file = input_file.rstrip(".enc")
 
+    # Falls der Name identisch bleibt (kein .enc vorhanden),
+    # hängen wir .dec an, um die Quelldatei nicht zu überschreiben.
+    if output_file == input_file:
+        output_file += ".dec"
+
+    cmd = [
+        "openssl",
+        "smime",
+        "-decrypt",
+        "-binary",
+        "-in",
+        input_file,
+        "-inkey",
+        key_file,
+        "-out",
+        output_file,
+        "-passin",
+        "stdin",
+    ]
+
+    try:
+        # Passwort wird via stdin an OpenSSL gereicht
+        result = subprocess.run(
+            cmd, input=password.encode("utf-8"), capture_output=True, check=False
+        )
+
+        if result.returncode != 0:
+            print(f"OpenSSL Error: {result.stderr.decode('utf-8')}")
+            return False
+
+        return Path(output_file).exists()
+
+    except Exception as e:
+        print(f"Fehler beim OpenSSL-Aufruf: {e}")
+        return False
+    
 if __name__ == "__main__": # pragma: no cover
     from doctest import FAIL_FAST, testfile
     

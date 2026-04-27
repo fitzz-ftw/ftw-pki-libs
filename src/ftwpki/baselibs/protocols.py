@@ -32,6 +32,7 @@ PolicyType = Literal["match", "optional", "supplied", "no"]
 
 class PolicyProtocol(Protocol):
     policy_name: str
+    policy_type:str
     countryName: PolicyType
     stateOrProvinceName: PolicyType
     localityName: PolicyType

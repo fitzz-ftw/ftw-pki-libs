@@ -90,9 +90,24 @@ der CA
 
 >>> p7m_bytes = encrypt_transport_package(
 ...     ca_cert, 
-...     ca_cert, 
+...     ca_cert,
+...     ca_key, 
 ...     ca_cert
-... )
+... ) #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+
+Subject:
+         CN=FTW-PKI-Transport-Service
+    Issuer:
+         CN=FTW-PKI-Transport-Service
+    Serial Number:
+         ...
+    Not Before:
+         20...
+    Not After:
+         20...
+    Version:
+         v3
+    Extensions:
 
 Prüfen, ob wir Daten zurückbekommen haben
 
@@ -156,10 +171,12 @@ True
 >>> p7m_bytes_with_info = encrypt_transport_package(
 ...     ca_cert, 
 ...     ca_cert, 
+...     ca_key, 
 ...     ca_cert,
 ...     message = "test message",
 ...     additional_files = {"readme.txt": "Readme\nfor\nPackage ..."}
-... )
+... ) #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+
 
 >>> decrypted_zip_bytes_with_info = decrypt_bytedata(
 ...     p7m_bytes_with_info,
@@ -181,6 +198,57 @@ Traceback (most recent call last):
     ...
 ValueError: Entschlüsselung fehlgeschlagen: 
     error parsing asn1 value: ParseError { kind: ShortData { needed: 5 } }
+
+Testing the Ephemeral Workaround
+--------------------------------
+
+Directly testing the internal certificate creation for the decryption workaround:
+
+>>> from ftwpki.baselibs.transport import create_ephemeral_cert
+
+>>> from cryptography import x509
+>>> from cryptography.x509.oid import NameOID
+
+>>> ephemeral_cert = create_ephemeral_cert(ca_key.public_key(), ca_key) #doctest:+ELLIPSIS +NORMALIZE_WHITESPACE
+
+>>> isinstance(ephemeral_cert, x509.Certificate)
+True
+
+>>> ephemeral_cert.subject.get_attributes_for_oid(NameOID.COMMON_NAME)[0].value
+'FTW-PKI-Transport-Service'
+
+2. Testing the high-level decryption wrapper:
+   (This ensures coverage for the lines 170-173)
+>>> from ftwpki.baselibs.transport import decrypt_transport_package
+
+>>> transfer_file_path = Path("testtransport").with_suffix(".zip.enc")
+>>> _ = transfer_file_path.write_bytes(p7m_bytes)
+
+>>> transfer_file = transfer_file_path.as_posix()
+
+>>> transfer_file
+'testtransport.zip.enc'
+
+>> p7m_bytes
+
+>>> from ftwpki.baselibs.openssl_comp import openssl_decrypt_smime_file
+
+>>> openssl_decrypt_smime_file(input_file = transfer_file, 
+...     key_file = ca_key_path.as_posix(), password=pw)
+True
+
+>>> print(type(ca_key))
+<class 'cryptography.hazmat.bindings._rust.openssl.rsa.RSAPrivateKey'>
+
+>>> print(dir(ca_key)) #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE 
+['..., 'decrypt', 'key_size', 'private_bytes', 'private_numbers', 'public_key', 'sign']
+
+>> ca_key.public_key()
+
+>>> # package_data wurde weiter oben im File bereits erstellt
+>>> decrypted = decrypt_transport_package(p7m_bytes, ca_key) #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+>>> decrypted.startswith(b"PK")
+True
 
 
 ..SECTION - Teardown Environment

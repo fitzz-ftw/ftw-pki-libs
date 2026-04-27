@@ -23,12 +23,27 @@ from pathlib import Path
 
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey
+from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey, RSAPublicKey
 from cryptography.hazmat.primitives.serialization import Encoding, pkcs7
 from cryptography.x509 import Certificate
-from cryptography.x509.oid import NameOID
 
-from ftwpki.baselibs.utils import assert_is_pem_cert
+from ftwpki.baselibs.utils import assert_is_pem_cert  #get_cert_text_from_cert
+
+
+# FUNCTION - Transport Identity
+def _get_transport_identity() -> x509.Name:
+    """
+    Returns the standardized identity used for PKCS7 transport envelopes.
+    Comments are in English as requested.
+    """
+    return x509.Name([x509.NameAttribute(x509.NameOID.COMMON_NAME, "FTW-PKI-Transport-Service")])
+
+# !FUNCTION - Transport Identity
+#FUNCTION - Transport Serialnumber
+def _transportserialnumber()->int:
+    """Returns the static serial number for transport dummy certificates."""
+    return int("42" * 23)
+# !FUNCTION - Transport Serialnumber
 
 
 # FUNCTION - Validate and Format Chain
@@ -55,39 +70,52 @@ def validate_and_format_chain(*chain_parts: bytes) -> bytes:
 
 
 # FUNCTION - Create Emphemeral Certifikat
-def create_ephemeral_cert(private_key: RSAPrivateKey) -> Certificate:
+# def create_ephemeral_cert(private_key: RSAPrivateKey, serial_number:int) -> Certificate:
+def create_ephemeral_cert(
+    public_key: RSAPublicKey,
+    signing_key: RSAPrivateKey,
+) -> Certificate:
     """
-    Creates a temporary self-signed certificate to satisfy the PKCS7 API.
+    Creates a temporary self-signed or CA-signed certificate for PKCS7.
 
-    This is a technical workaround because the cryptography PKCS7 API
-    requires a certificate object to identify the recipient, even though
-    RSA decryption mathematically only requires the private key.
+    This technical workaround is required because the cryptography PKCS7 API
+    needs a certificate object to identify the recipient (via Issuer and Serial),
+    even though RSA decryption only requires the private key.
 
-    :param private_key: The RSA private key of the recipient.
-    :return: A temporary X.509 certificate object containing the public key.
+    During encryption, this is typically signed by the CA.
+    During decryption, it is self-signed by the recipient's private key.
+
+    :param public_key: The RSA public key to be placed in the certificate.
+    :param signing_key: The key used to sign the certificate.
+    :return: A temporary X.509 certificate object.
     """
     # Ein minimales Zertifikat bauen, das nur als Key-Träger dient
-    subject = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "Ephemeral Receiver")])
+    subject = _get_transport_identity()
     cert = (
         x509.CertificateBuilder()
         .subject_name(subject)
         .issuer_name(subject)
-        .public_key(private_key.public_key())
-        .serial_number(x509.random_serial_number())
-        .not_valid_before(datetime.datetime.now(datetime.timezone.utc))
-        .not_valid_after(datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=1))
-        .sign(private_key, hashes.SHA256())
+        .public_key(public_key)
+        .serial_number(_transportserialnumber())
+        .not_valid_before(
+            datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(minutes=5)
+        )
+        .not_valid_after(
+            datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=1)
+            )
+        .sign(signing_key, hashes.SHA256())
     )
-
+    #print(get_cert_text_from_cert(cert),flush=True)
     return cert
 
 
 # !FUNCTION - Create Emphemeral Certifikat
-# FUNCTION - Encrypt Taransport Package
+# FUNCTION - Encrypt Transport Package
 # old name: create_encrypted_zipfile
 def encrypt_transport_package(
     user_cert: x509.Certificate,
     root_ca_cert: x509.Certificate,
+    private_key: RSAPrivateKey,
     recipient_cert: x509.Certificate,
     *intermediate_certs: x509.Certificate,
     **kwargs,
@@ -149,10 +177,10 @@ def encrypt_transport_package(
     zip_bytes = zip_buffer.getvalue()
 
     # 4. Ab in die ausgelagerte Verschlüsselung
-    return encrypt_bytedata(zip_bytes, recipient_cert)
+    return encrypt_bytedata(zip_bytes, recipient_cert, private_key)
 
 
-# !FUNCTION - Encrypt Taransport Package
+# !FUNCTION - Encrypt Transport Package
 
 
 # FUNCTION - Decrypt Transport Package
@@ -167,15 +195,25 @@ def decrypt_transport_package(encrypted_data: bytes, private_key: RSAPrivateKey)
     """
     #
     # 1. Erstelle das Dummy-Zertifikat aus dem Key
-    recipient_cert = create_ephemeral_cert(private_key)
+    # recipient_cert = create_ephemeral_cert(private_key)
+
+
+    # 2. Das passende "Gesicht" für den Empfänger basteln
+    recipient_cert = create_ephemeral_cert(public_key=private_key.public_key(),
+                                           signing_key=private_key, 
+                                           )
+    options = []
 
     # 2. Nutze die strikte cryptography-API mit unserem Hilfsobjekt
-    return pkcs7.pkcs7_decrypt_pem(encrypted_data, recipient_cert, private_key, [])
+    return pkcs7.pkcs7_decrypt_smime(encrypted_data, recipient_cert, private_key, options)
 
 
 # !FUNCTION - Decrypt Transport Package
 # FUNCTION - Encrypt Bytedata
-def encrypt_bytedata(unencrypted_data, recipient_cert):
+
+def encrypt_bytedata(
+    unencrypted_data: bytes, recipient_cert: x509.Certificate, ca_key: RSAPrivateKey
+):
     """
     Encrypts binary data into a PKCS7 envelope (S/MIME).
 
@@ -185,16 +223,29 @@ def encrypt_bytedata(unencrypted_data, recipient_cert):
 
     :param unencrypted_data: The raw binary data to be encrypted (e.g., a ZIP file).
     :param recipient_cert: The X.509 certificate of the intended recipient.
+    :param ca_key: Privat key to sign the transport certificate.
     :return: The encrypted data in S/MIME format (PEM with headers).
     """
-    options = [pkcs7.PKCS7Options.Binary]  # Wichtig für ZIP-Dateien!
+    options = [pkcs7.PKCS7Options.Binary]
+
+    # HIER kommt der fehlende Aufruf!
+    # Wir nehmen den Public Key aus dem echten Zertifikat,
+    # verpacken ihn aber in unsere Standard-Transport-Identität.
+
+    # Wenn wir keinen ca_key haben, signieren wir es einfach mit einem Wegwerf-Key
+    # oder wir nehmen recipient_cert selbst als Signing-Key (geht technisch nicht).
+    # Am besten: Wir nutzen für den Doctest den CA-Key, wenn verfügbar.
+
+    transport_dummy = create_ephemeral_cert(
+        public_key=recipient_cert.public_key(),
+        signing_key=ca_key,   # Hier muss ein Key her
+    )
 
     builder = pkcs7.PKCS7EnvelopeBuilder().set_data(unencrypted_data)
+    builder = builder.add_recipient(transport_dummy)  # <-- HIER wird jetzt der Dummy genutzt!
     builder = builder.add_recipient(recipient_cert)
 
-    # Wir nutzen SMIME-Encoding, damit die Header für OpenSSL da sind
     return builder.encrypt(Encoding.SMIME, options)
-
 
 # !FUNCTION - Encrypt Bytedata
 
@@ -233,10 +284,15 @@ def decrypt_bytedata(
         raise ValueError(f"Entschlüsselung fehlgeschlagen: {e}")
 
 
-# FUNCTION - Decrypt Bytedata
+# !FUNCTION - Decrypt Bytedata
 
 
 if __name__ == "__main__":  # pragma: no cover
+    # import cryptography
+    # from cryptography.hazmat.primitives.serialization import pkcs7
+    # print(f"PATH: {cryptography.__file__}")
+    # print(f"VERSION: {cryptography.__version__}")
+    # print(f"OPTIONS: {dir(pkcs7.PKCS7Options)}")
     from doctest import FAIL_FAST, testfile
 
     be_verbose = False

@@ -64,7 +64,7 @@ class PasswordManager:
             raise FileNotFoundError(f"Input file {input_file} is missing or empty.")
 
         try:
-            self._private_dir.mkdir(parents=True, exist_ok=True)
+            self._private_dir.mkdir(mode=0o700,parents=True, exist_ok=True)
             out_path = self._private_dir / output_filename
             salt = os.urandom(self._salt_size)
 
