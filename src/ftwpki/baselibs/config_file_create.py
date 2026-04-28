@@ -12,7 +12,7 @@ Modul config_file_create documentation
 
 from pathlib import Path
 
-from ftwpki.baselibs.app_dirs import PKIDirs
+from ftwpki.baselibs.app_dirs import config_file_path
 
 conf_toml = """
 [fallback]
@@ -72,13 +72,14 @@ policies     = "~/.config/ftwpki/policies/intermediate"
 
 
 def write_example_config(content:str):
-    conf_path = PKIDirs().user_config_path / "config.toml"
-    if conf_path.is_file():
-        return
+    conf_path = config_file_path()
+    if conf_path.exists():
+        return 
     if not conf_path.parent.exists():
         conf_path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
     conf_path.write_text(content+"\n")
     conf_path.chmod(0o600)
+
 
 
 if __name__ == "__main__": # pragma: no cover

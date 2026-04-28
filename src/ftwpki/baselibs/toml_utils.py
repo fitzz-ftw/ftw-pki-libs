@@ -16,7 +16,7 @@ from pathlib import Path
 from tomllib import TOMLDecodeError, load, loads
 from typing import cast
 
-from ftwpki.baselibs.app_dirs import PKIDirs
+from ftwpki.baselibs.app_dirs import config_file_path
 
 
 def list_policy_sections(data:dict, policy_type:str) -> bool:
@@ -136,8 +136,8 @@ def toml2san_policy(
 
 
 def toml2config(section:str="") -> dict[str, str]:
-    conf_file_path= PKIDirs().user_config_path / "config.toml"
-    with conf_file_path.open("rb") as f:
+    conf_file = config_file_path()
+    with conf_file.open("rb") as f:
         raw_dic = load(f)
     ret_dict:dict[str,str] = raw_dic["fallback"].copy()
     if section:

@@ -110,6 +110,9 @@ secureintermediate
 >>> from ftwpki.baselibs.config_file_create import toml_conf_str, write_example_config
 >>> write_example_config(toml_conf_str)
 
+>> env.teardown()
+>> print("Stop")
+
 >>> from ftwpki.baselibs.toml_utils import toml2config
 
 >>> toml2config() #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
@@ -159,13 +162,15 @@ secureintermediate
 
 >>> from ftwpki.baselibs.app_dirs import PKIDirs
 
->>> conf_file =PKIDirs().user_config_path / "config.toml"
+>>> conf_file =PKIDirs().user_config_path / "pkiconfig.toml"
+
+
 >>> conf_file.unlink()
 
 >>> toml2config("inter") #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
 Traceback (most recent call last):
     ...
-FileNotFoundError: [Errno 2] No such file or directory: '...config/ftwpki/config.toml'
+FileNotFoundError: [Errno 2] No such file or directory: '...config/ftwpki/pkiconfig.toml'
 
 >>> env.clean_home()
 >>> env.teardown()

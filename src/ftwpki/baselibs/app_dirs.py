@@ -27,6 +27,27 @@ def PKIDirs() -> PlatformDirs:
     """
     return _pki_dirs_instance
 
+def config_file_path() -> Path:
+    return PKIDirs().user_config_path / "pkiconfig.toml"
+
+
+def create_app_pathes(
+    config: dict[str, str], securepathes: list[str], pathkey: str, *pathkeys: str
+) -> dict[str, Path]:
+    keys = list(set([pathkey, *pathkeys]))
+    keys.sort()
+    ret = {}
+    for key in keys:
+        path = Path(config[key]).expanduser().resolve()
+        if not path.exists():
+            if key in securepathes:
+                path.mkdir(mode=0o700, parents=True)
+            else:
+                path.mkdir(parents=True)
+        ret[key] = path
+    return ret
+
+
 if __name__ == "__main__": # pragma: no cover
     from doctest import FAIL_FAST, testfile
     

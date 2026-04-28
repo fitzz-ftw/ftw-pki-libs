@@ -13,7 +13,7 @@ Configuration File Creating
 >>> write_example_config(toml_conf_str)
 >>> write_example_config(toml_conf_str)
 >>> from ftwpki.baselibs.app_dirs import PKIDirs
->>> conf_file = PKIDirs().user_config_path / "config.toml"
+>>> conf_file = PKIDirs().user_config_path / "pkiconfig.toml"
 >>> conf_file.unlink()
 >>> write_example_config(toml_conf_str)
 
