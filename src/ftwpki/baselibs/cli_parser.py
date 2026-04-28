@@ -25,6 +25,7 @@ from ftwpki.baselibs.protocols import (
     CSRProtocol,
     DistinguishedNameProtocol,
     IntermedImportProtocol,
+    MultiSignParserProtocol,
     PolicyProtocol,
     SignParserProtocol,
 )
@@ -229,11 +230,6 @@ class PolicyParser(ArgparseFix311):
             default=None,
             help="Name of the policy. (Default: %(default)s)",
         )
-        self.add_argument("-t", "--policy-type",
-                          dest="policy_type",
-                          choices=["intermediate","server","user","client","standalone"],
-                          default="server",
-                          help="The type of the policy. (Default: %(default)s)")
         self.add_argument(
             "--conf-file",
             dest="conf_file",
@@ -252,6 +248,7 @@ class PolicyParser(ArgparseFix311):
 
 
 class CSRSigningParser(PolicyParser):
+
     def _setup_parser(self) -> None:
         super()._setup_parser()
         self.add_argument("-k", "--key", "--private-key", dest="private_key")
@@ -287,6 +284,23 @@ class CSRSigningParser(PolicyParser):
         self, args: list[str] | None = None, namespace: Namespace | None = None
     ) -> SignParserProtocol:
         return cast(SignParserProtocol, super().parse_args(args=args, namespace=namespace))
+
+class CSRMultiSigningParser(CSRSigningParser):
+    def _setup_parser(self) -> None:
+        super()._setup_parser()
+        self.add_argument(
+            "-t",
+            "--policy-type",
+            dest="policy_type",
+            choices=["intermediate", "server", "user", "client", "standalone"],
+            default="server",
+            help="The type of the policy. (Default: %(default)s)",
+        )
+
+    def parse_args(
+        self, args: list[str] | None = None, namespace: Namespace | None = None
+    ) -> MultiSignParserProtocol:
+        return cast(MultiSignParserProtocol, super().parse_args(args=args, namespace=namespace))
 
 
 class CertImportParser(ArgparseFix311):

@@ -32,7 +32,6 @@ PolicyType = Literal["match", "optional", "supplied", "no"]
 
 class PolicyProtocol(Protocol):
     policy_name: str
-    policy_type:str
     countryName: PolicyType
     stateOrProvinceName: PolicyType
     localityName: PolicyType
@@ -51,6 +50,10 @@ class SigningProtocol(PolicyProtocol):
 
 class SignParserProtocol(SigningProtocol):
     passphrasefile:str
+
+class MultiSignParserProtocol(SignParserProtocol):
+    policy_type: str
+
 
 class CertImportProtocol(Protocol):
     private_keyfile:str

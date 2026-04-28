@@ -88,7 +88,6 @@ Namespace(countryName='match',
     organizationalUnitName='no', 
     commonName='no', 
     policy_name=None,
-    policy_type='server',
     conf_file=None,
     policy={'countryName': 'match', 
         'stateOrProvinceName': 'no', 
@@ -117,7 +116,6 @@ Namespace(countryName='match',
     organizationalUnitName='no', 
     commonName='no', 
     policy_name=None,
-    policy_type='server', 
     conf_file=None, 
     private_key=None, 
     private_dir=None,
@@ -179,3 +177,39 @@ Namespace(passphrase_file='mypassphrasefile',
     private_keyfile='my-private-key', 
     policies='', 
     policy='server')
+
+
+>>> from ftwpki.baselibs.cli_parser import CSRMultiSigningParser
+>>> multi_parser = CSRMultiSigningParser()
+>>> multi_parser #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+CSRMultiSigningParser(prog='...', 
+    usage=None, 
+    description=None, 
+    formatter_class=<class 'argparse.HelpFormatter'>, 
+    conflict_handler='error', 
+    add_help=True)
+
+>>> multi_parser.parse_args(["-C", "match", "passphrasefile", "certificat_sign_request"])  #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+Namespace(countryName='match', 
+    stateOrProvinceName='no', 
+    localityName='no', 
+    organizationName='no', 
+    organizationalUnitName='no', 
+    commonName='no', 
+    policy_name=None,
+    conf_file=None, 
+    private_key=None, 
+    private_dir=None,
+    certificate='', 
+    validity_days=365, 
+    path_length=0, 
+    passphrasefile='passphrasefile', 
+    certificat_sign_request='certificat_sign_request', 
+    policy_type='server',
+    policy={'countryName': 'match', 
+        'stateOrProvinceName': 'no', 
+        'localityName': 'no', 
+        'organizationName': 'no', 
+        'organizationalUnitName': 'no', 
+        'commonName': 'no'})
+
