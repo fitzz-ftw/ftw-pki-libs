@@ -3,21 +3,44 @@
 # Email: FitzzTeXnikWelt@t-online.de
 # License: LGPLv2 or above
 """
-utils
-===============================
+General PKI Utilities
+=====================
 
+This module provides auxiliary functions for certificate validation and
+human-readable data formatting. It contains tools to inspect X.509
+extensions and generate text summaries of certificate data. (ro)
 
-Modul utils documentation
+Main Features:
+    * Validation of PEM certificate byte data.
+    * Formatting of complex X.509 extensions into readable strings.
+    * Generation of certificate summaries similar to OpenSSL text output.
+
+These utilities are primarily used for logging, debugging, and user
+interfaces.
 """
 
 from pathlib import Path
+from typing import LiteralString
 
 from cryptography import x509
 
 
+# FUNCTION - assert_is_pem_cert
 def assert_is_pem_cert(data: bytes, name: str="Unknown") -> None:
     """
-    Interner Gatekeeper: Prüft ein einzelnes Byte-Objekt auf Herz und Nieren.
+    Check if a byte object contains a valid PEM encoded certificate. (ro)
+
+    This function acts as a gatekeeper. It verifies that the input data
+    is of the correct byte type and attempts to parse it as an X.509
+    certificate. If the data is invalid or of the wrong type, it raises
+    an error.
+
+    :param data: The byte sequence to be validated.
+    :param name: A descriptive label for the data used in error messages.
+                 Defaults to "Unknown".
+    :raises TypeError: If the input data is not a byte string.
+    :raises ValueError: If the data cannot be parsed as a valid PEM
+                        certificate.
     """
     
     if not isinstance(data, bytes):
@@ -28,55 +51,25 @@ def assert_is_pem_cert(data: bytes, name: str="Unknown") -> None:
         x509.load_pem_x509_certificate(data.strip())
     except Exception as e:
         raise ValueError(f"'{name}' ist kein gültiges PEM-Zertifikat: {e}")
+# !FUNCTION - assert_is_pem_cert
 
-# def validate_and_format_chain(*chain_parts: bytes) -> bytes:
-#     validated:list[bytes]=[]
-#     for i, part in enumerate(chain_parts,1):
-#         assert_is_pem_cert(part.strip(), f"Chainpart {i}")
-#         validated.append(part.strip())
-#     return b"\n".join(validated)
+#FUNCTION - format_extension
+def format_extension(ext, indent:int=0) -> str | LiteralString:
+    """
+    Format an X.509 extension into a human-readable string. (ro)
 
-# def encrypt_bytedata(unencrypted_data, recipient_cert):
-#     """
-#     Erstellt ein S/MIME Paket, das mit 'openssl smime -decrypt -binary'
-#     kompatibel ist.
-#     """
-#     options = [pkcs7.PKCS7Options.Binary]  # Wichtig für ZIP-Dateien!
+    This function identifies the type of the extension and extracts its
+    values. It supports various types like Basic Constraints, Key Usage,
+    and Authority Key Identifiers. The output is formatted with a
+    specified indentation level for better readability.
 
-#     builder = pkcs7.PKCS7EnvelopeBuilder().set_data(unencrypted_data)
-#     builder = builder.add_recipient(recipient_cert)
-
-#     # Wir nutzen SMIME-Encoding, damit die Header für OpenSSL da sind
-#     return builder.encrypt(Encoding.SMIME, options)
-
-
-# def decrypt_bytedata(
-#     encrypted_data: bytes, 
-#     recipient_key: RSAPrivateKey, 
-#     recipient_cert: x509.Certificate
-# ) -> bytes:
-#     """
-#     Entschlüsselt das S/MIME-Paket und gibt die rohen ZIP-Bytes zurück.
-#     Nutzt die native cryptography (v44+) Implementierung.
-#     """
-#     # 1. Zertifikat und Key laden (Gatekeeper-Style)
-#     # cert = x509.load_pem_x509_certificate(recipient_cert)
-#     # key = recipient_key #serialization.load_pem_private_key(recipient_key_pem, password=None)
-
-#     # 2. Entschlüsseln
-#     # Leere options [] erlauben Binary-Daten (unser ZIP)
-#     options = []
-
-#     try:
-#         decrypted_data = pkcs7.pkcs7_decrypt_smime(encrypted_data, 
-#                                                    recipient_cert, 
-#                                                    recipient_key, 
-#                                                    options)
-#         return decrypted_data
-#     except Exception as e:
-#         raise ValueError(f"Entschlüsselung fehlgeschlagen: {e}")
-
-def format_extension(ext, indent:int=0):
+    :param ext: The extension object to be formatted.
+    :param indent: The number of indentation levels to apply. Defaults to 0.
+    :raises AttributeError: If the extension lacks expected internal
+                            attributes during processing.
+    :returns: A formatted string representation of the extension and
+              its attributes.
+    """
     val = ext.value
     name = ext.oid._name
     inden:str = " "*4*indent
@@ -136,11 +129,22 @@ def format_extension(ext, indent:int=0):
         return f"{inden}{name}:\n{inden * 2} {val.digest}"
 
     return f"{name}: {val}"
+# !FUNCTION - format_extension
 
+# FUNCTION - get_cert_text
 def get_cert_text(pem_path: str) -> str:
     """
-    Gibt die menschenlesbare Zusammenfassung des Zertifikats zurück.
-    Ersetzt den Aufruf von 'openssl x509 -text'.
+    Return a human-readable summary of a certificate file. (ro)
+
+    This function reads a certificate from the disk and extracts its
+    core metadata. It provides a text representation of the subject,
+    issuer, validity dates, and all included extensions, similar to
+    the OpenSSL text output.
+
+    :param pem_path: The file system path to the PEM encoded certificate.
+    :raises FileNotFoundError: If the specified certificate file does not exist.
+    :raises ValueError: If the file content is not a valid PEM certificate.
+    :returns: A formatted multi-line string containing the certificate details.
     """
     cert_bytes = Path(pem_path).read_bytes()
     cert = x509.load_pem_x509_certificate(cert_bytes)
@@ -161,10 +165,23 @@ def get_cert_text(pem_path: str) -> str:
         lines.append(format_extension(ext, indent=1))
 
     return "\n".join(lines)
+# !FUNCTION - get_cert_text
+
+# FUNCTION - get_cert_text_from_cert
 def get_cert_text_from_cert(pem_bytes: bytes) -> str:
     """
-    Gibt die menschenlesbare Zusammenfassung des Zertifikats zurück.
-    Ersetzt den Aufruf von 'openssl x509 -text'.
+    Return a human-readable summary from a certificate object. (ro)
+
+    This function extracts core metadata from an existing X.509
+    certificate object and formats it into a text summary. It includes
+    details about the subject, issuer, validity period, and all
+    certificate extensions.
+
+    :param cert: The certificate object to be processed.
+    :raises AttributeError: If the provided object is missing required
+                            X.509 attributes.
+    :returns: A formatted multi-line string containing the certificate
+              information.
     """
     # cert_bytes = pem_bytes
     # cert = x509.load_pem_x509_certificate(cert_bytes)
@@ -186,6 +203,7 @@ def get_cert_text_from_cert(pem_bytes: bytes) -> str:
         lines.append(format_extension(ext, indent=1))
 
     return "\n".join(lines)
+# !FUNCTION - get_cert_text_from_cert
 
 
 if __name__ == "__main__": # pragma: no cover
