@@ -33,15 +33,30 @@ from ftwpki.baselibs.utils import assert_is_pem_cert  #get_cert_text_from_cert
 # FUNCTION - Transport Identity
 def _get_transport_identity() -> x509.Name:
     """
-    Returns the standardized identity used for PKCS7 transport envelopes.
-    Comments are in English as requested.
+    Return the standardized identity for PKCS7 transport envelopes. (ro)
+
+    This internal helper creates a specific X.509 Name object used to
+    identify the transport service during the creation of PKCS7
+    containers.
+
+    :returns: An x509.Name object with the 'FTW-PKI-Transport-Service'
+              common name.
     """
     return x509.Name([x509.NameAttribute(x509.NameOID.COMMON_NAME, "FTW-PKI-Transport-Service")])
 
 # !FUNCTION - Transport Identity
 #FUNCTION - Transport Serialnumber
 def _transportserialnumber()->int:
-    """Returns the static serial number for transport dummy certificates."""
+    """
+    Return a static serial number for transport dummy certificates. (ro)
+
+    This internal helper generates a large, fixed integer used as a
+    serial number for temporary certificates within transport envelopes.
+    The number is derived from a repeating numeric pattern.
+
+    :returns: A static integer value used for transport certificate
+              identification.
+    """
     return int("42" * 23)
 # !FUNCTION - Transport Serialnumber
 
@@ -49,15 +64,15 @@ def _transportserialnumber()->int:
 # FUNCTION - Validate and Format Chain
 def validate_and_format_chain(*chain_parts: bytes) -> bytes:
     """
-    Validates multiple certificate parts and joins them into a single chain.
+    Validate multiple certificate parts and join them into a single chain. (ro)
 
-    Each part is checked to ensure it is a valid PEM-encoded certificate.
-    Trailing and leading whitespaces are removed from each part before
-    joining them with a newline character.
+    This function processes several byte-encoded certificate parts. It
+    ensures each part is a valid PEM certificate, removes extra
+    whitespace, and combines them into a single formatted block.
 
     :param chain_parts: Variable number of certificate parts as bytes.
-    :return: A single bytes object containing the formatted certificate chain.
-    :raises AssertionError: If a part is not a valid PEM certificate.
+    :raises AssertionError: If any part is not a valid PEM certificate.
+    :returns: A single bytes object containing the formatted certificate chain.
     """
     validated: list[bytes] = []
     for i, part in enumerate(chain_parts, 1):
@@ -70,26 +85,22 @@ def validate_and_format_chain(*chain_parts: bytes) -> bytes:
 
 
 # FUNCTION - Create Emphemeral Certifikat
-# def create_ephemeral_cert(private_key: RSAPrivateKey, serial_number:int) -> Certificate:
 def create_ephemeral_cert(
     public_key: RSAPublicKey,
     signing_key: RSAPrivateKey,
 ) -> Certificate:
     """
-    Creates a temporary self-signed or CA-signed certificate for PKCS7.
+    Create a temporary X.509 certificate for PKCS7 operations. (rw)
 
-    This technical workaround is required because the cryptography PKCS7 API
-    needs a certificate object to identify the recipient (via Issuer and Serial),
-    even though RSA decryption only requires the private key.
+    This function generates a short-lived certificate used as a technical
+    container for RSA keys. It is required by the PKCS7 API to identify
+    recipients through issuer and serial information. Depending on the
+    use case, the certificate is either self-signed or signed by a CA.
 
-    During encryption, this is typically signed by the CA.
-    During decryption, it is self-signed by the recipient's private key.
-
-    :param public_key: The RSA public key to be placed in the certificate.
-    :param signing_key: The key used to sign the certificate.
-    :return: A temporary X.509 certificate object.
+    :param public_key: The RSA public key to be included in the certificate.
+    :param signing_key: The RSA private key used to sign the certificate.
+    :returns: A temporary X.509 certificate object valid for a short period.
     """
-    # Ein minimales Zertifikat bauen, das nur als Key-Träger dient
     subject = _get_transport_identity()
     cert = (
         x509.CertificateBuilder()
@@ -105,13 +116,11 @@ def create_ephemeral_cert(
             )
         .sign(signing_key, hashes.SHA256())
     )
-    #print(get_cert_text_from_cert(cert),flush=True)
     return cert
 
 
 # !FUNCTION - Create Emphemeral Certifikat
 # FUNCTION - Encrypt Transport Package
-# old name: create_encrypted_zipfile
 def encrypt_transport_package(
     user_cert: x509.Certificate,
     root_ca_cert: x509.Certificate,
@@ -121,62 +130,53 @@ def encrypt_transport_package(
     **kwargs,
 ) -> bytes:
     """
-    Creates an S/MIME encrypted ZIP package containing certificates and optional files.
+    Create an S/MIME encrypted ZIP package containing certificate data. (rw)
 
-    The function bundles the user certificate, the root CA, and any intermediates into
-    a ZIP archive, which is then encrypted for the specified recipient.
+    This function bundles identity certificates, the root CA, and any
+    intermediates into a compressed ZIP archive. The archive is then
+    encrypted for a specific recipient using PKCS7/SMIME. It allows
+    adding optional message files or custom data via keyword arguments.
 
-    :param user_cert: The main certificate to be included.
-    :param root_ca_cert: The root CA certificate.
+    :param user_cert: The primary identity certificate to include.
+    :param root_ca_cert: The root CA certificate for the trust anchor.
+    :param private_key: The RSA private key used for the encryption process.
     :param recipient_cert: The certificate used to encrypt the final package.
-    :param intermediate_certs: Variable number of intermediate CA certificates.
-    :param kwargs: Optional settings for the package content:
-        - name_user (str): Filename for the user certificate (default: 'user.crt').
-        - name_chain (str): Filename for the certificate chain (default: 'certificate_chain.pem').
-        - name_ca (str): Filename for the root CA certificate (default: 'ca.crt').
-        - additional_files (dict): Dictionary of {filename: bytes} to include.
-        - message (str/bytes): An optional message file 'message.txt'.
-    :return: The S/MIME encrypted PEM data as bytes.
-    :raises TypeError: If any provided certificate is not a valid x509.Certificate.
+    :param intermediate_certs: Variable number of intermediate certificates.
+    :param kwargs: Optional settings:
+                   - name_user (str): Filename for the user certificate.
+                   - name_chain (str): Filename for the certificate chain.
+                   - name_ca (str): Filename for the root CA file.
+                   - additional_files (dict): Map of {filename: bytes}.
+                   - message (str/bytes): Optional text file content.
+    :raises TypeError: If provided certificate objects are invalid.
+    :returns: The encrypted PEM-encoded data as bytes.
     """
     name_user = kwargs.get("name_user", "user.crt")
     name_chain = kwargs.get("name_chain", "certificate_chain.pem")
     name_ca = kwargs.get("name_ca", "ca.crt")
 
-    # 1. Zertifikate in PEM umwandeln (knallt hier bei falschem Typ -> gut so!)
     user_pem = user_cert.public_bytes(Encoding.PEM)
     root_pem = root_ca_cert.public_bytes(Encoding.PEM)
 
-    # Intermediates umwandeln
     intermediate_pems = [c.public_bytes(Encoding.PEM) for c in intermediate_certs]
 
-    # 2. Die Kette formatieren (nur Intermediates + Root)
-    # Wenn dein Bash-Skript die komplette Kette in einer Datei will:
     full_chain = validate_and_format_chain(*intermediate_pems, root_pem)
 
-    # 3. ZIP im RAM erstellen
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
-        # Das eigentliche Zertifikat
         zf.writestr(name_user, user_pem)
-        # Die Kette für den Pfad (Intermediates + Root)
         zf.writestr(name_chain, full_chain)
-        # Das nackte Root-Zertifikat für den Trust-Store
         zf.writestr(name_ca, root_pem)
 
-        # Beispiel für zukünftige Flexibilität durch **kwargs:
-        # Eine Nachricht/Kommentar hinzufügen
         if "message" in kwargs:
             zf.writestr("message.txt", kwargs["message"])
 
-        # Beliebige weitere Dateien aus einem Dict hinzufügen
         extra_files = kwargs.get("additional_files", {})
         for fname, content in extra_files.items():
             zf.writestr(fname, content)
 
     zip_bytes = zip_buffer.getvalue()
 
-    # 4. Ab in die ausgelagerte Verschlüsselung
     return encrypt_bytedata(zip_bytes, recipient_cert, private_key)
 
 
@@ -186,55 +186,48 @@ def encrypt_transport_package(
 # FUNCTION - Decrypt Transport Package
 def decrypt_transport_package(encrypted_data: bytes, private_key: RSAPrivateKey) -> bytes:
     """
-    Decrypts a PKCS7 enveloped transport package.
+    Decrypt a PKCS7 enveloped transport package. (rw)
 
-    :param encrypted_data: The encrypted PEM data of the transport package.
-    :param private_key: The RSA private key of the recipient.
-    :return: The decrypted binary data (usually a ZIP file).
-    :raises ValueError: If the decryption fails or the key does not match.
+    This function reverses the encryption of a transport package. It
+    internally generates a temporary ephemeral certificate from the
+    provided private key to satisfy the PKCS7 API requirements for
+    recipient identification.
+
+    :param encrypted_data: The encrypted PEM-encoded data of the package.
+    :param private_key: The RSA private key belonging to the recipient.
+    :raises ValueError: If the decryption fails, the data is malformed,
+                        or the key does not match the envelope.
+    :returns: The decrypted binary data, typically a ZIP archive.
     """
-    #
-    # 1. Erstelle das Dummy-Zertifikat aus dem Key
-    # recipient_cert = create_ephemeral_cert(private_key)
-
-
-    # 2. Das passende "Gesicht" für den Empfänger basteln
     recipient_cert = create_ephemeral_cert(public_key=private_key.public_key(),
                                            signing_key=private_key, 
                                            )
     options = []
 
-    # 2. Nutze die strikte cryptography-API mit unserem Hilfsobjekt
     return pkcs7.pkcs7_decrypt_smime(encrypted_data, recipient_cert, private_key, options)
 
 
 # !FUNCTION - Decrypt Transport Package
 # FUNCTION - Encrypt Bytedata
-
 def encrypt_bytedata(
     unencrypted_data: bytes, recipient_cert: x509.Certificate, ca_key: RSAPrivateKey
 ):
     """
-    Encrypts binary data into a PKCS7 envelope (S/MIME).
+    Encrypt binary data into a PKCS7 envelope (S/MIME). (rw)
 
-    The output is compatible with the 'openssl smime -decrypt -binary' command.
-    The encryption uses AES-256-CBC by default as per the cryptography
-    library's PKCS7 implementation.
+    This function wraps raw binary data in a secure PKCS7 container,
+    making it compatible with 'openssl smime' commands. It uses an
+    ephemeral transport certificate to identify the recipient within
+    the envelope. The data is encrypted using AES-256-CBC by default.
 
-    :param unencrypted_data: The raw binary data to be encrypted (e.g., a ZIP file).
+    :param unencrypted_data: The raw binary data to be encrypted.
     :param recipient_cert: The X.509 certificate of the intended recipient.
-    :param ca_key: Privat key to sign the transport certificate.
-    :return: The encrypted data in S/MIME format (PEM with headers).
+    :param ca_key: The private key used to sign the ephemeral transport
+                   certificate.
+    :returns: The encrypted data in S/MIME format (PEM with headers).
     """
     options = [pkcs7.PKCS7Options.Binary]
 
-    # HIER kommt der fehlende Aufruf!
-    # Wir nehmen den Public Key aus dem echten Zertifikat,
-    # verpacken ihn aber in unsere Standard-Transport-Identität.
-
-    # Wenn wir keinen ca_key haben, signieren wir es einfach mit einem Wegwerf-Key
-    # oder wir nehmen recipient_cert selbst als Signing-Key (geht technisch nicht).
-    # Am besten: Wir nutzen für den Doctest den CA-Key, wenn verfügbar.
 
     transport_dummy = create_ephemeral_cert(
         public_key=recipient_cert.public_key(),
@@ -255,24 +248,20 @@ def decrypt_bytedata(
     encrypted_data: bytes, recipient_key: RSAPrivateKey, recipient_cert: x509.Certificate
 ) -> bytes:
     """
-    Decrypts an S/MIME package and returns the raw binary content.
+    Decrypt an S/MIME package to recover raw binary content. (rw)
 
-    This function uses the native cryptography (v44+) implementation to
-    process PKCS7 enveloped data. It is designed to recover the original
-    ZIP archive from the transport package.
+    This function processes PKCS7 enveloped data using the recipient's
+    private key and certificate. It is specifically designed to extract
+    the original binary payload (such as a ZIP archive) from an S/MIME
+    transport container.
 
-    :param encrypted_data: The S/MIME encrypted PEM data.
-    :param recipient_key: The RSA private key for decryption.
-    :param recipient_cert: The X.509 certificate of the recipient.
-    :return: The decrypted raw bytes (usually a ZIP file).
-    :raises ValueError: If decryption fails due to invalid data or key mismatch.
+    :param encrypted_data: The S/MIME encrypted PEM-encoded data.
+    :param recipient_key: The RSA private key used for decryption.
+    :param recipient_cert: The X.509 certificate belonging to the key.
+    :raises ValueError: If decryption fails due to malformed data,
+                        unsupported algorithms, or a key mismatch.
+    :returns: The decrypted raw bytes of the original content.
     """
-    # 1. Zertifikat und Key laden (Gatekeeper-Style)
-    # cert = x509.load_pem_x509_certificate(recipient_cert)
-    # key = recipient_key #serialization.load_pem_private_key(recipient_key_pem, password=None)
-
-    # 2. Entschlüsseln
-    # Leere options [] erlauben Binary-Daten (unser ZIP)
     options = []
 
     try:
@@ -282,7 +271,6 @@ def decrypt_bytedata(
         return decrypted_data
     except Exception as e:
         raise ValueError(f"Entschlüsselung fehlgeschlagen: {e}")
-
 
 # !FUNCTION - Decrypt Bytedata
 
