@@ -24,4 +24,6 @@ supported Python versions (3.11 - 3.15).
    devel/get_started_validate
    devel/get_started_config_file_create
    devel/get_started_cli_parser
+   devel/get_started_transport
+   devel/get_started_app_dirs
 

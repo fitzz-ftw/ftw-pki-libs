@@ -15,7 +15,7 @@ Main Features:
     * AES-256-CBC encryption for sensitive password files.
     * PBKDF2-HMAC-SHA256 key derivation (100k iterations).
     * Enforcement of restricted file system permissions (owner-only).
-    * OpenSSL-compatible 'Salted__' header handling.
+    * OpenSSL-compatible ``Salted__`` header handling.
 """
 
 import os
@@ -64,7 +64,7 @@ class PasswordManager:
         Encrypt a source file into an OpenSSL-compatible format. (rw)
 
         Reads a raw password file, applies PKCS7 padding, and encrypts it
-        using AES-256-CBC. The output includes the 'Salted__' header and
+        using AES-256-CBC. The output includes the ``Salted__`` header and
         an 8-byte random salt. The resulting file is secured with
         owner-only permissions.
 
@@ -105,7 +105,7 @@ class PasswordManager:
         """
         Decrypt an encrypted file and return the stored passphrase. (rw)
 
-        Validates the 'Salted__' header, derives the key from the
+        Validates the ``Salted__`` header, derives the key from the
         embedded salt, and performs AES decryption followed by PKCS7
         unpadding.
 

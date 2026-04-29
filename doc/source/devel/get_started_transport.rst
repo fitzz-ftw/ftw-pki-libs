@@ -18,6 +18,7 @@ Setup Environment
 
 Preparation
 -----------
+
 >>> Path("tests_pki_root").mkdir()
 >>> ca_key_path = env.copy2cwd("tests_pki_root/ca.key")
 >>> ca_cert_path = env.copy2cwd("tests_pki_root/ca.crt")
@@ -95,19 +96,6 @@ der CA
 ...     ca_cert
 ... ) #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
 
-Subject:
-         CN=FTW-PKI-Transport-Service
-    Issuer:
-         CN=FTW-PKI-Transport-Service
-    Serial Number:
-         ...
-    Not Before:
-         20...
-    Not After:
-         20...
-    Version:
-         v3
-    Extensions:
 
 Prüfen, ob wir Daten zurückbekommen haben
 
@@ -218,7 +206,8 @@ True
 'FTW-PKI-Transport-Service'
 
 2. Testing the high-level decryption wrapper:
-   (This ensures coverage for the lines 170-173)
+(This ensures coverage for the lines 170-173)
+
 >>> from ftwpki.baselibs.transport import decrypt_transport_package
 
 >>> transfer_file_path = Path("testtransport").with_suffix(".zip.enc")
