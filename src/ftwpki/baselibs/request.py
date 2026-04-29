@@ -6,8 +6,8 @@
 request
 ===============================
 
-
-Modul request documentation
+This module handles the creation and serialization of X.509 Certificate
+Signing Requests (CSR) using defined policies. (rw)
 """
 
 from pathlib import Path
@@ -21,26 +21,32 @@ from ftwpki.baselibs.policies import BasePolicy
 
 class CertificateRequest:
     """
-    Handler for creating x509 Certificate Signing Requests.
+    Handler for creating x509 Certificate Signing Requests. (rw)
+
+    Wraps the process of building and signing a CSR based on an
+    identity subject and a specific extension policy.
     """
 
     def __init__(self, subject: x509.Name, policy: BasePolicy):
         """
-        Initialize with subject identity and extension policy.
+        Initialize with subject identity and extension policy. (rw)
 
         :param subject: Identity information for the request.
         :param policy: Policy defining the required extensions.
         """
         self._subject = subject
         self._policy = policy
-        self._csr=None
+        self._csr = None
 
-    def build(self, private_key, **kwargs) ->Self:
+    def build(self, private_key, **kwargs) -> Self:
         """
-        Build and sign the CSR.
+        Build and sign the CSR. (rw)
+
+        Processes extensions from the policy and signs the request using
+        the provided private key and SHA512.
 
         :param private_key: Key used to sign the request.
-        :raises cryptography.exceptions.UnsupportedAlgorithm: If the hash algorithm is not 
+        :raises cryptography.exceptions.UnsupportedAlgorithm: If the hash algorithm is not
                 supported.
         """
         builder = x509.CertificateSigningRequestBuilder().subject_name(self._subject)
@@ -56,7 +62,7 @@ class CertificateRequest:
 
     def get_pem(self) -> bytes:
         """
-        Serialize the CSR to PEM format.
+        Serialize the CSR to PEM format. (ro)
 
         :param csr: The request object to serialize.
         :returns: PEM encoded bytes.
@@ -65,7 +71,7 @@ class CertificateRequest:
 
     def __repr__(self) -> str:
         """
-        Return the canonical string representation.
+        Return the canonical string representation. (rw)
 
         :returns: String containing the class name and subject.
         """
