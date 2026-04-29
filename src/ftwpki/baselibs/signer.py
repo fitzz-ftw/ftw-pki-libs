@@ -6,8 +6,8 @@
 signer
 ===============================
 
-
-Modul signer documentation
+This module provides the CertificateSigner class for issuing X.509
+certificates from CSRs using a CA authority. (rw)
 """
 
 import datetime
@@ -25,12 +25,15 @@ from ftwpki.baselibs.validate import validate_uri
 
 class CertificateSigner:
     """
-    Authority for signing Certificate Signing Requests.
+    Authority for signing Certificate Signing Requests. (rw)
+
+    Acts as an issuer to transform CSRs into signed certificates,
+    automatically handling AIA and CDP extensions.
     """
 
     def __init__(self, ca_cert: x509.Certificate, ca_key: rsa.RSAPrivateKey):
         """
-        Initialize with CA certificate and private key.
+        Initialize with CA certificate and private key. (rw)
 
         :param ca_cert: The issuer's certificate.
         :param ca_key: The issuer's private key.
@@ -38,16 +41,23 @@ class CertificateSigner:
         self._ca_cert = ca_cert
         self._ca_key = ca_key
 
-    def sign(self, csr: x509.CertificateSigningRequest, 
-             policy: BasePolicy, 
-             validity_days: int = 365, **kwargs) -> x509.Certificate:
+    def sign(
+        self,
+        csr: x509.CertificateSigningRequest,
+        policy: BasePolicy,
+        validity_days: int = 365,
+        **kwargs,
+    ) -> x509.Certificate:
         """
-        Sign a CSR and return a valid certificate.
+        Sign a CSR and return a valid certificate. (rw)
+
+        Generates a new certificate using subject info from the CSR and
+        extensions from the policy. Signs the result with the CA key.
 
         :param csr: The request to be signed.
         :param policy: The policy used to generate final extensions.
         :param validity_days: Number of days the certificate is valid.
-        :raises cryptography.exceptions.UnsupportedAlgorithm: If the signature algorithm is 
+        :raises cryptography.exceptions.UnsupportedAlgorithm: If the signature algorithm is
                 unsupported.
         :returns: The signed certificate object.
         """
@@ -56,7 +66,7 @@ class CertificateSigner:
         ca_issuer_uri = kwargs.pop("caIssuerURI", "")
 
         public_key = csr.public_key()
-        
+
         builder = (
             x509.CertificateBuilder()
             .subject_name(csr.subject)
@@ -78,10 +88,10 @@ class CertificateSigner:
         ca_public_key = cast(CertificateIssuerPublicKeyTypes, self._ca_cert.public_key())
         aki = x509.AuthorityKeyIdentifier.from_issuer_public_key(ca_public_key)
         builder = builder.add_extension(aki, critical=False)
-        builder = self._add_authority_information_access(builder=builder, 
-                                                             ocsp_uri=authority_info_access,
-                                                             issuer_uri=ca_issuer_uri)
-        builder = self._add_crl_distribution_points(builder,crl_uri)
+        builder = self._add_authority_information_access(
+            builder=builder, ocsp_uri=authority_info_access, issuer_uri=ca_issuer_uri
+        )
+        builder = self._add_crl_distribution_points(builder, crl_uri)
 
         skid = x509.SubjectKeyIdentifier.from_public_key(public_key)
         builder = builder.add_extension(skid, critical=False)
@@ -90,7 +100,7 @@ class CertificateSigner:
 
     def get_pem(self, cert: x509.Certificate) -> bytes:
         """
-        Serialize the certificate to PEM format.
+        Serialize the certificate to PEM format. (ro)
 
         :param cert: The certificate object to serialize.
         :returns: PEM encoded bytes.
@@ -99,7 +109,7 @@ class CertificateSigner:
 
     def __repr__(self) -> str:
         """
-        Return the canonical string representation.
+        Return the canonical string representation. (rw)
 
         :returns: String containing the class name and issuer.
         """
@@ -109,23 +119,23 @@ class CertificateSigner:
         self, builder: x509.CertificateBuilder, ocsp_uri: str = "", issuer_uri: str = ""
     ) -> x509.CertificateBuilder:
         """
-        Adds the AIA extension (OCSP and/or CA Issuers).
-        Skips if aia_uri is empty, invalid, or uses HTTPS (to avoid circular dependencies).
+        Adds the AIA extension (OCSP and/or CA Issuers). (rw)
         """
         descriptions: list[x509.AccessDescription] = []
-        if ocsp_uri:= validate_uri(ocsp_uri.strip(),True, "oscp").strip():
-            descriptions.append(x509.AccessDescription(
-                x509.OID_OCSP, x509.UniformResourceIdentifier(ocsp_uri)
-            ))
-        if issuer_uri:= validate_uri(issuer_uri.strip()).strip():
-            descriptions.append(x509.AccessDescription(
-                x509.OID_CA_ISSUERS, x509.UniformResourceIdentifier(issuer_uri)
-            ))
+        if ocsp_uri := validate_uri(ocsp_uri.strip(), True, "oscp").strip():
+            descriptions.append(
+                x509.AccessDescription(x509.OID_OCSP, x509.UniformResourceIdentifier(ocsp_uri))
+            )
+        if issuer_uri := validate_uri(issuer_uri.strip()).strip():
+            descriptions.append(
+                x509.AccessDescription(
+                    x509.OID_CA_ISSUERS, x509.UniformResourceIdentifier(issuer_uri)
+                )
+            )
 
         if descriptions:
             builder = builder.add_extension(
-                x509.AuthorityInformationAccess(descriptions), 
-                critical=False
+                x509.AuthorityInformationAccess(descriptions), critical=False
             )
         return builder
 
@@ -133,8 +143,7 @@ class CertificateSigner:
         self, builder: x509.CertificateBuilder, crl_uri: str = ""
     ) -> x509.CertificateBuilder:
         """
-        Adds the CRL Distribution Points (CDP) extension.
-        Forced to HTTP to prevent circular dependencies during validation.
+        Adds the CRL Distribution Points (CDP) extension. (rw)
         """
         if validated_crl := validate_uri(crl_uri, no_https=True, uri_type="crl"):
             dist_point = x509.DistributionPoint(
@@ -148,20 +157,21 @@ class CertificateSigner:
             )
         return builder
 
-if __name__ == "__main__": # pragma: no cover
+
+if __name__ == "__main__":  # pragma: no cover
     from doctest import FAIL_FAST, testfile
-    
+
     be_verbose = False
     be_verbose = True
     option_flags = 0
     option_flags = FAIL_FAST
     test_sum = 0
     test_failed = 0
-    
+
     # Pfad zu den dokumentierenden Tests
     testfiles_dir = Path(__file__).parents[3] / "doc/source/devel"
     test_file = testfiles_dir / "get_started_signer.rst"
-    
+
     if test_file.exists():
         print(f"--- Running Doctest for {test_file.name} ---")
         doctestresult = testfile(
