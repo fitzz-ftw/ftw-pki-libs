@@ -3,18 +3,23 @@
 # Email: FitzzTeXnikWelt@t-online.de
 # License: LGPLv2.1
 """
-passwd
-===============================
+Password and Secret Encryption Management
+=========================================
 
+This module provides a secure manager for handling PKI secrets and
+passphrases. It implements AES-256-CBC encryption with PBKDF2 key
+derivation, ensuring full compatibility with OpenSSL's 'salted' file
+format. (rw)
 
-Modul passwd documentation
+Main Features:
+    * AES-256-CBC encryption for sensitive password files.
+    * PBKDF2-HMAC-SHA256 key derivation (100k iterations).
+    * Enforcement of restricted file system permissions (owner-only).
+    * OpenSSL-compatible 'Salted__' header handling.
 """
-
 
 import os
 import stat
-
-# from getpass import getpass
 from pathlib import Path
 
 from cryptography.hazmat.backends import default_backend
@@ -27,14 +32,19 @@ from ftwpki.baselibs.exceptions import PKIEncryptionError, PKISecurityError
 
 class PasswordManager:
     """
-    Handles native encryption for PKI secrets using AES-256 and PBKDF2.
+    Manager for native encryption of PKI secrets. (rw)
+
+    This class handles the lifecycle of encrypted passphrase files. It
+    uses a master password to derive cryptographic keys and manages
+    secure storage within a dedicated private directory.
     """
 
     def __init__(self, private_dir: str = "./private") -> None:
         """
-        Initialize the manager.
+        Initialize the manager and set encryption parameters. (rw)
 
-        :param private_dir: Directory for encrypted files.
+        :param private_dir: Path to the directory where encrypted files
+                            are stored.
         """
         self._private_dir = Path(private_dir)
         self._iterations = 100_000
@@ -43,34 +53,38 @@ class PasswordManager:
     @property
     def private_dir(self) -> Path:
         """
-        The directory for private encrypted files **(ro)**.
+        Return the resolved path of the private directory. (ro)
 
-        :returns: The path object of the private directory.
+        :returns: The Path object of the internal private storage location.
         """
         return self._private_dir
 
     def encrypt_password_file(self, input_file: str, output_filename: str, password: str) -> None:
         """
-        Encrypt a file using AES-256-CBC, mimicking OpenSSL pbkdf2 behavior.
+        Encrypt a source file into an OpenSSL-compatible format. (rw)
 
-        :param input_file: The source password file.
-        :param output_filename: The target filename in private_dir.
-        :param password: The password used for encryption.
+        Reads a raw password file, applies PKCS7 padding, and encrypts it
+        using AES-256-CBC. The output includes the 'Salted__' header and
+        an 8-byte random salt. The resulting file is secured with
+        owner-only permissions.
+
+        :param input_file: The path to the unencrypted source file.
+        :param output_filename: Target name within the private_dir.
+        :param password: The master password for key derivation.
         :raises FileNotFoundError: If the input file is missing or empty.
-        :raises EncryptionError: If the encryption process fails.
+        :raises PKIEncryptionError: If the encryption process fails.
         """
         in_path = Path(input_file)
         if not in_path.exists() or in_path.stat().st_size == 0:
             raise FileNotFoundError(f"Input file {input_file} is missing or empty.")
 
         try:
-            self._private_dir.mkdir(mode=0o700,parents=True, exist_ok=True)
+            self._private_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
             out_path = self._private_dir / output_filename
             salt = os.urandom(self._salt_size)
 
             key, iv = self._derive_key_iv(password, salt)
 
-            # Read and PKCS7 Padding
             data = in_path.read_bytes().rstrip(b"\r\n \x00")
             pad_len = 16 - (len(data) % 16)
             data += bytes([pad_len] * pad_len)
@@ -89,12 +103,17 @@ class PasswordManager:
 
     def decrypt_password_file(self, encrypted_filename: str, password: str) -> str:
         """
-        Decrypt an OpenSSL-compatible file and return the passphrase.
+        Decrypt an encrypted file and return the stored passphrase. (rw)
 
-        :param encrypted_filename: The name of the file in private_dir.
-        :param password: The password used to decrypt the file.
-        :raises FileNotFoundError: If the encrypted file does not exist.
-        :raises SecurityError: If the file format is invalid or decryption fails.
+        Validates the 'Salted__' header, derives the key from the
+        embedded salt, and performs AES decryption followed by PKCS7
+        unpadding.
+
+        :param encrypted_filename: Name of the file in the private_dir.
+        :param password: The master password for decryption.
+        :raises FileNotFoundError: If the encrypted file is missing.
+        :raises PKISecurityError: If the format is invalid or decryption
+                                  fails.
         :returns: The decrypted passphrase as a string.
         """
         file_path = self._private_dir / encrypted_filename
@@ -103,8 +122,7 @@ class PasswordManager:
 
         try:
             raw_data = file_path.read_bytes().rstrip(b"\r\n \x00")
-            
-            # OpenSSL Check: Must start with 'Salted__'
+
             if not raw_data.startswith(b"Salted__"):
                 raise PKISecurityError()
 
@@ -117,11 +135,10 @@ class PasswordManager:
             decryptor = cipher.decryptor()
             padded_data = decryptor.update(ciphertext) + decryptor.finalize()
 
-            # PKCS7 Unpadding
             pad_len = padded_data[-1]
             if pad_len < 1 or pad_len > 16:
                 raise PKISecurityError()
-            
+
             decrypted_data = padded_data[:-pad_len]
             return decrypted_data.decode("utf-8")
 
@@ -130,33 +147,38 @@ class PasswordManager:
 
     def _set_restricted_permissions(self, file_path: Path) -> None:
         """
-        Set file permissions to owner-only.
+        Enforce restricted file system permissions (0o600). (rw)
 
-        :param file_path: Path to the file.
+        :param file_path: Path to the file requiring protection.
         """
         file_path.chmod(stat.S_IREAD | stat.S_IWRITE)
 
     def _derive_key_iv(self, password: str, salt: bytes) -> tuple[bytes, bytes]:
         """
-        Derive Key and IV using PBKDF2-HMAC-SHA256.
+        Derive AES key and IV using PBKDF2-HMAC-SHA256. (rw)
 
-        :param password: The master password.
-        :param salt: The 8-byte salt.
-        :returns: A tuple containing (key, iv).
+        :param password: The master password string.
+        :param salt: The 8-byte salt for derivation.
+        :returns: A tuple containing the 32-byte key and 16-byte IV.
         """
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
             length=48,
             salt=salt,
             iterations=self._iterations,
-            backend=default_backend()
+            backend=default_backend(),
         )
         derived = kdf.derive(password.encode("utf-8"))
         return derived[:32], derived[32:]
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(private_dir={str(self._private_dir)!r})"
+        """
+        Return a formal representation of the PasswordManager. (rw)
 
+        :returns: String containing the class name and private directory.
+        """
+        return f"{self.__class__.__name__}(private_dir={str(self._private_dir)!r})"
+    
 if __name__ == "__main__": # pragma: no cover
     from doctest import FAIL_FAST, testfile
     
