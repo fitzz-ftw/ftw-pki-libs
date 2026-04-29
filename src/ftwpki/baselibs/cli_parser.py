@@ -3,11 +3,19 @@
 # Email: FitzzTeXnikWelt@t-online.de
 # License: LGPLv2 or above
 """
-cli_parser
-===============================
+CLI Argument Parsing Utilities
+==============================
 
+This module provides specialized ArgumentParser subclasses for PKI
+operations. It handles the extraction of Distinguished Name (DN)
+attributes, certificate signing policies, and import configurations from
+command-line arguments. (rw)
 
-Modul cli_parser documentation
+Main Features:
+    * Custom actions for OpenSSL-style subject strings.
+    * Robust parsing for DN, CSR, and signing parameters.
+    * Version-specific fixes for argparse behavior (Python 3.11).
+    * Integration with structural protocols for type safety.
 """
 
 import sys
@@ -38,56 +46,101 @@ ALIAS_MAP = {
     "L": "localityName",
     "OU": "organizationalUnitName",
 }
+"""
+Mapping of short CLI aliases to long X.509 attribute names. (ro)
 
-# ArgumentParser().error()
+This dictionary translates common OpenSSL-style abbreviations (e.g., 'CN') 
+into the full identifiers used by the cryptography library and the 
+DistinguishedNameProtocol. It is used during subject string parsing and 
+argument synchronization.
+"""
 
 class SubjAction(Action):
+    """
+    Argparse Action for parsing OpenSSL-style subject strings. (rw)
+
+    This action converts a string like '/C=DE/CN=Example' into a dictionary
+    of Distinguished Name attributes, mapping short aliases to long
+    attribute names.
+    """
+
     @staticmethod
-    def _parse_subj_string(subj_str) -> dict[str, str]:
+    def _parse_subj_string(subj_str: str) -> dict[str, str]:
+        """
+        Parse a subject string into a normalized dictionary. (rw)
+
+        :param subj_str: The raw subject string (e.g., from -subj).
+        :raises ValueError: If a fragment does not follow the 'Key=Value' format.
+        :returns: A dictionary of DN attributes.
+        """
         # Trenne bei / oder , und filtere leere Fragmente
         parts = [p.strip() for p in subj_str.replace(",", "/").split("/") if p.strip()]
         subj_dict = {}
         for part in parts:
             if "=" not in part:
-                # Optional: Fehler werfen oder ignorieren
                 raise ValueError(
                     f"Fragment '{part}' does not contain '=' (Expected format: Key=Value)"
                 )
 
             key, value = part.split("=", 1)
             key = key.strip()
-            # Mapping auf Langnamen (CN -> commonName)
             long_name = ALIAS_MAP.get(key, key)
             subj_dict[long_name] = value.strip()
 
         return subj_dict
 
     def __call__(self, parser, namespace, values, option_string=None):
+        """
+        Execute the action during argument parsing. (rw)
+
+        :raises ArgumentError: If the subject string format is invalid.
+        """
         try:
             subj_dict = self._parse_subj_string(values)
             setattr(namespace, self.dest, subj_dict)
         except Exception as e:
             raise ArgumentError(self, f"Ungültiges Subj-Format: {e}")
 
+
 class ArgparseFix311(ArgumentParser):
     """
-    Fix for Python 3.11 argparse behavior where exit_on_error=False
-    is sometimes ignored, leading to SystemExit instead of ArgumentError.
+    Custom ArgumentParser to fix Python 3.11 specific behaviors. (rw)
+
+    Ensures that errors consistently raise ArgumentError instead of
+    exiting the process, which is critical for library usage and testing.
     """
 
     def error(self, message):
-        if sys.version_info[:2] == (3, 11): # py 3.11 only no cover
-            # Force ArgumentError to satisfy doctests and library usage
+        """
+        Handle parsing errors by raising ArgumentError. (rw)
+
+        :param message: The error message to report.
+        :raises ArgumentError: Always raises to prevent SystemExit.
+        """
+        if sys.version_info[:2] == (3, 11):
             raise ArgumentError(None, message)
-        super().error(message)  # not py 3.11 no cover
+        super().error(message)
 
     def exit(self, status=0, message=None):
-        if sys.version_info[:2] == (3, 11) and status != 0:  # py 3.11 only no cover
+        """
+        Intercept exit calls to maintain control flow. (rw)
+
+        :param status: Exit status code.
+        :param message: Optional error message.
+        """
+        if sys.version_info[:2] == (3, 11) and status != 0:
             self.error(message or f"Exited with status {status}")
-        super().exit(status, message)  # not py 3.11 no cover
+        super().exit(status, message)
 
 
 class DistinguishedNameParser(ArgparseFix311):
+    """
+    Parser for X.509 Distinguished Name attributes. (rw)
+
+    This class handles individual DN flags (like -CN, -O) as well as
+    combined subject strings (-subj) and TOML configuration files.
+    """
+
     def __init__(
         self,
         prog: str | None = None,
@@ -97,10 +150,12 @@ class DistinguishedNameParser(ArgparseFix311):
         exit_on_error: bool = False,
         **kwargs,
     ) -> None:
+        """Initialize the DN parser with default PKI arguments. (rw)"""
         super().__init__(prog, usage, description, epilog, exit_on_error=exit_on_error, **kwargs)
         self._setup_parser()
 
     def _setup_parser(self) -> None:
+        """Configure the available CLI arguments for DN attributes. (rw)"""
         self.add_argument(
             "-C", "--countryName", dest="countryName", default="", help="Land (2 Buchstaben)"
         )
@@ -149,6 +204,12 @@ class DistinguishedNameParser(ArgparseFix311):
         )
 
     def sync_arguments(self, parsed_args: DistinguishedNameProtocol) -> DistinguishedNameProtocol:
+        """
+        Synchronize individual DN flags with the dnsubject dictionary. (rw)
+
+        :param parsed_args: The namespace object containing parsed attributes.
+        :returns: The updated protocol-compliant object.
+        """
         final_dn = getattr(parsed_args, "dnsubject", {}) or {}
         for arg in ALIAS_MAP.values():
             arg_v = getattr(parsed_args, arg, "")
@@ -164,6 +225,13 @@ class DistinguishedNameParser(ArgparseFix311):
     def parse_args(
         self, args: list[str] | None = None, namespace: Namespace | None = None
     ) -> DistinguishedNameProtocol:
+        """
+        Parse CLI arguments and return a synchronized DN protocol object. (rw)
+
+        :param args: List of argument strings.
+        :param namespace: Existing namespace to populate.
+        :returns: An object following the DistinguishedNameProtocol.
+        """
         arg_parsed = cast(
             DistinguishedNameProtocol, super().parse_args(args=args, namespace=namespace)
         )
@@ -171,7 +239,14 @@ class DistinguishedNameParser(ArgparseFix311):
 
 
 class CSRParser(DistinguishedNameParser):
+    """
+    Parser for Certificate Signing Request (CSR) parameters. (rw)
+
+    Extends DN parsing with arguments for key management and storage paths.
+    """
+
     def _setup_parser(self) -> None:
+        """Configure additional arguments for CSR key paths. (rw)"""
         super()._setup_parser()
         self.add_argument("-k", "--key", "--private-key", default="", dest="private_key")
         self.add_argument(
@@ -186,23 +261,30 @@ class CSRParser(DistinguishedNameParser):
     def parse_args(
         self, args: list[str] | None = None, namespace: Namespace | None = None
     ) -> CSRProtocol:
+        """
+        Parse arguments and return a CSR protocol object. (rw)
+
+        :returns: An object following the CSRProtocol.
+        """
         return cast(CSRProtocol, super().parse_args(args, namespace))
 
 
 class PolicyParser(ArgparseFix311):
     """
-    Parser für Zertifikats-Policies.
-    Legt fest, wie mit DN-Feldern bei der Signierung verfahren wird.
+    Parser for certificate issuance policies. (rw)
+
+    Defines how individual DN fields should be treated during signing
+    (e.g., match, optional, supplied).
     """
 
     def __init__(self, **kwargs) -> None:
-        # Falls exit_on_error nicht in kwargs, setzen wir es auf False wie im DN-Parser
+        """Initialize the policy parser. (rw)"""
         kwargs.setdefault("exit_on_error", False)
         super().__init__(**kwargs)
         self._setup_parser()
 
     def _setup_parser(self) -> None:
-        # Die Felder, die wir aus dem DistinguishedNameParser kennen
+        """Configure arguments for policy constraint settings. (rw)"""
         self.fields = {
             "C": "countryName",
             "ST": "stateOrProvinceName",
@@ -240,6 +322,11 @@ class PolicyParser(ArgparseFix311):
     def parse_args(
         self, args: list[str] | None = None, namespace: Namespace | None = None
     ) -> PolicyProtocol:
+        """
+        Parse and aggregate policy constraints into a dictionary. (rw)
+
+        :returns: An object following the PolicyProtocol.
+        """
         ret_args = cast(PolicyProtocol, super().parse_args(args=args, namespace=namespace))
         ret_args.policy = {}
         for v in self.fields.values():
@@ -248,8 +335,14 @@ class PolicyParser(ArgparseFix311):
 
 
 class CSRSigningParser(PolicyParser):
+    """
+    Parser for certificate signing operations. (rw)
+
+    Handles CA keys, validity periods, and the path to the CSR file.
+    """
 
     def _setup_parser(self) -> None:
+        """Configure arguments for the signing process. (rw)"""
         super()._setup_parser()
         self.add_argument("-k", "--key", "--private-key", dest="private_key")
         self.add_argument("--private-dir", dest="private_dir")
@@ -283,10 +376,21 @@ class CSRSigningParser(PolicyParser):
     def parse_args(
         self, args: list[str] | None = None, namespace: Namespace | None = None
     ) -> SignParserProtocol:
+        """
+        Parse arguments and return a signing protocol object. (rw)
+
+        :returns: An object following the SignParserProtocol.
+        """
         return cast(SignParserProtocol, super().parse_args(args=args, namespace=namespace))
 
+
 class CSRMultiSigningParser(CSRSigningParser):
+    """
+    Parser for signing operations involving multiple policy types. (rw)
+    """
+
     def _setup_parser(self) -> None:
+        """Add policy type selection to the signing parser. (rw)"""
         super()._setup_parser()
         self.add_argument(
             "-t",
@@ -300,10 +404,19 @@ class CSRMultiSigningParser(CSRSigningParser):
     def parse_args(
         self, args: list[str] | None = None, namespace: Namespace | None = None
     ) -> MultiSignParserProtocol:
+        """
+        Parse arguments and return a multi-policy signing object. (rw)
+
+        :returns: An object following the MultiSignParserProtocol.
+        """
         return cast(MultiSignParserProtocol, super().parse_args(args=args, namespace=namespace))
 
 
 class CertImportParser(ArgparseFix311):
+    """
+    Parser for importing certificates from encrypted archives. (rw)
+    """
+
     def __init__(
         self,
         prog: str | None = None,
@@ -314,48 +427,61 @@ class CertImportParser(ArgparseFix311):
         argument_default="",
         **kwargs,
     ) -> None:
+        """Initialize the import parser. (rw)"""
         super().__init__(prog, usage, description, epilog, exit_on_error=exit_on_error, **kwargs)
         self._setup_parser()
 
     def _setup_parser(self) -> None:
-        self.add_argument("enc_zipfile",
-                          help="Encrypted certifikate zipfile.")
+        """Configure positional and required key arguments for import. (rw)"""
+        self.add_argument("enc_zipfile", help="Encrypted certificate zipfile.")
         self.add_argument(
-            "--keyfile", "-k", 
-            dest="private_keyfile",
-            required=True, 
-            help="Name des Private Keys"
+            "--keyfile", "-k", dest="private_keyfile", required=True, help="Name des Private Keys"
         )
 
-    def parse_args(self, args: list[str] | None = None, 
-                   namespace: Namespace|None=None) -> CertImportProtocol:
-        return cast(CertImportProtocol, 
-                    super().parse_args(args,namespace))
+    def parse_args(
+        self, args: list[str] | None = None, namespace: Namespace | None = None
+    ) -> CertImportProtocol:
+        """
+        Parse arguments and return a certificate import object. (rw)
+
+        :returns: An object following the CertImportProtocol.
+        """
+        return cast(CertImportProtocol, super().parse_args(args, namespace))
 
 
 class IntermedImportParser(CertImportParser):
+    """
+    Parser for importing intermediate CA certificates. (rw)
+    """
 
     def _setup_parser(self) -> None:
-        self.add_argument("passphrase_file", help="Name of the file with teh passphrase")
+        """Add passphrase and policy options for intermediate import. (rw)"""
+        self.add_argument("passphrase_file", help="Name of the file with the passphrase")
         super()._setup_parser()
         self.add_argument(
             "--policies",
             default="",
             dest="policies",
-            help="Directory with poicies files",
+            help="Directory with policy files",
         )
         self.add_argument(
-            "-p", "--policy", 
-            dest="policy", 
-            help="The name of the policy to use", 
+            "-p",
+            "--policy",
+            dest="policy",
+            help="The name of the policy to use",
             required=True,
         )
 
-    def parse_args(self, args: list[str] | None = None, 
-                   namespace: Namespace|None=None) -> IntermedImportProtocol:
-        return cast(IntermedImportProtocol,
-                    super().parse_args(args, namespace))
+    def parse_args(
+        self, args: list[str] | None = None, namespace: Namespace | None = None
+    ) -> IntermedImportProtocol:
+        """
+        Parse arguments and return an intermediate import object. (rw)
 
+        :returns: An object following the IntermedImportProtocol.
+        """
+        return cast(IntermedImportProtocol, super().parse_args(args, namespace))
+    
 
 if __name__ == "__main__":  # pragma: no cover
     from doctest import FAIL_FAST, testfile
