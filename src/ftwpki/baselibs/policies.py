@@ -3,11 +3,17 @@
 # Email: FitzzTeXnikWelt@t-online.de
 # License: LGPLv2.1
 """
-policies
-===============================
+X.509 Certificate Issuance Policies
+===================================
 
+This module defines the structural policies for different certificate types
+within the PKI. It translates high-level policy names into specific X.509
+extensions, key usages, and constraints compliant with RFC 5280. (rw)
 
-Modul policies documentation
+Main Features:
+    * Base abstract class for policy definition.
+    * Specific policies for CAs (Root/Intermediate) and End-Entities.
+    * Support for Subject Alternative Names (SAN) via dynamic kwargs.
 """
 
 from abc import ABC, abstractmethod
@@ -18,47 +24,102 @@ from cryptography.x509.oid import ExtendedKeyUsageOID
 
 
 class BasePolicy(ABC):
+    """
+    Abstract base class for all certificate policies. (rw)
+
+    Provides the foundational interface for defining X.509 extensions.
+    Specific certificate types (Root, Server, User, etc.) must implement
+    this interface to ensure consistent extension handling.
+    """
+
     def __init__(self, **kwargs):
+        """
+        Initialize the base policy. (rw)
+
+        :param kwargs: Optional parameters for child policy configuration.
+        """
         super().__init__()
 
     @abstractmethod
     def get_extensions(self, **kwargs) -> list[tuple[x509.ExtensionType, bool]]:
-        """Returns a list of (extension, critical) tuples."""
+        """
+        Return a list of (extension, critical) tuples. (ro)
+
+        This is an abstract method that must be implemented by subclasses
+        to define specific X.509 extensions.
+
+        :param kwargs: Optional parameters for extension generation.
+        :returns: List of tuples containing the extension and its criticality.
+        """
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}()"       
+        """
+        Return a formal representation of the policy. (rw)
+
+        :returns: The class name as a string.
+        """
+        return f"{self.__class__.__name__}()"
+
 
 class RootPolicy(BasePolicy):
     """
-    Policy for Root CA Certificates.
-    Matches 'v3_ca_cert' from openssl.cnf.
+    Policy for Root CA Certificates. (rw)
+
+    This policy is used for self-signed trust anchors. It defines the
+    foundational extensions required for the top-level authority in a
+    certificate hierarchy.
     """
 
     def __init__(self, **kwargs) -> None:
+        """
+        Initialize the root CA policy. (rw)
+
+        Sets up BasicConstraints (CA:True, no path limit) and KeyUsage
+        (Cert/CRL Sign).
+        """
         super().__init__(**kwargs)
-        # Root CAs haben meist keine path_length Einschränkung (None)
-        # Das entspricht 'basicConstraints = critical, CA:true' ohne pathlen
         self._basic_constraints = x509.BasicConstraints(ca=True, path_length=None)
 
         self._key_usage = x509.KeyUsage(
-            digital_signature=False,  # Root CAs signieren meist keine Daten direkt
+            digital_signature=False,
             content_commitment=False,
             key_encipherment=False,
             data_encipherment=False,
             key_agreement=False,
-            key_cert_sign=True,  # Wichtig: Darf Zertifikate signieren
-            crl_sign=True,  # Wichtig: Darf CRLs signieren
+            key_cert_sign=True,
+            crl_sign=True,
             encipher_only=False,
             decipher_only=False,
         )
 
     def get_extensions(self, **kwargs) -> list[tuple[x509.ExtensionType, bool]]:
-        # Eine Root-CA braucht normalerweise keine SANs (alt_names),
-        # da sie nur über ihren Distinguished Name (DN) identifiziert wird.
+        """
+        Assemble extensions for a root CA. (ro)
+
+        :returns: A list of configured X.509 extensions.
+        """
         return [(self._basic_constraints, True), (self._key_usage, True)]
 
+
 class IntermediatePolicy(BasePolicy):
-    def __init__(self,**kwargs):
+    """
+    Policy for Intermediate CA Certificates. (rw)
+
+    This policy inherits directly from BasePolicy and is used to issue
+    subordinate CA certificates. It allows defining a path length
+    constraint to limit the depth of the subsequent CA hierarchy.
+    """
+
+    def __init__(self, **kwargs):
+        """
+        Initialize the intermediate policy. (rw)
+
+        Extracts 'path_length' from kwargs (defaulting to 0) before
+        initializing BasicConstraints (CA:True) and KeyUsage
+        (Digital Signature, Cert/CRL Sign).
+
+        :param kwargs: Supports 'path_length' (int).
+        """
         self._path_length = kwargs.pop("path_length", 0)
         super().__init__(**kwargs)
         self._basic_constraints = x509.BasicConstraints(ca=True, path_length=self._path_length)
@@ -73,19 +134,42 @@ class IntermediatePolicy(BasePolicy):
             encipher_only=False,
             decipher_only=False,
         )
+
     def get_extensions(self, **kwargs) -> list[tuple[x509.ExtensionType, bool]]:
-        
-        return [
-            (self._basic_constraints, True),
-            (self._key_usage, True)
-        ]
+        """
+        Assemble extensions for an intermediate CA. (ro)
+
+        :returns: A list containing BasicConstraints and KeyUsage extensions.
+        """
+
+        return [(self._basic_constraints, True), (self._key_usage, True)]
 
     def __repr__(self) -> str:
+        """
+        Return a formal representation of the intermediate policy. (rw)
+
+        :returns: String containing the class name and the path_length value.
+        """
         return f"{self.__class__.__name__}(path_length: {self._path_length})"
 
 
 class UserPolicy(BasePolicy):
+    """
+    Policy for User and End-Entity Certificates. (rw)
+
+    Inherits directly from BasePolicy. This policy is designed for personal
+    certificates, providing support for client authentication, secure email
+    (S/MIME), and code signing.
+    """
+
     def __init__(self, **kwargs) -> None:
+        """
+        Initialize the user policy. (rw)
+
+        Sets up BasicConstraints (CA:False), extensive KeyUsage (including
+        nonRepudiation and Data Encipherment), and ExtendedKeyUsage
+        (Client Auth, Email Protection, Code Signing).
+        """
         super().__init__(**kwargs)
         self._basic_constraints = x509.BasicConstraints(ca=False, path_length=None)
         self._key_usage = x509.KeyUsage(
@@ -108,6 +192,16 @@ class UserPolicy(BasePolicy):
         )
 
     def get_extensions(self, **kwargs) -> list[tuple[x509.ExtensionType, bool]]:
+        """
+        Assemble extensions for a user certificate. (ro)
+
+        Handles Subject Alternative Names (SAN) with automatic type
+        detection: strings containing '@' are treated as RFC822Names
+        (Email), others as DNSNames.
+
+        :param kwargs: Can contain 'alt_names' (list of strings).
+        :returns: A list of extensions with appropriate SAN types.
+        """
         extensions = [
             (self._basic_constraints, True),
             (self._key_usage, True),
@@ -125,12 +219,23 @@ class UserPolicy(BasePolicy):
 
         return extensions
 
+
 class ServerPolicy(BasePolicy):
     """
-    Policy for SSL/TLS Server Certificates.
-    Matches 'v3_server_cert' from your openssl.cnf.
+    Policy for SSL/TLS Server Certificates. (rw)
+
+    Matches 'v3_server_cert' from standard OpenSSL configurations. This
+    policy is intended for end-entity certificates used to identify
+    servers in secure communication.
     """
-    def __init__(self,**kwargs) -> None:
+
+    def __init__(self, **kwargs) -> None:
+        """
+        Initialize the server policy. (rw)
+
+        Sets up BasicConstraints (CA:False), KeyUsage (Digital Signature,
+        Key Encipherment), and ExtendedKeyUsage (Server Auth).
+        """
         super().__init__(**kwargs)
         self._basic_constraints = x509.BasicConstraints(ca=False, path_length=None)
         self._key_usage = x509.KeyUsage(
@@ -148,13 +253,20 @@ class ServerPolicy(BasePolicy):
 
     def get_extensions(self, **kwargs) -> list[tuple[x509.ExtensionType, bool]]:
         """
-        Build extensions for a server certificate.
-        Expects 'alt_names' as a list of strings in kwargs.
+        Build extensions for a server certificate. (ro)
+
+        Processes Subject Alternative Names (SAN) if provided via the
+        'alt_names' keyword argument.
+
+        :param kwargs: Can contain 'alt_names' (list of strings).
+        :returns: A list of extensions including SANs if present.
         """
 
-        extensions = [(self._basic_constraints, True), 
-                      (self._key_usage, True), 
-                      (self._extended_key_usage, False)]
+        extensions = [
+            (self._basic_constraints, True),
+            (self._key_usage, True),
+            (self._extended_key_usage, False),
+        ]
 
         # 4. Subject Alternative Name (SAN) - Die 'alt_names' Logik
         # Wir ziehen die Namen aus den kwargs, falls vorhanden
@@ -166,8 +278,23 @@ class ServerPolicy(BasePolicy):
 
         return extensions
 
+
 class ClientPolicy(BasePolicy):
+    """
+    Independent policy for generic Client Certificates. (rw)
+
+    This policy inherits directly from BasePolicy and is specifically
+    tailored for client authentication. It maintains strict separation
+    from server or user-specific logic to ensure maximum flexibility.
+    """
+
     def __init__(self, **kwargs) -> None:
+        """
+        Initialize the client policy. (rw)
+
+        Sets up BasicConstraints (CA:False), KeyUsage (Digital Signature,
+        Key Encipherment), and ExtendedKeyUsage (Client Auth only).
+        """
         super().__init__(**kwargs)
         self._basic_constraints = x509.BasicConstraints(ca=False, path_length=None)
         self._key_usage = x509.KeyUsage(
@@ -184,6 +311,12 @@ class ClientPolicy(BasePolicy):
         self._extended_key_usage = x509.ExtendedKeyUsage([ExtendedKeyUsageOID.CLIENT_AUTH])
 
     def get_extensions(self, **kwargs) -> list[tuple[x509.ExtensionType, bool]]:
+        """
+        Assemble extensions for a client certificate. (ro)
+
+        :param kwargs: Can contain 'alt_names' (list of strings).
+        :returns: A list of extensions including SANs if provided.
+        """
         extensions = [
             (self._basic_constraints, True),
             (self._key_usage, True),
@@ -197,8 +330,24 @@ class ClientPolicy(BasePolicy):
 
         return extensions
 
+
 class StandalonePolicy(BasePolicy):
+    """
+    Independent policy for special purpose certificates. (rw)
+
+    This policy inherits directly from BasePolicy. it is designed for
+    certificates that require a specific combination of server and
+    client authentication without being tied to the standard
+    Server/User hierarchy.
+    """
+
     def __init__(self, **kwargs) -> None:
+        """
+        Initialize the standalone policy. (rw)
+
+        Sets up BasicConstraints (CA:False), KeyUsage (Digital Signature,
+        Key Encipherment), and ExtendedKeyUsage (Server & Client Auth).
+        """
         super().__init__(**kwargs)
         self._basic_constraints = x509.BasicConstraints(ca=False, path_length=None)
         self._key_usage = x509.KeyUsage(
@@ -218,6 +367,12 @@ class StandalonePolicy(BasePolicy):
         )
 
     def get_extensions(self, **kwargs) -> list[tuple[x509.ExtensionType, bool]]:
+        """
+        Assemble extensions for a standalone certificate. (ro)
+
+        :param kwargs: Can contain 'alt_names' (list of strings).
+        :returns: A list of extensions including SANs if provided.
+        """
         extensions = [
             (self._basic_constraints, True),
             (self._key_usage, True),
@@ -231,20 +386,21 @@ class StandalonePolicy(BasePolicy):
 
         return extensions
 
-if __name__ == "__main__": # pragma: no cover
+
+if __name__ == "__main__":  # pragma: no cover
     from doctest import FAIL_FAST, testfile
-    
+
     be_verbose = False
     be_verbose = True
     option_flags = 0
     option_flags = FAIL_FAST
     test_sum = 0
     test_failed = 0
-    
+
     # Pfad zu den dokumentierenden Tests
     testfiles_dir = Path(__file__).parents[3] / "doc/source/devel"
     test_file = testfiles_dir / "get_started_policies.rst"
-    
+
     if test_file.exists():
         print(f"--- Running Doctest for {test_file.name} ---")
         doctestresult = testfile(
