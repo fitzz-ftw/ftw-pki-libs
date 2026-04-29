@@ -3,11 +3,20 @@
 # Email: FitzzTeXnikWelt@t-online.de
 # License: LGPLv2 or above
 """
-config_file_create
-===============================
+Configuration File Creation
+===========================
 
+This module manages the creation of default configuration files for the
+PKI application. It provides templates and functions to initialize the
+system settings with secure file permissions. (rw)
 
-Modul config_file_create documentation
+Main Features:
+    * Definition of TOML configuration templates for different PKI tiers.
+    * Automatic creation of configuration directories.
+    * Secure writing of initial configuration files with owner-only access.
+
+The module ensures that the application has a valid starting point if no
+configuration is present.
 """
 
 from pathlib import Path
@@ -70,8 +79,21 @@ ext_signedcert= ".zip.enc"
 policies     = "~/.config/ftwpki/policies/intermediate"
 """
 
-
+# FUNCTION - write_example_config
 def write_example_config(content:str):
+    """
+    Write a sample configuration file to the default path. (rw)
+
+    This function creates a configuration file with the provided content
+    if it does not exist. It ensures the parent directory is created
+    with restricted permissions and sets the file access to owner-only.
+
+    :param content: The string content to be written into the config file.
+    :raises OSError: If the directory cannot be created or the file
+                     cannot be written.
+    :raises PermissionError: If there are insufficient rights to set
+                             file permissions.
+    """
     conf_path = config_file_path()
     if conf_path.exists():
         return 
@@ -79,7 +101,7 @@ def write_example_config(content:str):
         conf_path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
     conf_path.write_text(content+"\n")
     conf_path.chmod(0o600)
-
+# !FUNCTION - write_example_config
 
 
 if __name__ == "__main__": # pragma: no cover
