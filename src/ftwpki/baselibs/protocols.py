@@ -3,18 +3,47 @@
 # Email: FitzzTeXnikWelt@t-online.de
 # License: LGPLv2 or above
 """
-protocols
-===============================
+PKI Structural Protocols
+========================
 
+This module defines the structural interfaces (Protocols) used for
+type hinting and static analysis across the PKI system. It establishes
+the required data shapes for identity objects, signing policies, and
+import configurations. (ro)
 
-Modul protocols documentation
+Main Features:
+    * Definition of Distinguished Name (DN) and CSR data structures.
+    * Specification of policy enforcement types and interfaces.
+    * Protocols for certificate signing and multi-policy operations.
+    * Requirements for certificate and intermediate CA import objects.
+
+These protocols ensure type safety and consistency throughout the
+cryptographic workflows.
 """
 
 from pathlib import Path
 from typing import Literal, Protocol
 
 
-class DistinguishedNameProtocol(Protocol): 
+# CLASS - DistinguishedNameProtocol
+class DistinguishedNameProtocol(Protocol):
+    """
+    Structural interface for Distinguished Name (DN) data objects. (ro)
+
+    This protocol defines the required attributes for objects representing
+    an X.509 Distinguished Name. It is used for static type checking
+    to ensure that configuration or identity objects provide all
+    necessary naming fields.
+
+    Attributes:
+        countryName (str): Two-letter ISO country code.
+        dnsubject (dict[str, str]): Dictionary for additional subject attributes.
+        commonName (str): The primary identifier (e.g., person or server name).
+        organizationalUnitName (str): The department or subunit name.
+        organizationName (str): The legal name of the organization.
+        localityName (str): The city or town name.
+        stateOrProvinceName (str): The state, province, or region name.
+    """ 
     countryName:str
     dnsubject:dict[str,str]
     commonName:str
@@ -22,15 +51,64 @@ class DistinguishedNameProtocol(Protocol):
     organizationName:str
     localityName:str
     stateOrProvinceName:str
+# !CLASS - DistinguishedNameProtocol
 
+
+# CLASS - CSRProtocol
 class CSRProtocol(DistinguishedNameProtocol):
+    """
+    Structural interface for Certificate Signing Request (CSR) data. (ro)
+
+    This protocol extends the DistinguishedNameProtocol by adding fields
+    required for key management and storage paths. It is used to ensure
+    that objects containing identity and cryptographic material follow
+    a consistent structure.
+
+    Attributes:
+        public_key (str): The filename or path of the public key.
+        private_key (str): The filename or path of the private key.
+        privatdir (str): The directory where sensitive key material is stored.
+    """
     public_key: str
     private_key: str
     privatdir: str
+# CLASS - CSRProtocol
 
 PolicyType = Literal["match", "optional", "supplied", "no"]
+"""
+Type alias for certificate policy constraints. (ro)
 
+This type defines the allowed string values for policy enforcement 
+during certificate signing. 
+
+Supported values:
+    * "match": The attribute must match the CA certificate.
+    * "optional": The attribute may be present or absent.
+    * "supplied": The attribute must be present in the request.
+    * "no": The attribute must not be present.
+"""
+
+# CLASS - PolicyProtocol
 class PolicyProtocol(Protocol):
+    """
+    Structural interface for certificate policy definitions. (ro)
+
+    This protocol defines the required attributes for objects that specify
+    how Distinguished Name fields and general policies should be enforced
+    during certificate issuance. It ensures that policy objects provide
+    consistent enforcement rules.
+
+    Attributes:
+        policy_name (str): The unique identifier of the policy.
+        countryName (PolicyType): Enforcement rule for the country field.
+        stateOrProvinceName (PolicyType): Enforcement rule for the state field.
+        localityName (PolicyType): Enforcement rule for the city field.
+        organizationName (PolicyType): Enforcement rule for the organization field.
+        organizationalUnitName (PolicyType): Enforcement rule for the unit field.
+        commonName (PolicyType): Enforcement rule for the common name field.
+        policy (dict[str, PolicyType]): A mapping of additional policy
+                                        constraints.
+    """
     policy_name: str
     countryName: PolicyType
     stateOrProvinceName: PolicyType
@@ -39,30 +117,115 @@ class PolicyProtocol(Protocol):
     organizationalUnitName: PolicyType
     commonName: PolicyType
     policy: dict[str,PolicyType]
+# !CLASS - PolicyProtocol
 
+
+# CLASS - SigningProtocol
 class SigningProtocol(PolicyProtocol):
+    """
+    Structural interface for certificate signing operations. (ro)
+
+    This protocol extends the PolicyProtocol by adding cryptographic
+    material and configuration settings required for the signing process.
+    It ensures that objects used for issuing certificates provide all
+    necessary paths, keys, and validity constraints.
+
+    Attributes:
+        private_key (str): The filename or path of the CA private key.
+        private_dir (str): The directory where the private key is located.
+        certificate (str): The filename or path of the issuer certificate.
+        certificat_sign_request (str): The path to the CSR to be signed.
+        path_length (int): The maximum number of non-self-issued
+                           intermediate certificates that may follow.
+        validity_days (int): The number of days the new certificate
+                             will be valid.
+    """
     private_key:str
     private_dir:str
     certificate:str
     certificat_sign_request:str
     path_length:int
     validity_days:int
+# !CLASS - SigningProtocol
 
+
+# CLASS - SignParserProtocol
 class SignParserProtocol(SigningProtocol):
+    """
+    Structural interface for signing operations with passphrase files. (ro)
+
+    This protocol extends the SigningProtocol by adding a requirement
+    for a passphrase file path. It is used to ensure that objects
+    intended for automated signing processes provide the location of
+    the required security credentials.
+
+    Attributes:
+        passphrasefile (str): The filename or path to the file containing
+                              the private key password.
+    """
     passphrasefile:str
+# !CLASS - SignParserProtocol
 
+
+# CLASS - MultiSignParserProtocol
 class MultiSignParserProtocol(SignParserProtocol):
+    """
+    Structural interface for multi-policy signing operations. (ro)
+
+    This protocol extends the SignParserProtocol by adding a policy type
+    field. It is used to ensure that objects for complex signing
+    processes provide both the necessary security credentials and a
+    specific policy identifier.
+
+    Attributes:
+        policy_type (str): The identifier or category of the policy to
+                           be applied during the signing process.
+    """
     policy_type: str
+# !CLASS - MultiSignParserProtocol
 
 
+# CLASS - CertImportProtocol
 class CertImportProtocol(Protocol):
+    """
+    Structural interface for certificate import operations. (ro)
+
+    This protocol defines the required attributes for objects used to
+    import certificate material. It ensures that the necessary paths
+    for the private key and the encrypted archive are provided for
+    processing.
+
+    Attributes:
+        private_keyfile (str): The filename or path to the private key
+                               associated with the import.
+        enc_zipfile (str): The filename or path to the encrypted ZIP
+                           archive containing the certificate data.
+    """
     private_keyfile:str
     enc_zipfile:str
+# !CLASS - CertImportProtocol
 
+
+# CLASS - IntermedImportProtocol
 class IntermedImportProtocol(Protocol):
+    """
+    Structural interface for intermediate certificate import operations. (ro)
+
+    This protocol defines the required attributes for objects used to
+    import intermediate CA material. It ensures that paths for security
+    credentials and policy definitions are provided for the import process.
+
+    Attributes:
+        passphrase_file (str): The filename or path to the file containing
+                               the private key password.
+        policies (str): The path to the configuration file containing
+                        policy definitions.
+        policy (str): The specific name of the policy to be applied.
+    """
     passphrase_file:str
     policies:str
     policy:str
+# !CLASS - IntermedImportProtocol
 
 if __name__ == "__main__": # pragma: no cover
     from doctest import FAIL_FAST, testfile
