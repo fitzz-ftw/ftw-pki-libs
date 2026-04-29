@@ -207,7 +207,7 @@ class DbOpensslFile:
         return f"{self.__class__.__name__}(DBFile: {self._path.as_posix()})"
 
 
-def get_cert_text(pem_path: str | Path) -> str:
+def get_cert_text(pem_path: str | Path) -> str:  # not Windows testable
     """
     Retrieve human-readable certificate details via OpenSSL. (rw)
 
@@ -224,7 +224,7 @@ def get_cert_text(pem_path: str | Path) -> str:
     return result.stdout
 
 
-def openssl_decrypt_smime_file(input_file: str, key_file: str, password: str) -> bool:
+def openssl_decrypt_smime_file(input_file: str, key_file: str, password: str) -> bool:  # not Windows testable
     """
     Decrypt an S/MIME file using the OpenSSL binary. (rw)
 

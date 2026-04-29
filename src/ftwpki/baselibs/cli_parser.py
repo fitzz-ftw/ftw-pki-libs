@@ -117,9 +117,9 @@ class ArgparseFix311(ArgumentParser):
         :param message: The error message to report.
         :raises ArgumentError: Always raises to prevent SystemExit.
         """
-        if sys.version_info[:2] == (3, 11):
+        if sys.version_info[:2] == (3, 11): # py 3.11 only no cover
             raise ArgumentError(None, message)
-        super().error(message)
+        super().error(message) # not py 3.11 no·‌cover
 
     def exit(self, status=0, message=None):
         """
@@ -128,9 +128,9 @@ class ArgparseFix311(ArgumentParser):
         :param status: Exit status code.
         :param message: Optional error message.
         """
-        if sys.version_info[:2] == (3, 11) and status != 0:
+        if sys.version_info[:2] == (3, 11) and status != 0: # py 3.11 only no cover
             self.error(message or f"Exited with status {status}")
-        super().exit(status, message)
+        super().exit(status, message)  # not py 3.11 no cover
 
 
 class DistinguishedNameParser(ArgparseFix311):
