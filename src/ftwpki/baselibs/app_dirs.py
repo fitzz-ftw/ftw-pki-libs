@@ -3,37 +3,88 @@
 # Email: FitzzTeXnikWelt@t-online.de
 # License: LGPLv2 or above
 """
-app_dirs
-===============================
+Application Directory Management
+================================
 
+This module handles the resolution and creation of standardized application
+directories across different operating systems. It ensures that
+configuration files and sensitive cryptographic storage paths are correctly
+initialized and secured. (rw)
 
-Modul app_dirs documentation
+Main Features:
+    * Provision of platform-specific configuration and data paths.
+    * Automated creation of directory structures.
+    * Enforcement of restricted file system permissions (0o700) for
+      security-critical paths.
 """
 
 from pathlib import Path
 
 from platformdirs import PlatformDirs
 
-# Die Instanz wird sofort beim ersten Import des Moduls erstellt (Eager)
+# FUNCTION - _pki_dirs_instance
 _pki_dirs_instance = PlatformDirs(
     appname="ftwpki",
     appauthor="FitzzTeXnikWelt"
 )
+"""
+Global instance for platform-specific directory resolution. (ro)
 
+This internal singleton manages the mapping of abstract directory types 
+(like config, cache, or logs) to the actual physical paths provided by 
+the operating system. It is initialized once during module import to 
+ensure consistent path handling across the application.
+"""
+# !FUNCTION - _pki_dirs_instance
+
+
+# FUNCTION - PKIDirs
 def PKIDirs() -> PlatformDirs:
     """
-    Gibt die bereits beim Import erstellte PlatformDirs-Instanz zurück.
-    So bleibt der Zugriff konsistent und zentral.
+    Return the global platform directory handler for the application. (ro)
+
+    This helper provides access to the pre-initialized PlatformDirs
+    instance, ensuring consistent path resolution (e.g., user config,
+    cache, logs) throughout the entire system.
+
+    :returns: A PlatformDirs instance configured for 'ftwpki'.
     """
     return _pki_dirs_instance
+# !FUNCTION - PKIDirs
 
+
+# FUNCTION - config_file_path
 def config_file_path() -> Path:
+    """
+    Return the default path to the application configuration file. (ro)
+
+    This function resolves the location of 'pkiconfig.toml' within the
+    standard user configuration directory of the operating system.
+
+    :returns: The absolute path to the main TOML configuration file.
+    """
     return PKIDirs().user_config_path / "pkiconfig.toml"
+# !FUNCTION - config_file_path
 
 
+# FUNCTION - create_app_pathes
 def create_app_pathes(
     config: dict[str, str], securepathes: list[str], pathkey: str, *pathkeys: str
 ) -> dict[str, Path]:
+    """
+    Resolve and create required application directories. (rw)
+
+    This function takes a set of keys, resolves their paths from the
+    configuration, and ensures the directories exist on the file system.
+    Paths identified as 'secure' are created with restricted permissions
+    (0o700) to protect sensitive cryptographic material.
+
+    :param config: Dictionary containing path strings mapped to keys.
+    :param securepathes: List of keys that require restricted permissions.
+    :param pathkey: The first directory key to process.
+    :param pathkeys: Additional directory keys to process.
+    :returns: A dictionary of resolved absolute Path objects.
+    """
     keys = list(set([pathkey, *pathkeys]))
     keys.sort()
     ret = {}
@@ -46,6 +97,7 @@ def create_app_pathes(
                 path.mkdir(parents=True)
         ret[key] = path
     return ret
+# !FUNCTION - create_app_pathes
 
 
 if __name__ == "__main__": # pragma: no cover
