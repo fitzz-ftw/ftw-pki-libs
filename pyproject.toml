@@ -128,3 +128,7 @@ show_missing = true
 [tool.coverage.html]
 # Das entspricht --cov-report=html:doc/build/coverage
 directory = "doc/build/test_coverage/baselibs"
+
+[tool.esbonio.sphinx]
+buildCommand = ["sphinx-build", "-M", "dirhtml", "doc/source", "./_build"]
+pythonCommand = ["${venv:../.venv311/}"]
