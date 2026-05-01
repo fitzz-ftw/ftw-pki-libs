@@ -36,6 +36,7 @@ dynamic = ["version"]
 name = "ftw-pki-libs"
 readme = "README.md"
 requires-python = ">=3.11"
+license = "LGPL-2.1-or-later"
 
 [project.urls]
 # Documentation = "https://ftw-patch.readthedocs.io/en/stable/"
