@@ -40,6 +40,7 @@ Documentation
    :maxdepth: 1
    :caption: Developer Guides:
    
+   user/all_parsers
    index_get_started
    devel/ftwpki_baselibs_module
 

@@ -130,5 +130,5 @@ show_missing = true
 directory = "doc/build/test_coverage/baselibs"
 
 [tool.esbonio.sphinx]
-buildCommand = ["sphinx-build", "-M", "dirhtml", "doc/source", "./_build"]
+buildCommand = ["sphinx-build", "-M", "dirhtml", "doc/source", "doc/build/esbonia"]
 pythonCommand = ["${venv:../.venv311/}"]

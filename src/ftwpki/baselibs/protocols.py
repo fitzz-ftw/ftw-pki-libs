@@ -75,6 +75,18 @@ class CSRProtocol(DistinguishedNameProtocol):
 
 # CLASS - CSRProtocol
 
+#FIXME - Dokumentatio
+ClientTypeName = Literal["server","client","standalone"]
+
+# CLASS - ServerClientCSR
+# FIXME - Dokumentatio
+class ServerClientCSRProtocol(CSRProtocol):
+    email:str
+    ip_addresses:list[str]
+    host_names:list[str]
+
+# !CLASS - ServerClientCSR
+
 PolicyType = Literal["match", "optional", "supplied", "no"]
 """
 Type alias for certificate policy constraints. (ro)

@@ -30,11 +30,13 @@ from typing import cast
 
 from ftwpki.baselibs.protocols import (
     CertImportProtocol,
+    ClientTypeName,
     CSRProtocol,
     DistinguishedNameProtocol,
     IntermedImportProtocol,
     MultiSignParserProtocol,
     PolicyProtocol,
+    ServerClientCSRProtocol,
     SignParserProtocol,
 )
 
@@ -54,7 +56,10 @@ into the full identifiers used by the cryptography library and the
 DistinguishedNameProtocol. It is used during subject string parsing and 
 argument synchronization.
 """
+# CLASS - SubjAction
 
+
+# CLASS - SubjAction
 class SubjAction(Action):
     """
     Argparse Action for parsing OpenSSL-style subject strings. (rw)
@@ -89,7 +94,10 @@ class SubjAction(Action):
 
         return subj_dict
 
-    def __call__(self, parser, namespace, values, option_string=None):
+    def __call__(self, parser:ArgumentParser, 
+                 namespace:Namespace, 
+                 values:str, 
+                 option_string:str|None=None):
         """
         Execute the action during argument parsing. (rw)
 
@@ -100,8 +108,10 @@ class SubjAction(Action):
             setattr(namespace, self.dest, subj_dict)
         except Exception as e:
             raise ArgumentError(self, f"Ungültiges Subj-Format: {e}")
+# !CLASS - SubjAction
 
 
+# CLASS - ArgparseFix311
 class ArgparseFix311(ArgumentParser):
     """
     Custom ArgumentParser to fix Python 3.11 specific behaviors. (rw)
@@ -131,8 +141,10 @@ class ArgparseFix311(ArgumentParser):
         if sys.version_info[:2] == (3, 11) and status != 0: # py 3.11 only no cover
             self.error(message or f"Exited with status {status}")
         super().exit(status, message)  # not py 3.11 no cover
+# !CLASS - ArgparseFix311
 
 
+# CLASS - DistinguishedNameParser
 class DistinguishedNameParser(ArgparseFix311):
     """
     Parser for X.509 Distinguished Name attributes. (rw)
@@ -236,8 +248,14 @@ class DistinguishedNameParser(ArgparseFix311):
             DistinguishedNameProtocol, super().parse_args(args=args, namespace=namespace)
         )
         return self.sync_arguments(arg_parsed)
+# !CLASS - DistinguishedNameParser
 
 
+# FIXME - Dokumentation
+def get_dn_parser() -> DistinguishedNameParser:
+    return DistinguishedNameParser()
+
+# CLASS - CSRParser
 class CSRParser(DistinguishedNameParser):
     """
     Parser for Certificate Signing Request (CSR) parameters. (rw)
@@ -267,7 +285,47 @@ class CSRParser(DistinguishedNameParser):
         :returns: An object following the CSRProtocol.
         """
         return cast(CSRProtocol, super().parse_args(args, namespace))
+# !CLASS - CSRParser
 
+
+# FIXME - Dokumentation
+def get_csr_parser() -> CSRParser:
+    return CSRParser()
+
+# CLASS - ServerClientCSRParser
+# FIXME - Dokumentation
+class ServerClientCSRParser(CSRParser):
+    def __init__(self, **kwargs) -> None:
+        """Initialize the ServerClient parser. (rw)"""
+        self._type_name: ClientTypeName = kwargs.pop("typename", "server")
+        self._type_name = self._type_name if self._type_name else "server"
+        kwargs.setdefault("exit_on_error", False)
+        super().__init__(**kwargs)
+
+    def _setup_parser(self) -> None:
+        super()._setup_parser()
+        self.add_argument("email",
+                          help="Email address the signed certificate send to."
+                          )
+        self.add_argument("-ip", "--ip-address",
+                          action="append",
+                          dest="ip_addresses",
+                          help=f"The ip addresses of the {self._type_name}.")
+        self.add_argument("-hn", "--host-name",
+                          action="append",
+                          dest="host_names",
+                          help=f"The hostnames of the {self._type_name}.")
+
+    def parse_args(self, args: list[str] | None = None, 
+                   namespace: Namespace | None = None) -> ServerClientCSRProtocol:
+        ret = cast(ServerClientCSRProtocol,super().parse_args(args, namespace))
+        if not ret.ip_addresses and not ret.host_names:
+            raise ArgumentError(None,"At least an ip address or a hostname has to be given")
+        return ret
+
+# FIXME - Dokumentation
+def get_server_client_csr_parser() -> ServerClientCSRParser:
+    return ServerClientCSRParser() 
 
 class PolicyParser(ArgparseFix311):
     """
@@ -332,8 +390,13 @@ class PolicyParser(ArgparseFix311):
         for v in self.fields.values():
             ret_args.policy[v] = getattr(ret_args, v, "no")
         return cast(PolicyProtocol, ret_args)
+# !CLASS - ServerClientCSRParser
 
+#FIXME - Dokumentation
+def get_policy_parser() -> PolicyParser:
+    return PolicyParser()
 
+# CLASS - CSRSigningParser
 class CSRSigningParser(PolicyParser):
     """
     Parser for certificate signing operations. (rw)
@@ -382,8 +445,14 @@ class CSRSigningParser(PolicyParser):
         :returns: An object following the SignParserProtocol.
         """
         return cast(SignParserProtocol, super().parse_args(args=args, namespace=namespace))
+# !CLASS - CSRSigningParser
 
 
+# FIXME - Dokumentation
+def get_csr_sign_parser() -> CSRSigningParser:
+    return CSRSigningParser()
+
+# CLASS - CSRMultiSigningParser
 class CSRMultiSigningParser(CSRSigningParser):
     """
     Parser for signing operations involving multiple policy types. (rw)
@@ -410,8 +479,14 @@ class CSRMultiSigningParser(CSRSigningParser):
         :returns: An object following the MultiSignParserProtocol.
         """
         return cast(MultiSignParserProtocol, super().parse_args(args=args, namespace=namespace))
+# !CLASS - CSRMultiSigningParser
 
 
+# FIXME - Dokumentation
+def get_csr_multi_sign_parser() -> CSRMultiSigningParser:
+    return CSRMultiSigningParser()
+
+# CLASS - CertImportParser
 class CertImportParser(ArgparseFix311):
     """
     Parser for importing certificates from encrypted archives. (rw)
@@ -447,8 +522,14 @@ class CertImportParser(ArgparseFix311):
         :returns: An object following the CertImportProtocol.
         """
         return cast(CertImportProtocol, super().parse_args(args, namespace))
+# !CLASS - CertImportParser
 
 
+# FIXME - Dokumentation
+def get_cert_import_parser() -> CertImportParser:
+    return CertImportParser()
+
+# CLASS - IntermedImportParser
 class IntermedImportParser(CertImportParser):
     """
     Parser for importing intermediate CA certificates. (rw)
@@ -481,7 +562,12 @@ class IntermedImportParser(CertImportParser):
         :returns: An object following the IntermedImportProtocol.
         """
         return cast(IntermedImportProtocol, super().parse_args(args, namespace))
-    
+# !CLASS - IntermedImportParser
+
+
+# FIXME - Dokumentation
+def get_intermed_import_parser() -> IntermedImportParser:
+    return IntermedImportParser()
 
 if __name__ == "__main__":  # pragma: no cover
     from doctest import FAIL_FAST, testfile
