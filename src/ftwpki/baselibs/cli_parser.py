@@ -309,10 +309,12 @@ class ServerClientCSRParser(CSRParser):
                           )
         self.add_argument("-ip", "--ip-address",
                           action="append",
+                          default=[],
                           dest="ip_addresses",
                           help=f"The ip addresses of the {self._type_name}.")
         self.add_argument("-hn", "--host-name",
                           action="append",
+                          default=[],
                           dest="host_names",
                           help=f"The hostnames of the {self._type_name}.")
 

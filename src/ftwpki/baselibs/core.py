@@ -245,6 +245,34 @@ def load_csr_from_pem(pem_data: bytes) -> x509.CertificateSigningRequest:
 # !FUNCTION - load_csr_from_pem
 
 
+# FUNCTION - convert_pem_to_der
+#FIXME - Dokumentation überarbeiten
+def convert_pem_to_der(pem_bytes: bytes, is_key: bool = False, password: str = "") -> bytes:
+    """
+    Convert PEM data to DER format. (rw)
+    Uses empty string as default for unencrypted keys.
+    """
+    if is_key:
+        # Falls password leer ist (""), wird pw_bytes zu None für die Library
+        pw_bytes = password.encode() if password else None
+        
+        key = serialization.load_pem_private_key(
+            pem_bytes,
+            password=pw_bytes
+        )
+        
+        return key.private_bytes(
+            encoding=serialization.Encoding.DER,
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=serialization.NoEncryption()
+        )
+    else:
+        cert = x509.load_pem_x509_certificate(pem_bytes)
+        return cert.public_bytes(serialization.Encoding.DER)
+
+#!FUNCTION - convert_pem_to_der
+
+
 # FUNCTION - create_csr_name
 def create_csr_name(*args: str) -> str:
     """

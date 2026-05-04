@@ -84,6 +84,7 @@ class ServerClientCSRProtocol(CSRProtocol):
     email:str
     ip_addresses:list[str]
     host_names:list[str]
+    password:str|None
 
 # !CLASS - ServerClientCSR
 

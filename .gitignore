@@ -19,6 +19,7 @@ doc/builxml
 doc/new
 doc/old
 doc/orig
+piplist*.txt
 
 # Doctest generated files
 doc/source/devel/testhome/.config

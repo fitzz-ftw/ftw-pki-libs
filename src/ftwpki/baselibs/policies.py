@@ -17,7 +17,9 @@ Main Features:
 """
 
 from abc import ABC, abstractmethod
+import ipaddress
 from pathlib import Path
+from typing import Any
 
 from cryptography import x509
 from cryptography.x509.oid import ExtendedKeyUsageOID
@@ -51,6 +53,49 @@ class BasePolicy(ABC):
         :param kwargs: Optional parameters for extension generation.
         :returns: List of tuples containing the extension and its criticality.
         """
+
+    def get_san_entries(self, **kwargs) -> list[Any]:
+        """
+        Build a list of GeneralName objects for SAN extensions. (rw)
+
+        Supported keys in kwargs:
+        - dns_names: List of DNS strings
+        - ip_addresses: List of IP strings (v4/v6)
+        - emails: List of RFC822 email strings
+        - uris: List of URI strings
+        - oids: List of x509.ObjectIdentifier objects
+        - directory_names: List of x509.Name objects
+        """
+        san_entries = []
+
+        # 1. DNS Namen (alt_names)
+        for name in kwargs.get("dns_names", []):
+            san_entries.append(x509.DNSName(name))
+
+        # 2. IP Adressen (alt_ips) - Trennung spart die Exception
+        for ip_str in kwargs.get("ip_addresses", []):
+            # Hier nutzen wir ipaddress nur noch zur Typ-Konvertierung, 
+            # im Vertrauen darauf, dass der Caller valide IPs liefert.
+            san_entries.append(x509.IPAddress(ipaddress.ip_address(ip_str)))
+        
+        # 3. E-Mail-Adressen (S/MIME / User-Identifikation)
+        for email in kwargs.get("emails", []):
+            san_entries.append(x509.RFC822Name(email))
+
+        # 4. URIs (Service Mesh / SPIFFE / Web-Ressourcen)
+        for uri in kwargs.get("uris", []):
+            san_entries.append(x509.UniformResourceIdentifier(uri))
+
+        # 5. Registered IDs (Spezielle OIDs für IoT oder Behörden)
+        # Erwartet Instanzen von cryptography.x509.ObjectIdentifier
+        for oid in kwargs.get("oids", []):
+            san_entries.append(x509.RegisteredID(oid))
+
+        for dirname in kwargs.get("directory_names", []):
+            san_entries.append(x509.DirectoryName(dirname))
+
+        return san_entries
+
 
     def __repr__(self) -> str:
         """
@@ -191,6 +236,7 @@ class UserPolicy(BasePolicy):
             ]
         )
 
+    #FIXME - Doku korrigieren
     def get_extensions(self, **kwargs) -> list[tuple[x509.ExtensionType, bool]]:
         """
         Assemble extensions for a user certificate. (ro)
@@ -216,6 +262,7 @@ class UserPolicy(BasePolicy):
                 for n in alt_names
             ]
             extensions.append((x509.SubjectAlternativeName(names), False))
+
 
         return extensions
 
@@ -251,6 +298,7 @@ class ServerPolicy(BasePolicy):
         )
         self._extended_key_usage = x509.ExtendedKeyUsage([ExtendedKeyUsageOID.SERVER_AUTH])
 
+    # FIXME - Doku korrigieren
     def get_extensions(self, **kwargs) -> list[tuple[x509.ExtensionType, bool]]:
         """
         Build extensions for a server certificate. (ro)
@@ -268,13 +316,11 @@ class ServerPolicy(BasePolicy):
             (self._extended_key_usage, False),
         ]
 
-        # 4. Subject Alternative Name (SAN) - Die 'alt_names' Logik
-        # Wir ziehen die Namen aus den kwargs, falls vorhanden
-        alt_names = kwargs.get("alt_names", [])
-        if alt_names:
-            dns_names = [x509.DNSName(name) for name in alt_names]
-            san = x509.SubjectAlternativeName(dns_names)
+        san_entries = self.get_san_entries(**kwargs)
+        if san_entries:
+            san = x509.SubjectAlternativeName(san_entries)
             extensions.append((san, False))
+
 
         return extensions
 
@@ -310,6 +356,7 @@ class ClientPolicy(BasePolicy):
         )
         self._extended_key_usage = x509.ExtendedKeyUsage([ExtendedKeyUsageOID.CLIENT_AUTH])
 
+    # FIXME - Doku korrigieren
     def get_extensions(self, **kwargs) -> list[tuple[x509.ExtensionType, bool]]:
         """
         Assemble extensions for a client certificate. (ro)
@@ -323,10 +370,11 @@ class ClientPolicy(BasePolicy):
             (self._extended_key_usage, False),
         ]
 
-        alt_names = kwargs.get("alt_names", [])
-        if alt_names:
-            dns_names = [x509.DNSName(str(name)) for name in alt_names]
-            extensions.append((x509.SubjectAlternativeName(dns_names), False))
+        san_entries = self.get_san_entries(**kwargs)
+        if san_entries:
+            san = x509.SubjectAlternativeName(san_entries)
+            extensions.append((san, False))
+
 
         return extensions
 
@@ -366,6 +414,7 @@ class StandalonePolicy(BasePolicy):
             [ExtendedKeyUsageOID.SERVER_AUTH, ExtendedKeyUsageOID.CLIENT_AUTH]
         )
 
+    # FIXME - Doku korrigieren
     def get_extensions(self, **kwargs) -> list[tuple[x509.ExtensionType, bool]]:
         """
         Assemble extensions for a standalone certificate. (ro)
@@ -379,10 +428,10 @@ class StandalonePolicy(BasePolicy):
             (self._extended_key_usage, False),
         ]
 
-        alt_names = kwargs.get("alt_names", [])
-        if alt_names:
-            dns_names = [x509.DNSName(str(name)) for name in alt_names]
-            extensions.append((x509.SubjectAlternativeName(dns_names), False))
+        san_entries = self.get_san_entries(**kwargs)
+        if san_entries:
+            san = x509.SubjectAlternativeName(san_entries)
+            extensions.append((san, False))
 
         return extensions
 
