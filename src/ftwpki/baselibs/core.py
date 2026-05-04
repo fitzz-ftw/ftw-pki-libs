@@ -37,7 +37,7 @@ from ftwpki.baselibs.exceptions import PKIEncryptionError
 
 
 # FUNCTION - generate_rsa_key_pair
-def generate_rsa_key_pair(passphrase: str, key_size: int = 4096) -> tuple[bytes, bytes]:
+def generate_rsa_key_pair(passphrase: str|None, key_size: int = 4096) -> tuple[bytes, bytes]:
     """
     Generate a standard-compliant RSA key pair. (rw)
 
@@ -182,7 +182,7 @@ def create_chain_bytes(certificates: list[x509.Certificate]) -> bytes:
 # !FUNCTION - create_chain_bytes
 
 # FUNCTION - load_private_key_from_pem
-def load_private_key_from_pem(pem_data: bytes, passphrase: str) -> rsa.RSAPrivateKey:
+def load_private_key_from_pem(pem_data: bytes, passphrase: str|None) -> rsa.RSAPrivateKey:
     """
     Load an encrypted RSA private key from PEM data. (ro)
 

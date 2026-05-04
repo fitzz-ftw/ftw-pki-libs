@@ -15,7 +15,7 @@ oder geladen, um eine nahtlose Verarbeitung durch Dienste zu ermöglichen.
 ...     load_private_key_from_pem, 
 ...     create_distinguished_name
 ... )
->>> from ftwpki.baselibs.policies import StandalonePolicy
+>>> from ftwpki.baselibs.policies import ClientServerPolicy
 >>> from ftwpki.baselibs.request import CertificateRequest
 
 RSA-Schlüsselpaar ohne echtes Passwort erzeugen (leerer String).
@@ -36,7 +36,7 @@ Identität und Policy definieren
 ...     common_name="node-01.internal",
 ...     organizational_unit=""
 ... )
->>> policy = StandalonePolicy()
+>>> policy = ClientServerPolicy()
 >>> req = CertificateRequest(subject, policy)
 
 CSR bauen.

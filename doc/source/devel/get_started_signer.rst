@@ -31,7 +31,7 @@ Erweiterungen des neuen Zertifikats festzulegen.
 ...     load_csr_from_pem,
 ... )
 >>> from ftwpki.baselibs.signer import CertificateSigner
->>> from ftwpki.baselibs.policies import StandalonePolicy
+>>> from ftwpki.baselibs.policies import ClientServerPolicy
 >>> from ftwpki.baselibs.request import CertificateRequest
 
 Pfade und Passwort definieren
@@ -54,7 +54,7 @@ Den Key laden wir über unsere Core-Utility
 Signer und eine einfache Policy initialisieren
 
 >>> signer = CertificateSigner(ca_cert=ca_cert, ca_key=ca_key)
->>> policy = StandalonePolicy()
+>>> policy = ClientServerPolicy()
 
 >>> csr = load_csr_from_pem(csr_path.read_bytes())
 

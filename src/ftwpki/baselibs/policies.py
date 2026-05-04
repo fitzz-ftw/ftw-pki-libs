@@ -256,15 +256,10 @@ class UserPolicy(BasePolicy):
             (self._extended_key_usage, False),
         ]
 
-        alt_names = kwargs.get("alt_names", [])
-        if alt_names:
-            # Bei Usern oft RFC822Name (E-Mail) statt DNSName
-            names = [
-                x509.RFC822Name(str(n)) if "@" in str(n) else x509.DNSName(str(n))
-                for n in alt_names
-            ]
-            extensions.append((x509.SubjectAlternativeName(names), False))
-
+        san_entries = self.get_san_entries(**kwargs)
+        if san_entries:
+            san = x509.SubjectAlternativeName(san_entries)
+            extensions.append((san, False))
 
         return extensions
 
@@ -381,7 +376,7 @@ class ClientPolicy(BasePolicy):
         return extensions
 
 
-class StandalonePolicy(BasePolicy):
+class ClientServerPolicy(BasePolicy):
     """
     Independent policy for special purpose certificates. (rw)
 

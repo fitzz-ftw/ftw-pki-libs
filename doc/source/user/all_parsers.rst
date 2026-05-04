@@ -45,7 +45,7 @@ CSRSigningParse
 
 .. argparse::
    :module: ftwpki.baselibs.cli_parser 
-   :func: get_csr_sign_parser
+   :func: get_csr_signing_parser
    :prog: CSRSigningParser
 
 CSRMultiSigningParser
@@ -53,8 +53,8 @@ CSRMultiSigningParser
 
 .. argparse::
    :module: ftwpki.baselibs.cli_parser 
-   :func: CSRMultiSigningParser
    :prog: get_csr_multi_sign_parser
+   :func: CSRMultiSigningParser
 
 CertImportParser
 -----------------
@@ -69,6 +69,6 @@ IntermedImportParser
 
 .. argparse::
    :module: ftwpki.baselibs.cli_parser 
-   :func: IntermedImportParser
-   :prog: get_intermed_import_parser
+   :func: get_intermed_import_parser
+   :prog: IntermedImportParser
 

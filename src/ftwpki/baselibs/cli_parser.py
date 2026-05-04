@@ -451,7 +451,7 @@ class CSRSigningParser(PolicyParser):
 
 
 # FIXME - Dokumentation
-def get_csr_sign_parser() -> CSRSigningParser:
+def get_csr_signing_parser() -> CSRSigningParser:
     return CSRSigningParser()
 
 # CLASS - CSRMultiSigningParser

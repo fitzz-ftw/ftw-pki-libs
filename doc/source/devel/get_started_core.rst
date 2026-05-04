@@ -193,4 +193,25 @@ CertificateRecord(status='R',
 >>> crl # doctest: +ELLIPSIS
 <cryptography.hazmat.bindings._rust.x509.CertificateRevocationList object at ...>
 
+#SECTION - Convert PEM to DER
+
+>>> from ftwpki.baselibs.core import convert_pem_to_der
+
+>>> der_data = convert_pem_to_der(priv_pem, True, passw)
+
+>>> der_data.startswith(b'\x30')
+True
+
+>>> der_cert = convert_pem_to_der(cert_path.read_bytes(),)
+
+>>> der_cert.startswith(b'\x30')
+True
+
+#!SECTION - Convert PEM to DER
+
+
+#SECTION - teardown
+
 >>> env.teardown()
+
+#!SECTION - teardown
