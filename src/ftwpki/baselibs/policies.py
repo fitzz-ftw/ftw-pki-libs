@@ -16,8 +16,8 @@ Main Features:
     * Support for Subject Alternative Names (SAN) via dynamic kwargs.
 """
 
-from abc import ABC, abstractmethod
 import ipaddress
+from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any
 
@@ -70,6 +70,8 @@ class BasePolicy(ABC):
 
         # 1. DNS Namen (alt_names)
         for name in kwargs.get("dns_names", []):
+            if "." not in name and name.lower() != "localhost":
+                raise ValueError(f"Hostname '{name}' is not a FQDN (missing dot).")
             san_entries.append(x509.DNSName(name))
 
         # 2. IP Adressen (alt_ips) - Trennung spart die Exception
