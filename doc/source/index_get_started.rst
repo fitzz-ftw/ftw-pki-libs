@@ -14,7 +14,7 @@ supported Python versions (3.11 - 3.15).
    devel/get_started_exceptions
    devel/get_started_passwd
    devel/get_started_policies
-   devel/get_started_request
+   devel/get_started_cert_request
    devel/get_started_signer
    devel/get_started_data
    devel/get_started_openssl_comp

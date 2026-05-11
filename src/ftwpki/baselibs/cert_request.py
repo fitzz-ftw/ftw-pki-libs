@@ -18,7 +18,8 @@ from cryptography.hazmat.primitives import hashes, serialization
 
 from ftwpki.baselibs.policies import BasePolicy
 
-
+# CLASS - CertificateRequest
+# Alternate name: CertificateSigningRequest if name conflict.
 class CertificateRequest:
     """
     Handler for creating x509 Certificate Signing Requests. (rw)
@@ -102,6 +103,7 @@ class CertificateRequest:
         """
         return f"{self.__class__.__name__}(subject=<Name({self._subject.rfc4514_string()})>)"
 
+# !CLASS - CertificateRequest
 
 
 
@@ -117,7 +119,7 @@ if __name__ == "__main__": # pragma: no cover
     
     # Pfad zu den dokumentierenden Tests
     testfiles_dir = Path(__file__).parents[3] / "doc/source/devel"
-    test_file = testfiles_dir / "get_started_request.rst"
+    test_file = testfiles_dir / "get_started_cert_request.rst"
     
     if test_file.exists():
         print(f"--- Running Doctest for {test_file.name} ---")

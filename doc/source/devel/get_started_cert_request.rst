@@ -16,7 +16,7 @@ oder geladen, um eine nahtlose Verarbeitung durch Dienste zu ermöglichen.
 ...     create_distinguished_name
 ... )
 >>> from ftwpki.baselibs.policies import ClientServerPolicy
->>> from ftwpki.baselibs.request import CertificateRequest
+>>> from ftwpki.baselibs.cert_request import CertificateRequest
 
 .. DOC[epic="pki-doc"] - leerer String muss weg
 

@@ -10,7 +10,7 @@ FTW PKI Baselibraries
 
     ftwpki.baselibs.core
     ftwpki.baselibs.exceptions
-    ftwpki.baselibs.request
+    ftwpki.baselibs.cert_request
     ftwpki.baselibs.signer
     ftwpki.baselibs.passwd
     ftwpki.baselibs.policies

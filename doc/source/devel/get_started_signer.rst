@@ -32,7 +32,7 @@ Erweiterungen des neuen Zertifikats festzulegen.
 ... )
 >>> from ftwpki.baselibs.signer import CertificateSigner
 >>> from ftwpki.baselibs.policies import ClientServerPolicy
->>> from ftwpki.baselibs.request import CertificateRequest
+>>> from ftwpki.baselibs.cert_request import CertificateRequest
 
 Pfade und Passwort definieren
 
