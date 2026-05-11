@@ -251,7 +251,7 @@ class DistinguishedNameParser(ArgparseFix311):
 # !CLASS - DistinguishedNameParser
 
 
-# FIXME - Dokumentation
+# DOC[epic="pki"] - Dokumentation
 def get_dn_parser() -> DistinguishedNameParser:
     return DistinguishedNameParser()
 
@@ -288,21 +288,36 @@ class CSRParser(DistinguishedNameParser):
 # !CLASS - CSRParser
 
 
-# FIXME - Dokumentation
+# DOC[epic="pki"] - Dokumentation
 def get_csr_parser() -> CSRParser:
     return CSRParser()
 
 # CLASS - ServerClientCSRParser
-# FIXME - Dokumentation
 class ServerClientCSRParser(CSRParser):
+    """
+    Parser for server and client certificate signing requests. (ro)
+
+    This class extends the basic CSR parser to include network-specific 
+    arguments like email, IP addresses, and hostnames.
+    """
     def __init__(self, **kwargs) -> None:
-        """Initialize the ServerClient parser. (rw)"""
+        """
+        Initialize the ServerClient parser.
+
+        :param kwargs: Arbitrary keyword arguments for the parser configuration.
+        :raises KeyError: If required configuration keys are missing in kwargs.
+        """
         self._type_name: ClientTypeName = kwargs.pop("typename", "server")
         self._type_name = self._type_name if self._type_name else "server"
         kwargs.setdefault("exit_on_error", False)
         super().__init__(**kwargs)
 
     def _setup_parser(self) -> None:
+        """
+        Configure the argument parser with specific network fields.
+
+        :raises argparse.ArgumentError: If an argument conflict occurs.
+        """
         super()._setup_parser()
         self.add_argument("email",
                           help="Email address the signed certificate send to."
@@ -320,12 +335,22 @@ class ServerClientCSRParser(CSRParser):
 
     def parse_args(self, args: list[str] | None = None, 
                    namespace: Namespace | None = None) -> ServerClientCSRProtocol:
+        """
+        Parse command line arguments and validate network identity.
+
+        :param args: List of strings to parse. Default is sys.argv.
+        :param namespace: An object to take the attributes.
+        :raises argparse.ArgumentError: If neither an IP address nor a hostname is provided.
+        :returns: An object containing the parsed and validated CSR data.
+        """
         ret = cast(ServerClientCSRProtocol,super().parse_args(args, namespace))
         if not ret.ip_addresses and not ret.host_names:
             raise ArgumentError(None,"At least an ip address or a hostname has to be given")
         return ret
 
-# FIXME - Dokumentation
+#!CLASS - ServerClientCSRParser
+
+# DOC[epic="pki"] - Dokumentation
 def get_server_client_csr_parser() -> ServerClientCSRParser:
     return ServerClientCSRParser() 
 
@@ -394,7 +419,7 @@ class PolicyParser(ArgparseFix311):
         return cast(PolicyProtocol, ret_args)
 # !CLASS - ServerClientCSRParser
 
-#FIXME - Dokumentation
+# DOC[epic="pki"] - Dokumentation
 def get_policy_parser() -> PolicyParser:
     return PolicyParser()
 
@@ -450,7 +475,7 @@ class CSRSigningParser(PolicyParser):
 # !CLASS - CSRSigningParser
 
 
-# FIXME - Dokumentation
+# DOC[epic="pki"] - Dokumentation
 def get_csr_signing_parser() -> CSRSigningParser:
     return CSRSigningParser()
 
@@ -484,7 +509,7 @@ class CSRMultiSigningParser(CSRSigningParser):
 # !CLASS - CSRMultiSigningParser
 
 
-# FIXME - Dokumentation
+# DOC[epic="pki"] - Dokumentation
 def get_csr_multi_sign_parser() -> CSRMultiSigningParser:
     return CSRMultiSigningParser()
 
@@ -527,7 +552,7 @@ class CertImportParser(ArgparseFix311):
 # !CLASS - CertImportParser
 
 
-# FIXME - Dokumentation
+# DOC[epic="pki"] - Dokumentation
 def get_cert_import_parser() -> CertImportParser:
     return CertImportParser()
 
@@ -567,7 +592,7 @@ class IntermedImportParser(CertImportParser):
 # !CLASS - IntermedImportParser
 
 
-# FIXME - Dokumentation
+# DOC[epic="pki"] - Dokumentation
 def get_intermed_import_parser() -> IntermedImportParser:
     return IntermedImportParser()
 

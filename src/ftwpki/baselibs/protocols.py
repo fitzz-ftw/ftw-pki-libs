@@ -35,6 +35,7 @@ class DistinguishedNameProtocol(Protocol):
     to ensure that configuration or identity objects provide all
     necessary naming fields.
     """
+
     countryName: str
     """Two-letter ISO country code."""
     dnsubject: dict[str, str]
@@ -75,16 +76,39 @@ class CSRProtocol(DistinguishedNameProtocol):
 
 # CLASS - CSRProtocol
 
-#FIXME - Dokumentatio
-ClientTypeName = Literal["server","client","standalone"]
+ClientTypeName = Literal["server", "client", "clsrvr", "client-server"]
+"""
+Type alias for the allowed roles in a certificate request.
+
+Supported values:
+    * 'server': For server authentication.
+    * 'client': For client authentication.
+    * 'clsrvr' or 'client-server': For both authentication types.
+"""
+
 
 # CLASS - ServerClientCSR
-# FIXME - Dokumentatio
 class ServerClientCSRProtocol(CSRProtocol):
-    email:str
-    ip_addresses:list[str]
-    host_names:list[str]
-    password:str|None
+    """
+    Structural interface for server and client CSR data. (ro)
+
+    This protocol ensures that objects used for CSR generation
+    provide the necessary identity and network information
+    along with optional credentials.
+    """
+
+    email: str
+    """The email address for the certificate subject."""
+
+    ip_addresses: list[str]
+    """A list of IP addresses for the Subject Alternative Name (SAN)."""
+
+    host_names: list[str]
+    """A list of hostnames or FQDNs for the Subject Alternative Name (SAN)."""
+
+    password: str | None
+    """The optional password used for the private key or signing."""
+
 
 # !CLASS - ServerClientCSR
 
@@ -192,6 +216,7 @@ class MultiSignParserProtocol(SignParserProtocol):
     processes provide both the necessary security credentials and a
     specific policy identifier.
     """
+
     policy_type: str
     """The identifier or category of the policy to
                            be applied during the signing process."""
@@ -231,12 +256,14 @@ class IntermedImportProtocol(Protocol):
     import intermediate CA material. It ensures that paths for security
     credentials and policy definitions are provided for the import process.
     """
+
     passphrase_file: str
     """The filename or path to the file containing the private key password."""
     policies: str
     """The path to the configuration file containing policy definitions."""
     policy: str
     """The specific name of the policy to be applied."""
+
 
 # !CLASS - IntermedImportProtocol
 

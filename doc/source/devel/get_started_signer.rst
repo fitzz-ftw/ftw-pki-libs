@@ -3,7 +3,7 @@ Einstieg in den Signer
 ======================
 
 Dieses Modul bietet den ``CertificateSigner``, um Zertifikatsanfragen (CSR) mit einer 
-vorhandenen Root-CA zu signieren.
+vorhandenen CA zu signieren.
 
 Signieren eines CSR
 -------------------

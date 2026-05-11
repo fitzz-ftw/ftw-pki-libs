@@ -18,13 +18,15 @@ oder geladen, um eine nahtlose Verarbeitung durch Dienste zu ermöglichen.
 >>> from ftwpki.baselibs.policies import ClientServerPolicy
 >>> from ftwpki.baselibs.request import CertificateRequest
 
+.. DOC[epic="pki-doc"] - leerer String muss weg
+
 RSA-Schlüsselpaar ohne echtes Passwort erzeugen (leerer String).
 
->>> priv_pem, _ = generate_rsa_key_pair(passphrase="", key_size=2048)
+>>> priv_pem, _ = generate_rsa_key_pair(passphrase=None, key_size=2048)
 
 Den Schlüssel als Objekt laden, um damit signieren zu können.
 
->>> key_obj = load_private_key_from_pem(priv_pem, passphrase="")
+>>> key_obj = load_private_key_from_pem(priv_pem, passphrase=None)
 
 Identität und Policy definieren
 
@@ -39,10 +41,21 @@ Identität und Policy definieren
 >>> policy = ClientServerPolicy()
 >>> req = CertificateRequest(subject, policy)
 
+Die Eingaben der SAN-Objecte kann vorab geprüft werden, um Fehler frühzeitig zu erkennen.
+Wichtig um bei Passwordeingaben bei Fehlern vor der Passworteingabe abbrechen zu können,
+um nicht mehrmals das Passwort eingeben zu müssen.
+
+>>> req.verify_input_arguments(
+...     dns_names=["node-01.internal"],
+...     ip_addresses=["127.0.0.1"]
+... ) 
+
+
+
 CSR bauen.
 Der Request benötigt das geladene Key-Objekt für die Signatur.
 
->>> _ = req.build(key_obj, alt_names=["service-01.internal"])
+>>> _ = req.build(key_obj, dns_names=["service-01.internal"])
 
 Ergebnis prüfen
 

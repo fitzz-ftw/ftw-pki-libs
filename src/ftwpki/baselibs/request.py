@@ -38,26 +38,51 @@ class CertificateRequest:
         self._policy = policy
         self._csr = None
 
-    def build(self, private_key, **kwargs) -> Self:
+    def verify_input_arguments(
+        self, **kwargs
+    ) -> x509.CertificateSigningRequestBuilder | None:
         """
-        Build and sign the CSR. (rw)
+        Verify input arguments and optionally prepare a CSR builder.
 
-        Processes extensions from the policy and signs the request using
-        the provided private key and SHA512.
+        This method processes extensions based on the internal policy.
+        If the 'keep' argument is True, it returns a configured
+        CertificateSigningRequestBuilder.
 
-        :param private_key: Key used to sign the request.
-        :raises cryptography.exceptions.UnsupportedAlgorithm: If the hash algorithm is not
-                supported.
+        :param kwargs: Arguments for extension processing. Use 'keep=True' to
+                       receive the builder.
+        :return: A configured builder if 'keep' is True, otherwise None.
         """
+        keep = kwargs.pop("keep", None)
+        keep = keep if isinstance(keep, bool) and keep else False
         builder = x509.CertificateSigningRequestBuilder().subject_name(self._subject)
 
         for ext, critical in self._policy.get_extensions(**kwargs):
             builder = builder.add_extension(ext, critical=critical)
 
+        if keep:
+            return builder
+        else:
+            del builder
+            return None
+
+    def build(self, private_key, **kwargs) -> Self:
+        """
+        Build and sign the CSR.
+
+        Processes extensions from the policy, automatically adds the
+        SubjectKeyIdentifier, and signs the request using the provided
+        private key and SHA512.
+
+        :param private_key: Key used to sign the request.
+        :param kwargs: Additional arguments passed to the policy extensions.
+        :raises cryptography.exceptions.UnsupportedAlgorithm: If SHA512 is
+                not supported.
+        :return: The instance of the class (Self).
+        """
+        builder = self.verify_input_arguments(keep=True, **kwargs)
         ski = x509.SubjectKeyIdentifier.from_public_key(private_key.public_key())
         builder = builder.add_extension(ski, critical=False)
-
-        self._csr = builder.sign(private_key, hashes.SHA512())
+        self._csr = builder.sign(private_key, hashes.SHA512()) if builder else None
         return self
 
     def get_pem(self) -> bytes:

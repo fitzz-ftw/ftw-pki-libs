@@ -246,11 +246,17 @@ def load_csr_from_pem(pem_data: bytes) -> x509.CertificateSigningRequest:
 
 
 # FUNCTION - convert_pem_to_der
-#FIXME - Dokumentation überarbeiten
 def convert_pem_to_der(pem_bytes: bytes, is_key: bool = False, password: str = "") -> bytes:
     """
-    Convert PEM data to DER format. (rw)
-    Uses empty string as default for unencrypted keys.
+    Convert PEM encoded data into DER binary format **(rw)**.
+
+    :param pem_bytes: The input data in PEM format.
+    :param is_key: Flag to indicate if the input is a private key.
+    :param password: The password for encrypted private keys.
+    :raises cryptography.exceptions.UnsupportedAlgorithm: If the key type is not supported.
+    :raises cryptography.exceptions.InternalError: If the library fails during loading.
+    :raises ValueError: If the password is wrong or the PEM data is invalid.
+    :returns: The data converted into DER binary format.
     """
     if is_key:
         # Falls password leer ist (""), wird pw_bytes zu None für die Library

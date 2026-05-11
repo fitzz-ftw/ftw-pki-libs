@@ -238,17 +238,18 @@ class UserPolicy(BasePolicy):
             ]
         )
 
-    #FIXME - Doku korrigieren
     def get_extensions(self, **kwargs) -> list[tuple[x509.ExtensionType, bool]]:
         """
-        Assemble extensions for a user certificate. (ro)
+        Assemble X.509 extensions for a user certificate.
 
-        Handles Subject Alternative Names (SAN) with automatic type
-        detection: strings containing '@' are treated as RFC822Names
-        (Email), others as DNSNames.
+        This method collects standard certificate extensions and adds 
+        Subject Alternative Names (SAN) based on the provided entries 
+        in the arguments. For a full list of supported SAN entries, 
+        see: :meth:`BasePolicy.get_san_entries`.
 
-        :param kwargs: Can contain 'alt_names' (list of strings).
-        :returns: A list of extensions with appropriate SAN types.
+        :param kwargs: Keyword arguments containing the pre-processed SAN entries.
+        :raises Exception: If the extension assembly fails.
+        :returns: A list of tuples containing the extension and its criticality flag.
         """
         extensions = [
             (self._basic_constraints, True),
@@ -295,16 +296,19 @@ class ServerPolicy(BasePolicy):
         )
         self._extended_key_usage = x509.ExtendedKeyUsage([ExtendedKeyUsageOID.SERVER_AUTH])
 
-    # FIXME - Doku korrigieren
     def get_extensions(self, **kwargs) -> list[tuple[x509.ExtensionType, bool]]:
         """
-        Build extensions for a server certificate. (ro)
+        Build X.509 extensions for a server certificate **(ro)**.
 
-        Processes Subject Alternative Names (SAN) if provided via the
-        'alt_names' keyword argument.
+        This method assembles a list of extensions required for server 
+        authentication. It includes basic constraints, key usage, and 
+        extended key usage, as well as Subject Alternative Names (SAN) 
+        if network identities are provided. For a full list of supported SAN entries, 
+        see: :meth:`BasePolicy.get_san_entries`.
 
-        :param kwargs: Can contain 'alt_names' (list of strings).
-        :returns: A list of extensions including SANs if present.
+        :param kwargs: Keyword arguments that can include data for SAN generation.
+        :raises Exception: If the extension assembly or SAN generation fails.
+        :returns: A list of tuples containing the extension objects and their criticality.
         """
 
         extensions = [
@@ -353,13 +357,18 @@ class ClientPolicy(BasePolicy):
         )
         self._extended_key_usage = x509.ExtendedKeyUsage([ExtendedKeyUsageOID.CLIENT_AUTH])
 
-    # FIXME - Doku korrigieren
     def get_extensions(self, **kwargs) -> list[tuple[x509.ExtensionType, bool]]:
         """
-        Assemble extensions for a client certificate. (ro)
+        Assemble the X.509 extensions for a client certificate **(ro)**.
 
-        :param kwargs: Can contain 'alt_names' (list of strings).
-        :returns: A list of extensions including SANs if provided.
+        This method combines basic constraints, key usage, and extended 
+        key usage. It also adds Subject Alternative Names (SAN) if 
+        network identities are provided in the arguments. 
+        For a full list of supported SAN entries, see: :meth:`BasePolicy.get_san_entries`.
+
+        :param kwargs: Arbitrary keyword arguments, may contain 'alt_names'.
+        :raises Exception: If the SAN entry generation fails.
+        :returns: A list of tuples containing the extension type and its critical flag.
         """
         extensions = [
             (self._basic_constraints, True),
@@ -411,13 +420,18 @@ class ClientServerPolicy(BasePolicy):
             [ExtendedKeyUsageOID.SERVER_AUTH, ExtendedKeyUsageOID.CLIENT_AUTH]
         )
 
-    # FIXME - Doku korrigieren
     def get_extensions(self, **kwargs) -> list[tuple[x509.ExtensionType, bool]]:
         """
-        Assemble extensions for a standalone certificate. (ro)
+        Assemble X.509 extensions for a standalone certificate.
 
-        :param kwargs: Can contain 'alt_names' (list of strings).
-        :returns: A list of extensions including SANs if provided.
+        This method prepares a list of certificate extensions, including 
+        standard constraints and usage rules. It also includes Subject 
+        Alternative Names (SAN) if network identity data is provided.
+        For a full list of supported SAN entries, see: :meth:`BasePolicy.get_san_entries`.
+
+        :param kwargs: Keyword arguments that can include 'alt_names' for SAN generation.
+        :raises Exception: If generating Subject Alternative Names fails.
+        :returns: A list of tuples where each contains an extension and its criticality flag.
         """
         extensions = [
             (self._basic_constraints, True),
