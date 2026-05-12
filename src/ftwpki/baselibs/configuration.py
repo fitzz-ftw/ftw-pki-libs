@@ -23,9 +23,15 @@ from ftwpki.baselibs.config_file_create import (
     toml_conf_str,
     write_example_config,
 )
-from ftwpki.baselibs.protocols import IntermedPathConfigPathesProtocol, LeafPathConfigPathesProtocol, PathCategoryType, PathConfigPathesProtocol, RootSignPathConfigPathesProtocol, UserPathConfigPathesProtocol
+from ftwpki.baselibs.protocols import (
+    IntermedPathConfigPathesProtocol,
+    LeafPathConfigPathesProtocol,
+    PathCategoryType,
+    PathConfigPathesProtocol,
+    RootSignPathConfigPathesProtocol,
+    UserPathConfigPathesProtocol,
+)
 from ftwpki.baselibs.toml_utils import toml2config
-
 
 
 # CLASS - BasePKIConfig
@@ -183,7 +189,9 @@ class BasePKIConfig:
         :returns: An object providing access to all directory Path objects.
         """
         if read_only:
-            PathContainerRO = NamedTuple("PathContainerRO", **{k: Path for k in self._paths})
+            fields = [(k, Path) for k in self._paths]
+            PathContainerRO = NamedTuple("PathContainerRO", fields)
+            # PathContainerRO = NamedTuple("PathContainerRO", **{k: Path for k in self._paths})
             return cast(PathConfigPathesProtocol,PathContainerRO(**self._paths))
         else:
             class PathContainerRW(SimpleNamespace):
