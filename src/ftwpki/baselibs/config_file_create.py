@@ -79,8 +79,64 @@ ext_signedcert= ".zip.enc"
 policies     = "~/.config/ftwpki/policies/intermediate"
 """
 
+USER_CONFIG = """[fallback]
+private_keys = "~/.config/ftwpki/.private"
+public_data  = "~/.local/share/ftwpki"
+certs        = "~/.local/share/ftwpki/certs"
+chains       = "~/.local/share/ftwpki/chains"
+
+ext_cert     = ".crt"
+ext_public   = ".pub"
+ext_signedcert= ".zip.enc"
+"""
+
+LEAF_CONFIG = """[fallback]
+private_keys = "~/.config/ftwpki/.private"
+public_data  = "~/.local/share/ftwpki"
+certs        = "~/.local/share/ftwpki/certs"
+chains       = "~/.local/share/ftwpki/chains"
+
+ext_cert     = ".crt"
+ext_public   = ".pub"
+ext_signedcert= ".zip.enc"
+"""
+
+INTERMED_CONFIG = """[fallback]
+private_keys = "~/.config/ftwpki/.private"
+passphrases  = "~/.config/ftwpki/.private"
+
+
+policies     = "~/.config/ftwpki/policies"
+
+
+public_data  = "~/.local/share/ftwpki"
+certs        = "~/.local/share/ftwpki/certs"
+chains       = "~/.local/share/ftwpki/chains"
+
+ext_cert     = ".crt"
+ext_public   = ".pub"
+ext_chain    = ".pem"
+ext_policy   = ".policy"
+ext_signedcert= ".zip.enc"
+
+"""
+
+ROOT_SIGNER_CONFIG = """[fallback]
+private_keys = "~/.config/ftwpki/.private"
+passphrases  = "~/.config/ftwpki/.private"
+
+public_data  = "~/.local/share/ftwpki"
+certs        = "~/.local/share/ftwpki/certs"
+chains       = "~/.local/share/ftwpki/chains"
+
+ext_cert     = ".crt"
+ext_public   = ".pub"
+ext_chain    = ".chain.pem"
+
+"""
+
 # FUNCTION - write_example_config
-def write_example_config(content:str):
+def write_example_config(content:str) -> None:
     """
     Write a sample configuration file to the default path. (rw)
 

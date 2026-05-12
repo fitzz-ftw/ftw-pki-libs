@@ -28,6 +28,7 @@ from tomllib import TOMLDecodeError, load, loads
 from typing import cast
 
 from ftwpki.baselibs.app_dirs import config_file_path
+from ftwpki.baselibs.protocols import FullConfigProtocol
 
 
 # FUNCTION - list_policy_sections
@@ -237,7 +238,7 @@ def toml2san_policy(
 # !FUNCTION - toml2san_policy
 
 # FUNCTION - toml2config
-def toml2config(section:str="") -> dict[str, str]:
+def toml2config(section:str="") -> dict[str,str]:
     """
     Load application configuration from a TOML file. (ro)
 
@@ -260,7 +261,7 @@ def toml2config(section:str="") -> dict[str, str]:
             ret_dict.update(raw_dic[section])
         except KeyError:
             ...
-    return ret_dict
+    return cast(FullConfigProtocol, ret_dict)
 # !FUNCTION - toml2config
 
 if __name__ == "__main__": # pragma: no cover

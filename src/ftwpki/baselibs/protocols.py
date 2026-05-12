@@ -267,6 +267,170 @@ class IntermedImportProtocol(Protocol):
 
 # !CLASS - IntermedImportProtocol
 
+
+# SECTION - Base Configuration
+# CLASS - ConfigPathesProtocol
+class ConfigPathesProtocol(Protocol):
+    """
+    Structural interface for configuration path objects. (ro)
+
+    This protocol defines the required attributes for objects that provide
+    access to the various directory paths used in the PKI system. It is
+    used to ensure that configuration objects provide consistent and
+    accessible path information for key storage, requests, and certificates.
+    """
+
+    private_keys: str
+    """The directory path where private keys are stored."""
+    certs: str
+    """The directory path where issued certificates are stored."""
+    public_data: str
+    """The directory path for public data storage."""
+    chains: str
+    """The directory path where certificate chains are stored."""
+    def __getitem__(key:str)->str: ...
+
+
+# !CLASS - ConfigPathesProtocol
+
+# CLASS - ConfigExtentionsProtocol
+
+class ConfigExtentionsProtocol(Protocol):
+    """
+    Structural interface for configuration file extension attributes. (ro)
+
+    This protocol defines the required attributes for objects that specify
+    the file extensions used for different types of certificate-related
+    files. It ensures that configuration objects provide consistent
+    information about the expected file formats for certificates, public
+    keys, chains, and related configurations.
+    """
+
+    ext_cert: str
+    """The file extension for certificate files."""
+    ext_public: str
+    """The file extension for public key files."""
+    ext_signedcert: str
+    """The file extension for signed certificate archives."""
+
+# !CLASS - ConfigExtentionsProtocol
+
+# CLASS - FullConfigProtocol
+class FullConfigProtocol(ConfigPathesProtocol, ConfigExtentionsProtocol):
+    def __getitem__(key: str) -> str: ...
+    pass
+# !CLASS - FullConfigProtocol
+
+
+# CLASS - PathConfigPathesProtocol
+class PathConfigPathesProtocol(Protocol):
+    """
+    Structural interface for configuration path objects with Path types. (ro)
+
+    This protocol defines the required attributes for objects that provide
+    access to the various directory paths used in the PKI system, but with
+    Path objects instead of strings. It is used to ensure that configuration
+    objects provide consistent and accessible path information for key storage,
+    requests, and certificates in a more type-safe manner.
+    """
+
+    private_keys: Path
+    """The directory path where private keys are stored."""
+    public_data: Path
+    """The directory path for public data storage."""
+    certs: Path
+    """The directory path where issued certificates are stored."""
+    chains: Path
+    """The directory path where certificate chains are stored."""
+# !CLASS - PathConfigPathesProtocol
+
+# !SECTION - Base Configuration
+
+# SECTION - User Configuration
+# DOC - Docstring
+class UserConfigPathesProtocol(ConfigPathesProtocol):
+    pass
+
+
+# DOC - Docstring
+class UserConfigExtentionsProtocol(ConfigExtentionsProtocol):
+    pass
+
+
+# DOC - Docstring
+class UserFullConfigProtocol(UserConfigPathesProtocol, UserConfigExtentionsProtocol):
+    pass
+
+
+# DOC - Docstring
+class UserPathConfigPathesProtocol(PathConfigPathesProtocol):
+    pass
+
+#!SECTION - User Configuration
+
+# SECTION - Rootsigner Configuration
+# DOC - Docstring
+class RootSignConfigPathesProtocol(ConfigPathesProtocol):
+    # DOC - Docstring
+    passphrases:str
+
+# DOC - Docstring
+class RootSignConfigExtentionsProtocol(ConfigExtentionsProtocol):
+    # DOC - Docstring
+    ext_chain:str
+
+# DOC - Docstring
+class RootSignPathConfigPathesProtocol(PathConfigPathesProtocol):
+    # DOC - Docstring
+    passphrases:Path
+
+# !SECTION - Rootsigner Configuration
+
+# SECTION - Leaf Configuration
+# DOC - Docstring
+class LeafConfigPathesProtocol(ConfigPathesProtocol):
+    pass
+
+
+# DOC - Docstring
+class LeafConfigExtentionsProtocol(ConfigExtentionsProtocol):
+    pass
+
+# DOC - Docstring
+class LeafFullConfigProtocol(LeafConfigPathesProtocol, LeafConfigExtentionsProtocol):
+    pass
+
+# DOC - Docstring
+class LeafPathConfigPathesProtocol(PathConfigPathesProtocol):
+    pass
+
+
+# !SECTION - Leaf Configuration
+
+# SECTION - Intermediate Configuration
+# DOC - Docstring
+class IntermedConfigPathesProtocol(RootSignConfigPathesProtocol):
+    # DOC - Docstring
+    policies:str
+
+# DOC - Docstring
+class IntermedConfigExtentionsProtocol(RootSignConfigExtentionsProtocol):
+    # DOC - Docstring
+    ext_policiy:str
+
+# DOC - Docstring
+class IntermedFullConfigProtocol(IntermedConfigPathesProtocol,
+                                 IntermedConfigExtentionsProtocol):
+    pass
+
+# DOC - Docstring
+class IntermedPathConfigPathesProtocol(RootSignPathConfigPathesProtocol):
+    # DOC - Docstring
+    policies:Path
+
+# !SECTION - Intermediate Configuration
+
+
 if __name__ == "__main__":  # pragma: no cover
     from doctest import FAIL_FAST, testfile
 

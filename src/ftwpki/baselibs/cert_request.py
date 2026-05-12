@@ -18,6 +18,7 @@ from cryptography.hazmat.primitives import hashes, serialization
 
 from ftwpki.baselibs.policies import BasePolicy
 
+
 # CLASS - CertificateRequest
 # Alternate name: CertificateSigningRequest if name conflict.
 class CertificateRequest:
@@ -82,7 +83,7 @@ class CertificateRequest:
         """
         builder = self.verify_input_arguments(keep=True, **kwargs)
         ski = x509.SubjectKeyIdentifier.from_public_key(private_key.public_key())
-        builder = builder.add_extension(ski, critical=False)
+        builder = builder.add_extension(ski, critical=False) if builder else None
         self._csr = builder.sign(private_key, hashes.SHA512()) if builder else None
         return self
 

@@ -54,7 +54,7 @@ def PKIDirs() -> PlatformDirs:
 
 
 # FUNCTION - config_file_path
-def config_file_path() -> Path:
+def config_file_path(file_name: str|None = None) -> Path:
     """
     Return the default path to the application configuration file. (ro)
 
@@ -63,7 +63,7 @@ def config_file_path() -> Path:
 
     :returns: The absolute path to the main TOML configuration file.
     """
-    return PKIDirs().user_config_path / "pkiconfig.toml"
+    return PKIDirs().user_config_path / (file_name if file_name else "pkiconfig.toml")
 # !FUNCTION - config_file_path
 
 
