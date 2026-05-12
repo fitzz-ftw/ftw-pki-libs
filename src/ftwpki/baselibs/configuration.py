@@ -27,9 +27,21 @@ from ftwpki.baselibs.toml_utils import toml2config
 
 # CLASS - BasePKIConfig
 class BasePKIConfig:
-    # DOC - Hier könnte eine ausführliche Beschreibung der Klasse stehen, z.B.:
+    """
+    Base class for managing PKI configurations.
+
+    This class handles the automatic creation of configuration files and
+    provides methods to resolve relative paths into absolute ones based
+    on the configuration directory.
+    """
     def __init__(self, file_name: str | None = None) -> None:
-        """Initialisiert die Konfiguration direkt aus der Datei."""
+        """
+        Initialize the configuration directly from a file.
+
+        :param file_name: Name of the configuration file.
+        :raises PermissionError: If there are insufficient rights to create
+                                 the configuration or directories.
+        """
         self._path: Path = config_file_path(file_name=file_name)
         conf_str="Blödsinn"
         if not self._path.is_file():
@@ -56,57 +68,93 @@ class BasePKIConfig:
         # und gibt ein dict mit Path-Objekten zurück
         self._paths: dict[str, Path] = {}
 
-    # DOC - Hier könnten weitere Methoden und Eigenschaften der Klasse beschrieben werden, z.B.:
     def set_config(self, section: str = "") -> None:
+        """
+        Load and setup the configuration paths from a specific section.
+
+        :param section: The section name within the TOML file.
+        """
         self._raw_data: dict[str, str] = toml2config(section=section)
-        # Wir filtern alles aus, was kein Pfad ist (deine 'ext'-Logik)
         dirs_to_setup: list[str] = [k for k in self._raw_data if not k.startswith("ext")]
-        # create_app_pathes erledigt die Validierung/Erstellung
-        # und gibt ein dict mit Path-Objekten zurück
         self._paths: dict[str, Path] = create_app_pathes(
             self._raw_data, self._secure_dirs, *dirs_to_setup
         )
 
-    # DOC - Docstring
     @property
     def private_keys(self) -> str:
+        """
+        The path to the private keys directory **(ro)**.
+
+        :returns: The directory path as defined in the configuration.
+        """
         return self._raw_data["private_keys"]
 
-    # DOC - Docstring
     @property
     def public_data(self) -> str:
+        """
+        The path to the public data directory **(ro)**.
+
+        :returns: The directory path for public files.
+        """
         return self._raw_data["public_data"]
 
-    # DOC - Docstring
     @property
     def certs(self) -> str:
+        """
+        The path to the directory where certificates are stored **(ro)**.
+
+        :returns: The directory path for certificates.
+        """
         return self._raw_data["certs"]
 
-    # DOC - Docstring
     @property
     def chains(self) -> str:
+        """
+        The path to the directory where certificate chains are stored **(ro)**.
+
+        :returns: The directory path for chains.
+        """
         return self._raw_data["chains"]
 
-    # DOC - Docstring
     @property
     def ext_cert(self) -> str:
+        """
+        The file extension for certificate files **(ro)**.
+
+        :returns: The configured certificate extension.
+        """
         return self._raw_data["ext_cert"]
 
-    # DOC - Docstring
     @property
     def ext_public(self) -> str:
+        """
+        The file extension for public data files **(ro)**.
+
+        :returns: The configured public data extension.
+        """
         return self._raw_data["ext_public"]
 
-    # DOC - Docstring
     @property
     def ext_signedcert(self) -> str:
+        """
+        The file extension for signed certificates **(ro)**.
+
+        :returns: The configured signed certificate extension.
+        """
         return self._raw_data["ext_signedcert"]
 
-    # DOC - Docstring
     def resolve(self, name: str, category: PathCategoryType|None=None) -> Path:
         """
-        Der intelligente Pfad-Resolver für Leaf-Programme.
-        category entspricht dem Key in der Config (z.B. 'private_keys').
+        Resolve a string name into an absolute Path object.
+
+        This method converts relative names into absolute paths using
+        the specified category or the current user home.
+
+        :param name: The name or relative path of the file.
+        :param category: The configuration category for path lookup.
+        :raises KeyError: If the provided category is not found in
+                          the configuration.
+        :returns: The resolved absolute Path object.
         """
         if name.startswith(("./", ".\\")):
             return Path(name).resolve()
@@ -123,7 +171,6 @@ class BasePKIConfig:
         else:
             return Path(name).expanduser().resolve()
 
-    # DOC - Docstring
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(Path={self._path.as_posix()})"
 
@@ -132,10 +179,19 @@ class BasePKIConfig:
 
 
 # CLASS - UserPKIConfig
-# DOC - Docstring
 class UserPKIConfig(BasePKIConfig):
-    # DOC - Docstring
+    """
+    Configuration class for user-specific PKI settings.
+
+    This class inherits from BasePKIConfig and specializes it for
+    handling the user configuration file.
+    """
     def __init__(self, file_name: str | None = "user.toml") -> None:
+        """
+        Initialize the User PKI configuration.
+
+        :param file_name: Name of the configuration file.
+        """
         super().__init__(file_name)
         self.set_config()
 
@@ -144,10 +200,19 @@ class UserPKIConfig(BasePKIConfig):
 
 
 # CLASS - Leaf Configuration
-# DOC - Docstring
 class LeafPKIConfig(BasePKIConfig):
-    # DOC - Docstring
+    """
+    Configuration class for leaf applications.
+
+    This class provides settings for clients, servers, and client-server
+    applications that interact within the PKI infrastructure.
+    """
     def __init__(self, file_name: str | None = "leaf.toml") -> None:
+        """
+        Initialize the Leaf PKI configuration.
+
+        :param file_name: Name of the configuration file.
+        """
         super().__init__(file_name)
         self.set_config()
 
@@ -156,22 +221,39 @@ class LeafPKIConfig(BasePKIConfig):
 
 
 # CLASS - Root Signer Configuration
-# DOC - Docstring
 class RootSignerPKIConfig(BasePKIConfig):
-    # DOC - Docstring
+    """
+    Configuration class for Root Signer applications.
+
+    This class handles settings for Root CAs and signing entities,
+    including secure storage for passphrases and chain extensions.
+    """
     def __init__(self, file_name: str | None = "rsign.toml") -> None:
+        """
+        Initialize the Root Signer configuration.
+
+        :param file_name: Name of the configuration file.
+        """
         super().__init__(file_name)
         self._secure_dirs.append("passphrases")
         self.set_config()
 
-    # DOC - Docstring
     @property
     def passphrases(self) -> str:
+        """
+        The path to the directory where passphrases are stored **(ro)**.
+
+        :returns: The directory path for passphrase files.
+        """
         return self._raw_data["passphrases"]
 
-    # DOC - Docstring
     @property
     def ext_chain(self) -> str:
+        """
+        The file extension for certificate chain files **(ro)**.
+
+        :returns: The configured extension for chains.
+        """
         return self._raw_data["ext_chain"]
 
 
@@ -179,20 +261,37 @@ class RootSignerPKIConfig(BasePKIConfig):
 
 
 # CLASS - Intermediate Configuration
-# DOC - Docstring
 class IntermedPKIConfig(RootSignerPKIConfig):
-    # DOC - Docstring
+    """
+    Configuration class for Intermediate Certificate Authorities.
+
+    This class extends the Root Signer configuration to include
+    certificate policies and specific policy file extensions.
+    """
     def __init__(self, file_name: str | None = "intermed.toml") -> None:
+        """
+        Initialize the Intermediate CA configuration.
+
+        :param file_name: Name of the configuration file.
+        """
         super().__init__(file_name)
 
-    # DOC - Docstring
     @property
     def policies(self) -> str:
+        """
+        The path to the directory where certificate policies are stored **(ro)**.
+
+        :returns: The directory path for policy files.
+        """
         return self._raw_data["policies"]
 
-    # DOC - Docstring
     @property
     def ext_policy(self) -> str:
+        """
+        The file extension for certificate policy files **(ro)**.
+
+        :returns: The configured extension for policies.
+        """
         return self._raw_data["ext_policy"]
 
 

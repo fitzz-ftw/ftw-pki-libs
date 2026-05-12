@@ -251,8 +251,12 @@ class DistinguishedNameParser(ArgparseFix311):
 # !CLASS - DistinguishedNameParser
 
 
-# DOC[epic="pki"] - Dokumentation
 def get_dn_parser() -> DistinguishedNameParser:
+    """
+    Factory function to create a DistinguishedNameParser instance.
+
+    :returns: A new instance of the Distinguished Name parser.
+    """
     return DistinguishedNameParser()
 
 # CLASS - CSRParser
@@ -288,8 +292,12 @@ class CSRParser(DistinguishedNameParser):
 # !CLASS - CSRParser
 
 
-# DOC[epic="pki"] - Dokumentation
 def get_csr_parser() -> CSRParser:
+    """
+    Factory function to create a CSRParser instance.
+
+    :returns: A new instance of the Certificate Signing Request parser.
+    """
     return CSRParser()
 
 # CLASS - ServerClientCSRParser
@@ -350,10 +358,15 @@ class ServerClientCSRParser(CSRParser):
 
 #!CLASS - ServerClientCSRParser
 
-# DOC[epic="pki"] - Dokumentation
 def get_server_client_csr_parser() -> ServerClientCSRParser:
+    """
+    Factory function to create a ServerClientCSRParser instance.
+
+    :returns: A new instance of the Server/Client CSR parser.
+    """
     return ServerClientCSRParser() 
 
+# CLASS - PolicyParser
 class PolicyParser(ArgparseFix311):
     """
     Parser for certificate issuance policies. (rw)
@@ -417,10 +430,16 @@ class PolicyParser(ArgparseFix311):
         for v in self.fields.values():
             ret_args.policy[v] = getattr(ret_args, v, "no")
         return cast(PolicyProtocol, ret_args)
-# !CLASS - ServerClientCSRParser
 
-# DOC[epic="pki"] - Dokumentation
+# !CLASS - PolicyParser
+
+
 def get_policy_parser() -> PolicyParser:
+    """
+    Factory function to create a PolicyParser instance.
+
+    :returns: A new instance of the certificate policy parser.
+    """
     return PolicyParser()
 
 # CLASS - CSRSigningParser
@@ -475,8 +494,12 @@ class CSRSigningParser(PolicyParser):
 # !CLASS - CSRSigningParser
 
 
-# DOC[epic="pki"] - Dokumentation
 def get_csr_signing_parser() -> CSRSigningParser:
+    """
+    Factory function to create a CSRSigningParser instance.
+
+    :returns: A new instance of the certificate signing parser.
+    """
     return CSRSigningParser()
 
 # CLASS - CSRMultiSigningParser
@@ -509,8 +532,12 @@ class CSRMultiSigningParser(CSRSigningParser):
 # !CLASS - CSRMultiSigningParser
 
 
-# DOC[epic="pki"] - Dokumentation
 def get_csr_multi_sign_parser() -> CSRMultiSigningParser:
+    """
+    Factory function to create a CSRMultiSigningParser instance.
+
+    :returns: A new instance of the multi-policy signing parser.
+    """
     return CSRMultiSigningParser()
 
 # CLASS - CertImportParser
@@ -552,8 +579,12 @@ class CertImportParser(ArgparseFix311):
 # !CLASS - CertImportParser
 
 
-# DOC[epic="pki"] - Dokumentation
 def get_cert_import_parser() -> CertImportParser:
+    """
+    Factory function to create a CertImportParser instance.
+
+    :returns: A new instance of the certificate import parser.
+    """
     return CertImportParser()
 
 # CLASS - IntermedImportParser
@@ -592,8 +623,12 @@ class IntermedImportParser(CertImportParser):
 # !CLASS - IntermedImportParser
 
 
-# DOC[epic="pki"] - Dokumentation
 def get_intermed_import_parser() -> IntermedImportParser:
+    """
+    Factory function to create a CertImportParser instance.
+
+    :returns: A new instance of the certificate import parser.
+    """
     return IntermedImportParser()
 
 if __name__ == "__main__":  # pragma: no cover

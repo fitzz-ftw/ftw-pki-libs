@@ -275,7 +275,13 @@ PathCategoryType = Literal[
     "passphrases",
     "policies",
 ]
+"""
+Type alias for valid configuration path categories. (ro)
 
+This literal defines the allowed keys used to look up directory paths 
+within the PKI configuration. It ensures that only existing categories 
+are used during path resolution.
+"""
 
 # SECTION - Base Configuration
 # CLASS - ConfigPathesProtocol
@@ -298,7 +304,6 @@ class ConfigPathesProtocol(Protocol):
     chains: str
     """The directory path where certificate chains are stored."""
 
-    def __getitem__(key: str) -> str: ...
 
 
 # !CLASS - ConfigPathesProtocol
@@ -330,8 +335,9 @@ class ConfigExtentionsProtocol(Protocol):
 
 # CLASS - FullConfigProtocol
 class FullConfigProtocol(ConfigPathesProtocol, ConfigExtentionsProtocol):
-    def __getitem__(key: str) -> str: ...
-
+    """
+    Combined interface for configuration paths and extensions **(ro)**.
+    """
     pass
 
 
@@ -366,97 +372,147 @@ class PathConfigPathesProtocol(Protocol):
 
 
 # SECTION - User Configuration
-# DOC - Docstring
+# CLASS - UserConfigPathesProtocol
 class UserConfigPathesProtocol(ConfigPathesProtocol):
+    """
+    Structural interface for user-specific configuration paths **(ro)**.
+    """
     pass
+# !CLASS - UserConfigPathesProtocol
 
-
-# DOC - Docstring
+# CLASS - UserConfigExtentionsProtocol
 class UserConfigExtentionsProtocol(ConfigExtentionsProtocol):
+    """
+    Structural interface for user-specific file extensions **(ro)**.
+    """
     pass
+# !CLASS - UserConfigExtentionsProtocol
 
-
-# DOC - Docstring
+# CLASS - UserFullConfigProtocol
 class UserFullConfigProtocol(UserConfigPathesProtocol, UserConfigExtentionsProtocol):
+    """
+    Combined interface for all user configuration attributes **(ro)**.
+    """
     pass
+# CLASS - UserFullConfigProtocol
 
-
-# DOC - Docstring
+# CLASS - UserPathConfigPathesProtocol
 class UserPathConfigPathesProtocol(PathConfigPathesProtocol):
+    """
+    Interface for user configuration paths using Path objects **(ro)**.
+    """
     pass
+# !CLASS - UserPathConfigPathesProtocol
 
 
 #!SECTION - User Configuration
 
 
 # SECTION - Rootsigner Configuration
-# DOC - Docstring
+# CLASS - RootSignConfigPathesProtocol
 class RootSignConfigPathesProtocol(ConfigPathesProtocol):
-    # DOC - Docstring
+    """
+    Structural interface for Root Signer configuration paths **(ro)**.
+    """
     passphrases: str
+    """The directory path where passphrase files are stored."""
+# !CLASS - RootSignConfigPathesProtocol
 
-
-# DOC - Docstring
+# CLASS - RootSignConfigExtentionsProtocol
 class RootSignConfigExtentionsProtocol(ConfigExtentionsProtocol):
-    # DOC - Docstring
+    """
+    Structural interface for Root Signer file extensions **(ro)**.
+    """
     ext_chain: str
+    """The file extension for certificate chain files."""
+# !CLASS - RootSignConfigExtentionsProtocol
 
-
-# DOC - Docstring
+# CLASS - RootSignPathConfigPathesProtocol
 class RootSignPathConfigPathesProtocol(PathConfigPathesProtocol):
-    # DOC - Docstring
+    """
+    Interface for Root Signer paths using Path objects **(ro)**.
+    """
     passphrases: Path
+    """The directory path for passphrase files."""
+# !CLASS - RootSignPathConfigPathesProtocol
 
 
 # !SECTION - Rootsigner Configuration
 
 
 # SECTION - Leaf Configuration
-# DOC - Docstring
+# CLASS - LeafConfigPathesProtocol
 class LeafConfigPathesProtocol(ConfigPathesProtocol):
+    """
+    Structural interface for Leaf application configuration paths **(ro)**.
+    """
     pass
+# !CLASS - LeafConfigPathesProtocol
 
-
-# DOC - Docstring
+# CLASS - LeafConfigPathesProtocol
 class LeafConfigExtentionsProtocol(ConfigExtentionsProtocol):
+    """
+    Structural interface for Leaf application file extensions **(ro)**.
+    """
     pass
+# !CLASS - LeafConfigPathesProtocol
 
-
-# DOC - Docstring
+# CLASS - LeafFullConfigProtocol
 class LeafFullConfigProtocol(LeafConfigPathesProtocol, LeafConfigExtentionsProtocol):
+    """
+    Combined interface for all Leaf configuration attributes **(ro)**.
+    """
     pass
+# !CLASS - LeafFullConfigProtocol
 
-
-# DOC - Docstring
+# CLASS - LeafPathConfigPathesProtocol
 class LeafPathConfigPathesProtocol(PathConfigPathesProtocol):
+    """
+    Interface for Leaf configuration paths using Path objects **(ro)**.
+    """
     pass
+# !CLASS - LeafPathConfigPathesProtocol
 
 
 # !SECTION - Leaf Configuration
 
 
 # SECTION - Intermediate Configuration
-# DOC - Docstring
+# CLASS - IntermedConfigPathesProtocol
 class IntermedConfigPathesProtocol(RootSignConfigPathesProtocol):
-    # DOC - Docstring
+    """
+    Structural interface for Intermediate CA configuration paths **(ro)**.
+    """
     policies: str
+    """The directory path where policy definitions are stored."""
 
+# !CLASS - IntermedConfigPathesProtocol
 
-# DOC - Docstring
+# CLASS - IntermedConfigExtentionsProtocol
 class IntermedConfigExtentionsProtocol(RootSignConfigExtentionsProtocol):
-    # DOC - Docstring
+    """
+    Structural interface for Intermediate CA file extensions **(ro)**.
+    """
     ext_policiy: str
+    """The file extension for certificate policy files."""
+# !CLASS - IntermedConfigExtentionsProtocol
 
-
-# DOC - Docstring
+# CLASS - IntermedFullConfigProtocol
 class IntermedFullConfigProtocol(IntermedConfigPathesProtocol, IntermedConfigExtentionsProtocol):
+    """
+    Combined interface for all Intermediate CA configuration attributes **(ro)**.
+    """
     pass
+# !CLASS - IntermedFullConfigProtocol
 
-
-# DOC - Docstring
+# CLASS - IntermedPathConfigPathesProtocol
 class IntermedPathConfigPathesProtocol(RootSignPathConfigPathesProtocol):
-    # DOC - Docstring
+    """
+    Interface for Intermediate CA paths using Path objects **(ro)**.
+    """
     policies: Path
+    """The directory path for policy definitions."""
+# !CLASS - IntermedPathConfigPathesProtocol
 
 
 # !SECTION - Intermediate Configuration
