@@ -11,6 +11,8 @@ Modul configuration documentation
 """
 
 from pathlib import Path
+from types import SimpleNamespace
+from typing import Any, NamedTuple, cast
 
 from ftwpki.baselibs.app_dirs import config_file_path, create_app_pathes
 from ftwpki.baselibs.config_file_create import (
@@ -21,8 +23,9 @@ from ftwpki.baselibs.config_file_create import (
     toml_conf_str,
     write_example_config,
 )
-from ftwpki.baselibs.protocols import PathCategoryType
+from ftwpki.baselibs.protocols import IntermedPathConfigPathesProtocol, LeafPathConfigPathesProtocol, PathCategoryType, PathConfigPathesProtocol, RootSignPathConfigPathesProtocol, UserPathConfigPathesProtocol
 from ftwpki.baselibs.toml_utils import toml2config
+
 
 
 # CLASS - BasePKIConfig
@@ -171,6 +174,24 @@ class BasePKIConfig:
         else:
             return Path(name).expanduser().resolve()
 
+    def as_path(self,read_only:bool=True) ->PathConfigPathesProtocol:
+        """
+        Return the configuration paths as a structured object.
+
+        :param read_only: If True, returns a NamedTuple (ro), 
+                          otherwise a SimpleNamespace (rw).
+        :returns: An object providing access to all directory Path objects.
+        """
+        if read_only:
+            PathContainerRO = NamedTuple("PathContainerRO", **{k: Path for k in self._paths})
+            return cast(PathConfigPathesProtocol,PathContainerRO(**self._paths))
+        else:
+            class PathContainerRW(SimpleNamespace):
+                def __iter__(self)->Any:
+                    return iter(self.__dict__.values())
+            return cast(PathConfigPathesProtocol,PathContainerRW(**self._paths))
+
+
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(Path={self._path.as_posix()})"
 
@@ -195,6 +216,16 @@ class UserPKIConfig(BasePKIConfig):
         super().__init__(file_name)
         self.set_config()
 
+    def as_path(self, read_only: bool = True) -> UserPathConfigPathesProtocol:
+        """
+        Return the configuration paths as a structured object.
+
+        :param read_only: If True, returns a NamedTuple (ro), 
+                          otherwise a SimpleNamespace (rw).
+        :returns: An object providing access to all directory Path objects.
+        """
+        return cast(UserPathConfigPathesProtocol,super().as_path(read_only))
+
 
 # !CLASS - UserPKIConfig
 
@@ -215,6 +246,16 @@ class LeafPKIConfig(BasePKIConfig):
         """
         super().__init__(file_name)
         self.set_config()
+
+    def as_path(self, read_only: bool = True) -> LeafPathConfigPathesProtocol:
+        """
+        Return the configuration paths as a structured object.
+
+        :param read_only: If True, returns a NamedTuple (ro), 
+                          otherwise a SimpleNamespace (rw).
+        :returns: An object providing access to all directory Path objects.
+        """
+        return cast(LeafPathConfigPathesProtocol,super().as_path(read_only))
 
 
 # !CLASS - Leaf Configuration
@@ -256,6 +297,16 @@ class RootSignerPKIConfig(BasePKIConfig):
         """
         return self._raw_data["ext_chain"]
 
+    def as_path(self, read_only: bool = True) -> RootSignPathConfigPathesProtocol:
+        """
+        Return the configuration paths as a structured object.
+
+        :param read_only: If True, returns a NamedTuple (ro), 
+                          otherwise a SimpleNamespace (rw).
+        :returns: An object providing access to all directory Path objects.
+        """
+        return cast(RootSignPathConfigPathesProtocol,super().as_path(read_only))
+
 
 # !CLASS - Root Signer Configuration
 
@@ -293,6 +344,16 @@ class IntermedPKIConfig(RootSignerPKIConfig):
         :returns: The configured extension for policies.
         """
         return self._raw_data["ext_policy"]
+
+    def as_path(self, read_only: bool = True) -> IntermedPathConfigPathesProtocol:
+        """
+        Return the configuration paths as a structured object.
+
+        :param read_only: If True, returns a NamedTuple (ro), 
+                          otherwise a SimpleNamespace (rw).
+        :returns: An object providing access to all directory Path objects.
+        """
+        return cast(IntermedPathConfigPathesProtocol,super().as_path(read_only))
 
 
 # !CLASS - Intermediate Configuration

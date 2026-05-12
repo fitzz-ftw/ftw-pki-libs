@@ -76,7 +76,49 @@ KeyError: "Pfad-Kategorie 'wrong_name' nicht konfiguriert."
 >>> base_conf.resolve("/opt/test", "wrong_name").as_posix()
 '/opt/test'
 
+
+>>> from types import SimpleNamespace
+>>> ro_pathes = base_conf.as_path(True)
+>>> rw_pathes = base_conf.as_path(False)
+
+>>> isinstance(ro_pathes, tuple)
+True
+
+>>> isinstance(rw_pathes, SimpleNamespace)
+True
+
+>>> ro_pathes.certs.as_posix() #doctest: +ELLIPSIS
+'.../ftwpki/certs'
+
+>>> ro_pathes.certs = Path("vorbidden/dir")
+Traceback (most recent call last):
+    ...
+AttributeError: can't set attribute
+
+>>> ro_pathes.certs == rw_pathes.certs
+True
+
+>>> rw_pathes.certs=Path("vorbidden/dir")
+>>> ro_pathes.certs == rw_pathes.certs
+False
+
+>>> rw_pathes.certs.as_posix() #doctest: +ELLIPSIS
+'vorbidden/dir'
+
+>>> all([isinstance(i,Path) for i in rw_pathes])
+True
+
+>>> all([isinstance(i,Path) for i in ro_pathes])
+True
+
 .. !SECTION Test für CI entfernen Laufen nur auf Linux
+
+>>> rw_pathes #doctest: +ELLIPSIS
+PathContainerRW(...)
+
+>>> ro_pathes #doctest: +ELLIPSIS
+PathContainerRO(...)
+
 
 >>> from ftwpki.baselibs.configuration import UserPKIConfig
 
@@ -88,11 +130,18 @@ file_name='user.toml'
 UserPKIConfig(Path=.../ftwpki/user.toml)
 
 
+>>> user_conf.as_path(False)
+PathContainerRW(...)
+
+
 >>> from ftwpki.baselibs.configuration import LeafPKIConfig
 
 >>> leaf_conf= LeafPKIConfig()
 >>> leaf_conf #doctest: +ELLIPSIS
 LeafPKIConfig(Path=.../ftwpki/leaf.toml)
+
+>>> leaf_conf.as_path()
+PathContainerRO(...)
 
 >>> from ftwpki.baselibs.configuration import RootSignerPKIConfig
 
@@ -105,6 +154,9 @@ RootSignerPKIConfig(Path=.../ftwpki/rsign.toml)
 
 >>> root_signer_conf.ext_chain
 '.pem'
+
+>>> root_signer_conf.as_path(False)
+PathContainerRW(...)
 
 
 >>> from ftwpki.baselibs.configuration import IntermedPKIConfig
@@ -121,6 +173,11 @@ IntermedPKIConfig(Path=.../ftwpki/intermed.toml)
 
 >>> intermed2_conf=IntermedPKIConfig()
 
+>>> intermed2_conf.as_path()
+PathContainerRO(...)
+
+
 >>> env.clean_home()
 >>> env.teardown()
+
 

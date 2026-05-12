@@ -261,7 +261,7 @@ def toml2config(section:str="") -> dict[str,str]:
             ret_dict.update(raw_dic[section])
         except KeyError:
             ...
-    return cast(FullConfigProtocol, ret_dict)
+    return ret_dict
 # !FUNCTION - toml2config
 
 if __name__ == "__main__": # pragma: no cover

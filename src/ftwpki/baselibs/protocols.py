@@ -74,7 +74,7 @@ class CSRProtocol(DistinguishedNameProtocol):
     """The directory where sensitive key material is stored."""
 
 
-# CLASS - CSRProtocol
+# !CLASS - CSRProtocol
 
 ClientTypeName = Literal["server", "client", "clsrvr", "client-server"]
 """
@@ -394,7 +394,7 @@ class UserFullConfigProtocol(UserConfigPathesProtocol, UserConfigExtentionsProto
     Combined interface for all user configuration attributes **(ro)**.
     """
     pass
-# CLASS - UserFullConfigProtocol
+# !CLASS - UserFullConfigProtocol
 
 # CLASS - UserPathConfigPathesProtocol
 class UserPathConfigPathesProtocol(PathConfigPathesProtocol):
@@ -405,7 +405,7 @@ class UserPathConfigPathesProtocol(PathConfigPathesProtocol):
 # !CLASS - UserPathConfigPathesProtocol
 
 
-#!SECTION - User Configuration
+# !SECTION -  User Configuration
 
 
 # SECTION - Rootsigner Configuration
