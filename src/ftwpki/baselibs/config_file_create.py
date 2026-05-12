@@ -136,7 +136,7 @@ ext_chain    = ".chain.pem"
 """
 
 # FUNCTION - write_example_config
-def write_example_config(content:str) -> None:
+def write_example_config(content:str,file_name:str|None=None) -> None:
     """
     Write a sample configuration file to the default path. (rw)
 
@@ -150,7 +150,7 @@ def write_example_config(content:str) -> None:
     :raises PermissionError: If there are insufficient rights to set
                              file permissions.
     """
-    conf_path = config_file_path()
+    conf_path = config_file_path(file_name=file_name)
     if conf_path.exists():
         return 
     if not conf_path.parent.exists():

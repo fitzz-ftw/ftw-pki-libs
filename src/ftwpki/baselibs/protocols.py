@@ -267,6 +267,15 @@ class IntermedImportProtocol(Protocol):
 
 # !CLASS - IntermedImportProtocol
 
+PathCategoryType = Literal[
+    "private_keys",
+    "certs",
+    "public_data",
+    "chains",
+    "passphrases",
+    "policies",
+]
+
 
 # SECTION - Base Configuration
 # CLASS - ConfigPathesProtocol
@@ -288,12 +297,14 @@ class ConfigPathesProtocol(Protocol):
     """The directory path for public data storage."""
     chains: str
     """The directory path where certificate chains are stored."""
-    def __getitem__(key:str)->str: ...
+
+    def __getitem__(key: str) -> str: ...
 
 
 # !CLASS - ConfigPathesProtocol
 
 # CLASS - ConfigExtentionsProtocol
+
 
 class ConfigExtentionsProtocol(Protocol):
     """
@@ -313,12 +324,17 @@ class ConfigExtentionsProtocol(Protocol):
     ext_signedcert: str
     """The file extension for signed certificate archives."""
 
+
 # !CLASS - ConfigExtentionsProtocol
+
 
 # CLASS - FullConfigProtocol
 class FullConfigProtocol(ConfigPathesProtocol, ConfigExtentionsProtocol):
     def __getitem__(key: str) -> str: ...
+
     pass
+
+
 # !CLASS - FullConfigProtocol
 
 
@@ -342,9 +358,12 @@ class PathConfigPathesProtocol(Protocol):
     """The directory path where issued certificates are stored."""
     chains: Path
     """The directory path where certificate chains are stored."""
+
+
 # !CLASS - PathConfigPathesProtocol
 
 # !SECTION - Base Configuration
+
 
 # SECTION - User Configuration
 # DOC - Docstring
@@ -366,25 +385,31 @@ class UserFullConfigProtocol(UserConfigPathesProtocol, UserConfigExtentionsProto
 class UserPathConfigPathesProtocol(PathConfigPathesProtocol):
     pass
 
+
 #!SECTION - User Configuration
+
 
 # SECTION - Rootsigner Configuration
 # DOC - Docstring
 class RootSignConfigPathesProtocol(ConfigPathesProtocol):
     # DOC - Docstring
-    passphrases:str
+    passphrases: str
+
 
 # DOC - Docstring
 class RootSignConfigExtentionsProtocol(ConfigExtentionsProtocol):
     # DOC - Docstring
-    ext_chain:str
+    ext_chain: str
+
 
 # DOC - Docstring
 class RootSignPathConfigPathesProtocol(PathConfigPathesProtocol):
     # DOC - Docstring
-    passphrases:Path
+    passphrases: Path
+
 
 # !SECTION - Rootsigner Configuration
+
 
 # SECTION - Leaf Configuration
 # DOC - Docstring
@@ -396,9 +421,11 @@ class LeafConfigPathesProtocol(ConfigPathesProtocol):
 class LeafConfigExtentionsProtocol(ConfigExtentionsProtocol):
     pass
 
+
 # DOC - Docstring
 class LeafFullConfigProtocol(LeafConfigPathesProtocol, LeafConfigExtentionsProtocol):
     pass
+
 
 # DOC - Docstring
 class LeafPathConfigPathesProtocol(PathConfigPathesProtocol):
@@ -407,26 +434,30 @@ class LeafPathConfigPathesProtocol(PathConfigPathesProtocol):
 
 # !SECTION - Leaf Configuration
 
+
 # SECTION - Intermediate Configuration
 # DOC - Docstring
 class IntermedConfigPathesProtocol(RootSignConfigPathesProtocol):
     # DOC - Docstring
-    policies:str
+    policies: str
+
 
 # DOC - Docstring
 class IntermedConfigExtentionsProtocol(RootSignConfigExtentionsProtocol):
     # DOC - Docstring
-    ext_policiy:str
+    ext_policiy: str
+
 
 # DOC - Docstring
-class IntermedFullConfigProtocol(IntermedConfigPathesProtocol,
-                                 IntermedConfigExtentionsProtocol):
+class IntermedFullConfigProtocol(IntermedConfigPathesProtocol, IntermedConfigExtentionsProtocol):
     pass
+
 
 # DOC - Docstring
 class IntermedPathConfigPathesProtocol(RootSignPathConfigPathesProtocol):
     # DOC - Docstring
-    policies:Path
+    policies: Path
+
 
 # !SECTION - Intermediate Configuration
 

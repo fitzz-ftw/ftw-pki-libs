@@ -17,5 +17,5 @@ Configuration File Creating
 >>> conf_file.unlink()
 >>> write_example_config(toml_conf_str)
 
-
+>>> env.clean_home()
 >>> env.teardown()

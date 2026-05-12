@@ -21,6 +21,7 @@ from ftwpki.baselibs.config_file_create import (
     toml_conf_str,
     write_example_config,
 )
+from ftwpki.baselibs.protocols import PathCategoryType
 from ftwpki.baselibs.toml_utils import toml2config
 
 
@@ -30,9 +31,11 @@ class BasePKIConfig:
     def __init__(self, file_name: str | None = None) -> None:
         """Initialisiert die Konfiguration direkt aus der Datei."""
         self._path: Path = config_file_path(file_name=file_name)
+        conf_str="Blödsinn"
         if not self._path.is_file():
             match file_name:
                 case "user.toml":
+                    # print(f"{file_name=}")
                     conf_str = USER_CONFIG
                 case "leaf.toml":
                     conf_str = LEAF_CONFIG
@@ -41,19 +44,21 @@ class BasePKIConfig:
                 case "rsign.toml":
                     conf_str = ROOT_SIGNER_CONFIG
                 case _:
+                    print(f"{file_name=}")
                     conf_str = toml_conf_str
-            write_example_config(conf_str)
+                    # print(conf_str)
+            write_example_config(conf_str,file_name=file_name)
 
         self._secure_dirs: list[str] = ["private_keys"]
-        self._raw_data: dict[str,str] = {}
+        self._raw_data: dict[str, str] = {}
 
         # create_app_pathes erledigt die Validierung/Erstellung
         # und gibt ein dict mit Path-Objekten zurück
-        self._paths: dict[str, Path]= {}
+        self._paths: dict[str, Path] = {}
 
     # DOC - Hier könnten weitere Methoden und Eigenschaften der Klasse beschrieben werden, z.B.:
     def set_config(self, section: str = "") -> None:
-        self._raw_data: dict[str,str] = toml2config(section=section)
+        self._raw_data: dict[str, str] = toml2config(section=section)
         # Wir filtern alles aus, was kein Pfad ist (deine 'ext'-Logik)
         dirs_to_setup: list[str] = [k for k in self._raw_data if not k.startswith("ext")]
         # create_app_pathes erledigt die Validierung/Erstellung
@@ -97,9 +102,8 @@ class BasePKIConfig:
     def ext_signedcert(self) -> str:
         return self._raw_data["ext_signedcert"]
 
-
     # DOC - Docstring
-    def resolve(self, name: str, category: str) -> Path:
+    def resolve(self, name: str, category: PathCategoryType|None=None) -> Path:
         """
         Der intelligente Pfad-Resolver für Leaf-Programme.
         category entspricht dem Key in der Config (z.B. 'private_keys').
@@ -110,16 +114,19 @@ class BasePKIConfig:
         p = Path(name)
         if p.is_absolute():
             return p
+        if category:
+            base = self._paths.get(category)
+            if base is None:
+                raise KeyError(f"Pfad-Kategorie '{category}' nicht konfiguriert.")
 
-        base = self._paths.get(category)
-        if base is None:
-            raise KeyError(f"Pfad-Kategorie '{category}' nicht konfiguriert.")
-
-        return base / p
+            return base / p
+        else:
+            return Path(name).expanduser().resolve()
 
     # DOC - Docstring
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(Path={self._path.as_posix()})"
+
 
 # !CLASS - BasePKIConfig
 
@@ -135,6 +142,7 @@ class UserPKIConfig(BasePKIConfig):
 
 # !CLASS - UserPKIConfig
 
+
 # CLASS - Leaf Configuration
 # DOC - Docstring
 class LeafPKIConfig(BasePKIConfig):
@@ -143,7 +151,9 @@ class LeafPKIConfig(BasePKIConfig):
         super().__init__(file_name)
         self.set_config()
 
+
 # !CLASS - Leaf Configuration
+
 
 # CLASS - Root Signer Configuration
 # DOC - Docstring
@@ -166,6 +176,7 @@ class RootSignerPKIConfig(BasePKIConfig):
 
 
 # !CLASS - Root Signer Configuration
+
 
 # CLASS - Intermediate Configuration
 # DOC - Docstring
@@ -201,7 +212,7 @@ if __name__ == "__main__":  # pragma: no cover
     # Pfad zu den dokumentierenden Tests
     testfiles_dir = Path(__file__).parents[3] / "doc/source/devel"
     test_files = [
-        "configuration.rst",
+        "get_started_configuration.rst",
     ]
     for file in test_files:
         test_file = testfiles_dir / file
