@@ -104,7 +104,7 @@ Traceback (most recent call last):
     ...
 KeyError: "Pfad-Kategorie 'wrong_name' nicht konfiguriert."
 
->>> base_conf.resolve("/opt/test", "wrong_name").as_posix()
+>>> base_conf.resolve("/opt/test", "wrong_name").as_posix() 
 '/opt/test'
 
 

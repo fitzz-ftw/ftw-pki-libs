@@ -169,7 +169,7 @@ class BasePKIConfig:
             return Path(name).resolve()
 
         p = Path(name)
-        if p.is_absolute():
+        if p.is_absolute() or name.startswith("/") or name.startswith("\\"):
             return p
         if category:
             base = self._paths.get(category)
