@@ -47,6 +47,9 @@ Windows:
 True
 
 >> Path("~/.local/share/ftwpki/certs").expanduser().is_dir()
+>>> (shared_data_path /"certs").exists()
+True
+
 >>> (shared_data_path /"certs").is_dir()
 True
 

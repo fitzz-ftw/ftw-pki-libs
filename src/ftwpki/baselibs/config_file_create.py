@@ -23,50 +23,23 @@ from pathlib import Path
 
 from ftwpki.baselibs.app_dirs import config_file_path
 
-conf_toml = """
-[fallback]
-# Identität (verschlüsselt & versteckt)
-private_keys = "{private_keys}"
-passphrases  = "{passphrases}"
-
-# Infrastruktur-Ressourcen (könnten später URLs werden)
-csr_configs  = "{csr_configs}"
-policies     = "{policies}"
-
-# Öffentliche Daten (Standards zur einfachen Nutzung)
-public_data  = "{public_data}"
-certs        = "{certs}"
-chains       = "{chains}"
-
-# Dateiendungen nur für öffentliche/halbprivat Daten
-ext_cert     = "{ext_cert}"
-ext_public   = "{ext_public}"
-ext_chain    = "{ext_chain}"
-ext_csr_conf = "{ext_csr_conf}"
-ext_policy   = "{ext_policy}"
-ext_signedcert= "{ext_signedcert}"
-
-[intermediate]
-# Überschreibt bei Bedarf die Pfade für Intermediate-spezifische Regeln
-policies     = "{intermediate_policies}"
-"""
 
 toml_conf_str = """
 [fallback]
-# Identität (verschlüsselt & versteckt)
+# Identity (encrypted & hidden)
 private_keys = "~/.config/ftwpki/.private"
 passphrases  = "~/.config/ftwpki/.private"
 
-# Infrastruktur-Ressourcen (könnten später URLs werden)
+# Infrastructure resources
 csr_configs  = "~/.config/ftwpki/csr"
 policies     = "~/.config/ftwpki/policies"
 
-# Öffentliche Daten (Standards zur einfachen Nutzung)
+# Public data
 public_data  = "~/.local/share/ftwpki"
 certs        = "~/.local/share/ftwpki/certs"
 chains       = "~/.local/share/ftwpki/chains"
 
-# Dateiendungen nur für öffentliche/halbprivat Daten
+# File extensions for public/semi-private data only
 ext_cert     = ".crt"
 ext_public   = ".pub"
 ext_chain    = ".pem"
@@ -75,44 +48,56 @@ ext_policy   = ".policy"
 ext_signedcert= ".zip.enc"
 
 [intermediate]
-# Überschreibt bei Bedarf die Pfade für Intermediate-spezifische Regeln
+# Overrides paths for intermediate-specific rules if needed
 policies     = "~/.config/ftwpki/policies/intermediate"
 """
 
 USER_CONFIG = """[fallback]
+# Identity (encrypted & hidden)
 private_keys = "~/.config/ftwpki/.private"
+
+# Public data
 public_data  = "~/.local/share/ftwpki"
 certs        = "~/.local/share/ftwpki/certs"
 chains       = "~/.local/share/ftwpki/chains"
 
+# File extensions for public/semi-private data only
 ext_cert     = ".crt"
 ext_public   = ".pub"
 ext_signedcert= ".zip.enc"
 """
 
 LEAF_CONFIG = """[fallback]
+# Identity (encrypted & hidden)
 private_keys = "~/.config/ftwpki/.private"
+
+# Public data
 public_data  = "~/.local/share/ftwpki"
 certs        = "~/.local/share/ftwpki/certs"
 chains       = "~/.local/share/ftwpki/chains"
 
+# File extensions for public/semi-private data only
 ext_cert     = ".crt"
 ext_public   = ".pub"
 ext_signedcert= ".zip.enc"
 """
 
 INTERMED_CONFIG = """[fallback]
+# Identity (encrypted & hidden)
 private_keys = "~/.config/ftwpki/.private"
 passphrases  = "~/.config/ftwpki/.private"
 
 
+# Infrastructure resources
 policies     = "~/.config/ftwpki/policies"
 
 
+# Public data
 public_data  = "~/.local/share/ftwpki"
 certs        = "~/.local/share/ftwpki/certs"
 chains       = "~/.local/share/ftwpki/chains"
 
+# File extensions for public/semi-private data only
 ext_cert     = ".crt"
 ext_public   = ".pub"
 ext_chain    = ".pem"
@@ -122,13 +107,16 @@ ext_signedcert= ".zip.enc"
 """
 
 ROOT_SIGNER_CONFIG = """[fallback]
+# Identity (encrypted & hidden)
 private_keys = "~/.config/ftwpki/.private"
 passphrases  = "~/.config/ftwpki/.private"
 
+# Public data
 public_data  = "~/.local/share/ftwpki"
 certs        = "~/.local/share/ftwpki/certs"
 chains       = "~/.local/share/ftwpki/chains"
 
+# File extensions for public/semi-private data only
 ext_cert     = ".crt"
 ext_public   = ".pub"
 ext_chain    = ".chain.pem"
