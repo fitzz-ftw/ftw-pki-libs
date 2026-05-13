@@ -1,6 +1,7 @@
 Get Stated with ConfigurationcClasses
 ======================================
 
+
 >>> from pathlib import Path
 >>> from fitzzftw.devtools.testinfra import TestHomeEnvironment
 >>> from pathlib import Path
@@ -45,6 +46,8 @@ Windows:
 >> Path("~/.config/ftwpki/pkiconfig.toml").expanduser().exists()
 >>> (config_path / "pkiconfig.toml").exists()
 True
+
+>>> for child in shared_data_path.iterdir(): print(child)
 
 >> Path("~/.local/share/ftwpki/certs").expanduser().is_dir()
 >>> (shared_data_path /"certs").exists()
