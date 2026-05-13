@@ -27,17 +27,17 @@ from ftwpki.baselibs.app_dirs import config_file_path
 toml_conf_str = """
 [fallback]
 # Identity (encrypted & hidden)
-private_keys = "~/.config/ftwpki/.private"
-passphrases  = "~/.config/ftwpki/.private"
+private_keys = "#config#.private"
+passphrases  = "#config#.private"
 
 # Infrastructure resources
-csr_configs  = "~/.config/ftwpki/csr"
-policies     = "~/.config/ftwpki/policies"
+csr_configs  = "#config#csr"
+policies     = "#config#policies"
 
 # Public data
-public_data  = "~/.local/share/ftwpki"
-certs        = "~/.local/share/ftwpki/certs"
-chains       = "~/.local/share/ftwpki/chains"
+public_data  = "#data#"
+certs        = "#data#certs"
+chains       = "#data#/chains"
 
 # File extensions for public/semi-private data only
 ext_cert     = ".crt"
@@ -49,7 +49,7 @@ ext_signedcert= ".zip.enc"
 
 [intermediate]
 # Overrides paths for intermediate-specific rules if needed
-policies     = "~/.config/ftwpki/policies/intermediate"
+policies     = "#config#/policies/intermediate"
 """
 
 USER_CONFIG = """[fallback]

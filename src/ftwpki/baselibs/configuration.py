@@ -10,6 +10,7 @@ configuration
 Modul configuration documentation
 """
 
+from copy import deepcopy
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, NamedTuple, cast
@@ -52,7 +53,6 @@ class BasePKIConfig:
                                  the configuration or directories.
         """
         self._path: Path = config_file_path(file_name=file_name)
-        conf_str="Blödsinn"
         if not self._path.is_file():
             match file_name:
                 case "user.toml":
@@ -90,40 +90,40 @@ class BasePKIConfig:
         )
 
     @property
-    def private_keys(self) -> str:
+    def private_keys(self) -> Path:
         """
         The path to the private keys directory **(ro)**.
 
         :returns: The directory path as defined in the configuration.
         """
-        return self._raw_data["private_keys"]
+        return self._paths["private_keys"]
 
     @property
-    def public_data(self) -> str:
+    def public_data(self) -> Path:
         """
         The path to the public data directory **(ro)**.
 
         :returns: The directory path for public files.
         """
-        return self._raw_data["public_data"]
+        return self._paths["public_data"]
 
     @property
-    def certs(self) -> str:
+    def certs(self) -> Path:
         """
         The path to the directory where certificates are stored **(ro)**.
 
         :returns: The directory path for certificates.
         """
-        return self._raw_data["certs"]
+        return self._paths["certs"]
 
     @property
-    def chains(self) -> str:
+    def chains(self) -> Path:
         """
         The path to the directory where certificate chains are stored **(ro)**.
 
         :returns: The directory path for chains.
         """
-        return self._raw_data["chains"]
+        return self._paths["chains"]
 
     @property
     def ext_cert(self) -> str:
@@ -180,25 +180,13 @@ class BasePKIConfig:
         else:
             return Path(name).expanduser().resolve()
 
-    def as_path(self,read_only:bool=True) ->PathConfigPathesProtocol:
-        """
-        Return the configuration paths as a structured object.
+    @property
+    def current_configfile_entries(self)->dict[str,Any]:
+        """The entries of the configuration file for this configuration **(ro)**. 
 
-        :param read_only: If True, returns a NamedTuple (ro), 
-                          otherwise a SimpleNamespace (rw).
-        :returns: An object providing access to all directory Path objects.
+        :return: A deepcopy of the dictionary with the entries.
         """
-        if read_only:
-            fields = [(k, Path) for k in self._paths]
-            PathContainerRO = NamedTuple("PathContainerRO", fields)
-            # PathContainerRO = NamedTuple("PathContainerRO", **{k: Path for k in self._paths})
-            return cast(PathConfigPathesProtocol,PathContainerRO(**self._paths))
-        else:
-            class PathContainerRW(SimpleNamespace):
-                def __iter__(self)->Any:
-                    return iter(self.__dict__.values())
-            return cast(PathConfigPathesProtocol,PathContainerRW(**self._paths))
-
+        return deepcopy(self._raw_data)
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(Path={self._path.as_posix()})"
@@ -224,15 +212,6 @@ class UserPKIConfig(BasePKIConfig):
         super().__init__(file_name)
         self.set_config()
 
-    def as_path(self, read_only: bool = True) -> UserPathConfigPathesProtocol:
-        """
-        Return the configuration paths as a structured object.
-
-        :param read_only: If True, returns a NamedTuple (ro), 
-                          otherwise a SimpleNamespace (rw).
-        :returns: An object providing access to all directory Path objects.
-        """
-        return cast(UserPathConfigPathesProtocol,super().as_path(read_only))
 
 
 # !CLASS - UserPKIConfig
@@ -255,15 +234,6 @@ class LeafPKIConfig(BasePKIConfig):
         super().__init__(file_name)
         self.set_config()
 
-    def as_path(self, read_only: bool = True) -> LeafPathConfigPathesProtocol:
-        """
-        Return the configuration paths as a structured object.
-
-        :param read_only: If True, returns a NamedTuple (ro), 
-                          otherwise a SimpleNamespace (rw).
-        :returns: An object providing access to all directory Path objects.
-        """
-        return cast(LeafPathConfigPathesProtocol,super().as_path(read_only))
 
 
 # !CLASS - Leaf Configuration
@@ -288,13 +258,13 @@ class RootSignerPKIConfig(BasePKIConfig):
         self.set_config()
 
     @property
-    def passphrases(self) -> str:
+    def passphrases(self) -> Path:
         """
         The path to the directory where passphrases are stored **(ro)**.
 
         :returns: The directory path for passphrase files.
         """
-        return self._raw_data["passphrases"]
+        return self._paths["passphrases"]
 
     @property
     def ext_chain(self) -> str:
@@ -305,15 +275,6 @@ class RootSignerPKIConfig(BasePKIConfig):
         """
         return self._raw_data["ext_chain"]
 
-    def as_path(self, read_only: bool = True) -> RootSignPathConfigPathesProtocol:
-        """
-        Return the configuration paths as a structured object.
-
-        :param read_only: If True, returns a NamedTuple (ro), 
-                          otherwise a SimpleNamespace (rw).
-        :returns: An object providing access to all directory Path objects.
-        """
-        return cast(RootSignPathConfigPathesProtocol,super().as_path(read_only))
 
 
 # !CLASS - Root Signer Configuration
@@ -336,13 +297,13 @@ class IntermedPKIConfig(RootSignerPKIConfig):
         super().__init__(file_name)
 
     @property
-    def policies(self) -> str:
+    def policies(self) -> Path:
         """
         The path to the directory where certificate policies are stored **(ro)**.
 
         :returns: The directory path for policy files.
         """
-        return self._raw_data["policies"]
+        return self._paths["policies"]
 
     @property
     def ext_policy(self) -> str:
@@ -353,15 +314,6 @@ class IntermedPKIConfig(RootSignerPKIConfig):
         """
         return self._raw_data["ext_policy"]
 
-    def as_path(self, read_only: bool = True) -> IntermedPathConfigPathesProtocol:
-        """
-        Return the configuration paths as a structured object.
-
-        :param read_only: If True, returns a NamedTuple (ro), 
-                          otherwise a SimpleNamespace (rw).
-        :returns: An object providing access to all directory Path objects.
-        """
-        return cast(IntermedPathConfigPathesProtocol,super().as_path(read_only))
 
 
 # !CLASS - Intermediate Configuration

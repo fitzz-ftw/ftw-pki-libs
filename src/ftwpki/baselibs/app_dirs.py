@@ -66,6 +66,39 @@ def config_file_path(file_name: str|None = None) -> Path:
     return PKIDirs().user_config_path / (file_name if file_name else "pkiconfig.toml")
 # !FUNCTION - config_file_path
 
+# FUNCTION - get_uni_path
+def get_uni_path(logical_path: str) -> Path:
+    """
+    Resolve a logical path identifier to an absolute filesystem path.
+
+    Supported formats are '#data#subpath/to/file' and '#config#subpath/to/file'.
+    If the path does not start with a supported identifier, it is treated 
+    as a standard relative or absolute path. 
+    
+    :param logical_path: The path string with an optional identifier prefix.
+    :return: A pathlib.Path object pointing to the resolved location.
+    """
+    # Guard: Check for logical path format #identifier#
+    if not (logical_path.startswith("#") and logical_path.count("#") >= 2):
+        return Path(logical_path)
+
+    parts = logical_path.split("#")
+    prefix = f"#{parts[1]}#"
+    rel = "#".join(parts[2:]).lstrip('/')
+
+    if prefix == "#data#":
+        base = _pki_dirs_instance.user_data_path
+    elif prefix == "#config#":
+        base = _pki_dirs_instance.user_config_path
+    else:
+        # Fallback for unknown identifiers
+        return Path(logical_path)
+
+    full_path = base / rel
+    return full_path
+
+# !FUNCTION - get_uni_path
+
 
 # FUNCTION - create_app_pathes
 def create_app_pathes(
@@ -89,7 +122,8 @@ def create_app_pathes(
     keys.sort()
     ret = {}
     for key in keys:
-        path = Path(config[key]).expanduser().resolve()
+        # path = Path(config[key]).expanduser().resolve()
+        path = get_uni_path(config[key]).expanduser().resolve()
         if not path.exists():
             if key in securepathes:
                 path.mkdir(mode=0o700, parents=True)

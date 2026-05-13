@@ -33,6 +33,26 @@ True
  'testexist': ...Path('...testoutput/test')}
 
 
+>>> from ftwpki.baselibs.app_dirs import get_uni_path
+
+
+>>> get_uni_path("~.config/test").as_posix() #doctest: +ELLIPSIS
+'~.config/test'
+
+>>> get_uni_path("#config#test").as_posix() #doctest: +ELLIPSIS
+'.../ftwpki/test'
+
+'testhome/.config/ftwpki/test'
+
+
+>>> get_uni_path("#data#test1/test2").as_posix() #doctest: +ELLIPSIS
+'.../ftwpki/test1/test2'
+
+'testhome/.local/share/ftwpki/test1/test2'
+
+>>> get_uni_path("#undefined#test1/test2").as_posix() #doctest: +ELLIPSIS
+'#undefined#test1/test2'
+
 
 >>> env.clean_home()
 >>> env.teardown()

@@ -46,44 +46,27 @@ Windows:
 
 .. SECTION Test für CI entfernen Laufen nur auf Linux
 
->> Path("~/.config/ftwpki/pkiconfig.toml").expanduser().exists()
 >>> (config_path / "pkiconfig.toml").exists()
 True
 
 
-
->>> # 1. Verifiziere, dass der Pfad existiert
->>> shared_data_path.exists()
-True
-
->>> # 2. Versuche ein Unterverzeichnis anzulegen und prüfe das Ergebnis SOFORT
->>> sub = shared_data_path / "test_dir"
->>> sub.mkdir(exist_ok=True)
->>> sub.is_dir()
-
-
-
-
->>> for child in shared_data_path.iterdir(): print(child)
-
->> Path("~/.local/share/ftwpki/certs").expanduser().is_dir()
 >>> (shared_data_path /"certs").exists()
 True
 
 >>> (shared_data_path /"certs").is_dir()
 True
 
->>> base_conf.private_keys
-'~/.config/ftwpki/.private'
+>>> base_conf.private_keys.as_posix() # doctest: +ELLIPSIS
+'...ftwpki/.private'
 
->>> base_conf.public_data
-'~/.local/share/ftwpki'
+>>> base_conf.public_data.as_posix() # doctest: +ELLIPSIS
+'.../ftwpki'
 
->>> base_conf.certs
-'~/.local/share/ftwpki/certs'
+>>> base_conf.certs.as_posix() # doctest: +ELLIPSIS
+'.../ftwpki/certs'
 
->>> base_conf.chains
-'~/.local/share/ftwpki/chains'
+>>> base_conf.chains.as_posix() # doctest: +ELLIPSIS
+'.../ftwpki/chains'
 
 >>> base_conf.ext_cert
 '.crt'
@@ -98,7 +81,7 @@ True
 '.../testhome/testoutput/test'
 
 >>> base_conf.resolve("test", "private_keys").as_posix()  #doctest: +ELLIPSIS
-'.../.config/ftwpki/.private/test'
+'.../ftwpki/.private/test'
 
 Linux:
 /testhome/.config/ftwpki/.private/test
@@ -121,47 +104,22 @@ KeyError: "Pfad-Kategorie 'wrong_name' nicht konfiguriert."
 '/opt/test'
 
 
->>> from types import SimpleNamespace
->>> ro_pathes = base_conf.as_path(True)
->>> rw_pathes = base_conf.as_path(False)
-
->>> isinstance(ro_pathes, tuple)
-True
-
->>> isinstance(rw_pathes, SimpleNamespace)
-True
-
->>> ro_pathes.certs.as_posix() #doctest: +ELLIPSIS
-'.../ftwpki/certs'
-
->>> ro_pathes.certs = Path("vorbidden/dir")
-Traceback (most recent call last):
-    ...
-AttributeError: can't set attribute
-
->>> ro_pathes.certs == rw_pathes.certs
-True
-
->>> rw_pathes.certs=Path("vorbidden/dir")
->>> ro_pathes.certs == rw_pathes.certs
-False
-
->>> rw_pathes.certs.as_posix() #doctest: +ELLIPSIS
-'vorbidden/dir'
-
->>> all([isinstance(i,Path) for i in rw_pathes])
-True
-
->>> all([isinstance(i,Path) for i in ro_pathes])
-True
-
 .. !SECTION Test für CI entfernen Laufen nur auf Linux
 
->>> rw_pathes #doctest: +ELLIPSIS
-PathContainerRW(...)
-
->>> ro_pathes #doctest: +ELLIPSIS
-PathContainerRO(...)
+>>> base_conf.current_configfile_entries # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+{'private_keys': '#config#.private', 
+ 'passphrases': '#config#.private', 
+ 'csr_configs': '#config#csr', 
+ 'policies': '#config#policies', 
+ 'public_data': '#data#', 
+ 'certs': '#data#certs', 
+ 'chains': '#data#/chains', 
+ 'ext_cert': '.crt', 
+ 'ext_public': '.pub', 
+ 'ext_chain': '.pem', 
+ 'ext_csr_conf': '.toml', 
+ 'ext_policy': '.policy', 
+ 'ext_signedcert': '.zip.enc'}
 
 
 >>> from ftwpki.baselibs.configuration import UserPKIConfig
@@ -174,8 +132,6 @@ file_name='user.toml'
 UserPKIConfig(Path=.../ftwpki/user.toml)
 
 
->>> user_conf.as_path(False)
-PathContainerRW(...)
 
 
 >>> from ftwpki.baselibs.configuration import LeafPKIConfig
@@ -184,8 +140,6 @@ PathContainerRW(...)
 >>> leaf_conf #doctest: +ELLIPSIS
 LeafPKIConfig(Path=.../ftwpki/leaf.toml)
 
->>> leaf_conf.as_path()
-PathContainerRO(...)
 
 >>> from ftwpki.baselibs.configuration import RootSignerPKIConfig
 
@@ -193,14 +147,12 @@ PathContainerRO(...)
 >>> root_signer_conf #doctest: +ELLIPSIS
 RootSignerPKIConfig(Path=.../ftwpki/rsign.toml)
 
->>> root_signer_conf.passphrases
-'~/.config/ftwpki/.private'
+>>> root_signer_conf.passphrases.as_posix()  #doctest: +ELLIPSIS
+'.../ftwpki/.private'
 
 >>> root_signer_conf.ext_chain
 '.pem'
 
->>> root_signer_conf.as_path(False)
-PathContainerRW(...)
 
 
 >>> from ftwpki.baselibs.configuration import IntermedPKIConfig
@@ -209,16 +161,14 @@ PathContainerRW(...)
 >>> intermed_conf #doctest: +ELLIPSIS
 IntermedPKIConfig(Path=.../ftwpki/intermed.toml)
 
->>> intermed_conf.policies
-'~/.config/ftwpki/policies'
+>>> intermed_conf.policies.as_posix()  #doctest: +ELLIPSIS
+'.../ftwpki/policies'
 
 >>> intermed_conf.ext_policy
 '.policy'
 
 >>> intermed2_conf=IntermedPKIConfig()
 
->>> intermed2_conf.as_path()
-PathContainerRO(...)
 
 
 >>> env.clean_home()
