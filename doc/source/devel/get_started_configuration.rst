@@ -59,14 +59,14 @@ True
 >>> base_conf.ext_signedcert
 '.zip.enc'
 
->>> base_conf.resolve("test").as_posix()
-'/python_devel/anaconda_neu/home_dev/Projekte/ftw-pki/ftw-pki-libs/doc/source/devel/testhome/testoutput/test'
+>>> base_conf.resolve("test").as_posix()  #doctest: +ELLIPSIS
+'.../testhome/testoutput/test'
 
->>> base_conf.resolve("test", "private_keys").as_posix()
-'/python_devel/anaconda_neu/home_dev/Projekte/ftw-pki/ftw-pki-libs/doc/source/devel/testhome/.config/ftwpki/.private/test'
+>>> base_conf.resolve("test", "private_keys").as_posix()  #doctest: +ELLIPSIS
+'.../testhome/.config/ftwpki/.private/test'
 
->>> base_conf.resolve("./test", "private_keys").as_posix()
-'/python_devel/anaconda_neu/home_dev/Projekte/ftw-pki/ftw-pki-libs/doc/source/devel/testhome/testoutput/test'
+>>> base_conf.resolve("./test", "private_keys").as_posix()  #doctest: +ELLIPSIS
+'.../testhome/testoutput/test'
 
 >>> base_conf.resolve("test", "wrong_name").as_posix()
 Traceback (most recent call last):
