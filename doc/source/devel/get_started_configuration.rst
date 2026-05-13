@@ -19,8 +19,18 @@ Get Stated with ConfigurationcClasses
 
 >>> shared_data_path = user_data_path("ftwpki")
 >>> shared_data_path.as_posix() #doctest: +ELLIPSIS
-
 '.../ftwpki'
+
+>>> # 1. Verifiziere, dass der Pfad existiert
+>>> shared_data_path.exists()
+True
+
+>>> # 2. Versuche ein Unterverzeichnis anzulegen und prüfe das Ergebnis SOFORT
+>>> sub = shared_data_path / "test_dir"
+>>> sub.mkdir(exist_ok=True)
+>>> sub.is_dir()
+
+
 
 >>> base_conf = BasePKIConfig() 
 file_name=None
