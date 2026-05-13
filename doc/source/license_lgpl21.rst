@@ -7,13 +7,13 @@ the license for the documentation (the manual).
 Software License
 ----------------
 
-The source code of :py:mod:`ftw-patch` is licensed under the 
-**GNU General Public License v2.0 (GPL-2.0)**. 
+The source code of :py:mod:`ftw-pki-baselibs <ftwpki.baselib>` is licensed under the 
+**GNU Lesser General Public License v2.1 (LGPL-2.1)**. 
 
 This ensures that the software remains free and that any improvements made by 
 others are shared back with the community. You can find the full license text 
-in the :file:`LICENSE` file at the root of the source repository or read it online:
-`GNU GPL v2.0 <https://www.gnu.org/licenses/old-licenses/gpl-2.0.html>`_
+in the :file:`LICENSE.LGPL21` file at the root of the source repository or read it online:
+`GNU LGPL v2.1 <https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html>`_
 
 Documentation License
 ---------------------

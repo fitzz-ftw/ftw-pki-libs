@@ -2,6 +2,9 @@
 
 {{ fullname | escape | underline}}
 
+{% set inherited = False %}
+{% set classtoc = False %}
+
 .. container:: api-nav-links
 
    **from** {%- set path_parts = module.split('.') -%}
@@ -30,9 +33,6 @@
 {% endif %}
 
 .. container:: custom-api-style api-class
-
-      {% set inherited = False %}
-      {% set classtoc = False %}
 
    .. currentmodule:: {{ module }}
 

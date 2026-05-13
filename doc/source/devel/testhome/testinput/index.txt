@@ -1,0 +1,13 @@
+# Status | Expiry | Revocation | Serial | File | Subject
+V	270414201156Z		01	unknown	CN=Test Root CA,O=FTW Projekte,C=DE
+V	270101120000Z		02	unknown	CN=Server One,OU=IT,O=FTW Projekte,L=Frankfurt,ST=Hessen,C=DE
+R	260414201156Z,keyCompromise	260101120000Z	03	unknown	CN=Leaked Key Server,O=FTW Projekte,C=DE
+R	260414220000Z,superseded	260301120000Z	04	unknown	CN=Old Global Policy,O=FTW Projekte,C=DE
+V	281231235959Z		05	unknown	CN=Long Term User,UID=user01,O=FTW Projekte,C=DE
+E	240101120000Z		06	unknown	CN=Expired Service,O=FTW Projekte,C=DE
+R	260415100000Z,affiliationChanged	260201120000Z	07	unknown	CN=Former Employee,O=FTW Projekte,C=DE
+V	270520153000Z		08	unknown	CN=Backup Loadbalancer,O=FTW Projekte,C=DE
+R	260410080000Z,unspecified	251201080000Z	09	unknown	CN=Unknown Reason,O=FTW Projekte,C=DE
+V	261224180000Z		0A	unknown	CN=Christmas Webserver,O=FTW Projekte,C=DE
+D	261224180000Z,unspecified		0B	unknown	CN=Christmas Webserver,O=FTW Projekte,C=DE
+

@@ -8,11 +8,10 @@ from typing import Sequence, cast
 
 from docutils import nodes
 from docutils.nodes import Node
-from docutils.parsers.rst import Directive, directives
+from docutils.parsers.rst import directives
 from docutils.parsers.rst.directives.misc import Include, adapt_path
 from jinja2 import Environment, FileSystemLoader
 from sphinx.transforms import SphinxTransform
-
 
 # Read the Docs liefert uns die Canonical URL direkt!
 html_baseurl = os.environ.get("READTHEDOCS_CANONICAL_URL", "")
@@ -216,7 +215,7 @@ def setup(app):
 
 # -- Project information -----------------------------------------------------
 project = "FTW PKI Baselibraries"
-copyright = "2025, Fitzz TeΧnik Welt"
+copyright = "2026, Fitzz TeΧnik Welt"
 author = "Fitzz TeΧnik Welt"
 html_show_copyright = True
 language = "en"
@@ -242,7 +241,6 @@ exclude_patterns = []
 maximum_signature_line_length= 120
 toc_object_entries_show_parents='hide'
 suppress_warnings=[
-    'app.add_directive',
     'autosummary.import_cycle',
     'config.cache',
 ]
@@ -356,7 +354,7 @@ autodoc_typehints_description_target = "documented_params"
 autodoc_default_options = {
     "members": True,
     'special-members': False,
-    'private-members': "_ANSI,_color_map",
+    # 'private-members': "_ANSI,_color_map",
     #    'inherited-members': False,
     # 'undoc-members': True,
     "exclude-members": "__weakref__,__new__",
@@ -411,7 +409,8 @@ autosummary_imported_members = False
 autosummary_ignore_module_all = True
 autosummary_context = {}
 
-inherit_diagramm: list[str] = []
+inherit_diagramm: list[str] = ["ftwpki.baselibs.exceptions",
+                               "ftwpki.baselibs.policies"]
 exclude_inherit_diagramm: list[str] = []
 
 class_extention_context = {
@@ -445,12 +444,18 @@ autosummary_context.update(class_extention_context)
 # -- Options for Documentationcoverage
 coverage_statistics_to_stdout = True
 coverage_show_missing_items = True
-coverage_modules = ["ftwpki.baselib",
+coverage_modules = [
+    "ftwpki.baselibs",
 ]
+
+# NOTE - This list uses REGULAR EXPRESSIONS, not shell-style globs.
+# Matches are performed against the Python dot notation of the modules.
+# Remember to escape dots (e.g., '\.') if you want to match a literal dot.
 coverage_ignore_modules = [
     r".*_version",
     r".*testinfra.*",
     r".*converter.*",
+    r".*caroot.*",
 ]
 
 # -- Options for (Python) domain
