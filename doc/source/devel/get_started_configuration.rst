@@ -19,6 +19,7 @@ Get Stated with ConfigurationcClasses
 
 >>> shared_data_path = user_data_path("ftwpki")
 >>> shared_data_path.as_posix() #doctest: +ELLIPSIS
+
 '.../ftwpki'
 
 >>> base_conf = BasePKIConfig() 
