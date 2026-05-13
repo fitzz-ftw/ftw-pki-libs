@@ -125,9 +125,11 @@ True
 
 >>> key_stat= key_file.stat().st_mode
 
->>> stat.filemode(key_stat)
+>>> stat.filemode(key_stat) if notWin else print("'-rw-r--r--'")
 '-rw-r--r--'
 
+>>> stat.filemode(key_stat) if isWin else print("'-rw-rw-rw-'")
+'-rw-rw-rw-'
 
 
 >>> csr_path = env.copy2cwd("cert_in/node-01.csr", "node-01.csr")
