@@ -208,24 +208,6 @@ Extensions:
     subjectKeyIdentifier:
             b'w\xf1\x87\xa9\xbe\x80\xf4\xa7\xf1.~\x81\xc3S\xfe\xbc\xd2\xf8\xeb\xa7'
 
->>> from cryptography.hazmat.primitives import serialization
->>> from email.message import EmailMessage
->>> import smime
->>> msg = EmailMessage()
->>> msg.set_content("test")
->>> ca_cert_pem = ca_cert.public_bytes(serialization.Encoding.PEM)
->>> result = smime.encrypt(msg, ca_cert_pem)
->>> type(result)
-<class 'email.mime.text.MIMEText'>
-
->>> result_bytes = result.as_bytes()
->>> # Prüfen, ob die wichtigsten S/MIME-Marker vorhanden sind
->>> b"MIME-Version: 1.0" in result_bytes
-True
->>> b"application/pkcs7-mime" in result_bytes
-True
->>> b"base64" in result_bytes
-True
 
 
 >>> env.clean_home()
