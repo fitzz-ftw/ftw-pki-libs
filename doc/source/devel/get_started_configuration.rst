@@ -46,6 +46,9 @@ Windows:
 
 .. SECTION Test für CI entfernen Laufen nur auf Linux
 
+>>> for child in config_path.iterdir(): print(child)
+
+
 >>> (config_path / "pkiconfig.toml").exists()
 True
 
