@@ -24,7 +24,19 @@ Get Stated with ConfigurationcClasses
 file_name=None
 
 >>> base_conf  #doctest: +ELLIPSIS
-BasePKIConfig(Path=.../testhome/.config/ftwpki/pkiconfig.toml)
+BasePKIConfig(Path=...ftwpki/pkiconfig.toml)
+
+Linux:
+/testhome/.config/ftwpki/pkiconfig.toml
+
+Mac:
+/testhome/Library/Application Support/ftwpki/pkiconfig.toml
+
+Windows:
+/testhome/AppData/Local/FitzzTeXnikWelt/ftwpki/pkiconfig.toml
+
+
+
 
 >>> base_conf.set_config()
 
@@ -63,7 +75,16 @@ True
 '.../testhome/testoutput/test'
 
 >>> base_conf.resolve("test", "private_keys").as_posix()  #doctest: +ELLIPSIS
-'.../testhome/.config/ftwpki/.private/test'
+'.../.config/ftwpki/.private/test'
+
+Linux:
+/testhome/.config/ftwpki/.private/test
+Mac:
+/testhome/Library/Application Support/ftwpki/pkiconfig.toml
+
+Windows:
+/testhome/AppData/Local/FitzzTeXnikWelt/ftwpki/pkiconfig.toml
+
 
 >>> base_conf.resolve("./test", "private_keys").as_posix()  #doctest: +ELLIPSIS
 '.../testhome/testoutput/test'
