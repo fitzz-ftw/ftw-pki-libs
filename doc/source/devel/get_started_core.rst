@@ -112,7 +112,7 @@ True
 
 >>> import stat
 
->>> stat.filemode(key_stat) if notWin else print("'-rw------'")
+>>> stat.filemode(key_stat) if notWin else print("'-rw-------'")
 '-rw-------'
 
 >>> stat.filemode(key_stat) if isWin else print("'-rw-rw-rw-'")
