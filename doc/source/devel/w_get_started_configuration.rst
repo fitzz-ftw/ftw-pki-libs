@@ -43,6 +43,16 @@ Windows:
 
 
 >>> base_conf.set_config()
+Mkdir: D:\a\ftw-pki-libs\ftw-pki-libs\doc\source\devel\testhome\AppData\Local\FitzzTeXnikWelt\ftwpki\certs
+path.exists()=True
+Mkdir: D:\a\ftw-pki-libs\ftw-pki-libs\doc\source\devel\testhome\AppData\Local\FitzzTeXnikWelt\ftwpki\chains
+path.exists()=True
+Mkdir: D:\a\ftw-pki-libs\ftw-pki-libs\doc\source\devel\testhome\AppData\Local\FitzzTeXnikWelt\ftwpki\csr
+path.exists()=True
+Mkdir: D:\a\ftw-pki-libs\ftw-pki-libs\doc\source\devel\testhome\AppData\Local\FitzzTeXnikWelt\ftwpki\.private
+path.exists()=True
+Mkdir: D:\a\ftw-pki-libs\ftw-pki-libs\doc\source\devel\testhome\AppData\Local\FitzzTeXnikWelt\ftwpki\policies
+path.exists()=True
 
 .. SECTION Test für CI entfernen Laufen nur auf Linux
 
