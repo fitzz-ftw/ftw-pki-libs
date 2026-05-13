@@ -100,7 +100,7 @@ quote-style = "double"
 [tool.pytest.ini_options]
 # Pytest-Optionen für die Testausführung
 addopts = [
-  "--doctest-glob=get_started_*.rst",
+  "--doctest-glob=w_get_started_*.rst",
   "--cov-report=term",
   "--cov-report=html",
 ]
