@@ -13,11 +13,11 @@ Get Stated with ConfigurationcClasses
 
 >>> from platformdirs import user_config_path, user_data_path
 
->>> config_path = user_config_path("ftwpki")
+>>> config_path = user_config_path("ftwpki", "FitzzTeXnikWelt")
 >>> config_path.as_posix() #doctest: +ELLIPSIS
 '.../ftwpki'
 
->>> shared_data_path = user_data_path("ftwpki")
+>>> shared_data_path = user_data_path("ftwpki", "FitzzTeXnikWelt")
 >>> shared_data_path.as_posix() #doctest: +ELLIPSIS
 '.../ftwpki'
 
@@ -55,6 +55,7 @@ Mkdir: D:\a\ftw-pki-libs\ftw-pki-libs\doc\source\devel\testhome\AppData\Local\Fi
 path.exists()=True
 
 .. SECTION Test für CI entfernen Laufen nur auf Linux
+'D:\\a\\ftw-pki-libs\\ftw-pki-libs\\doc\\source\\devel\\testhome\\AppData\\Local\\ftwpki\\ftwpki'
 
 >>> for child in config_path.iterdir(): print(child)
 
