@@ -1,6 +1,11 @@
 Get started passwd
 ===================
 
+>>> import os
+
+>>> isWin = os.name == "nt"
+>>> notWin = (not isWin)
+
 >>> from fitzzftw.devtools.testinfra import TestHomeEnvironment
 >>> from pathlib import Path
 >>> env = TestHomeEnvironment(Path("doc/source/devel/testhome"))
@@ -28,8 +33,12 @@ PasswordManager(private_dir='test_private')
 
 >>> import stat
 
->>> stat.filemode(pm_enc_stat)
+>>> stat.filemode(pm_enc_stat) if notWin else '-rw-------'
 '-rw-------'
+
+>>> stat.filemode(pm_enc_stat) if isWin else '-rw-rw-rw-'
+'-rw-rw-rw-'
+
 
 >>> pm.encrypt_password_file("not_exist_pw.txt", "root.enc", "my_password")
 Traceback (most recent call last):
