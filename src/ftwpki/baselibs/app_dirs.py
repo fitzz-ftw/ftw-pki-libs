@@ -125,10 +125,12 @@ def create_app_pathes(
         # path = Path(config[key]).expanduser().resolve()
         path = get_uni_path(config[key]).expanduser().resolve()
         if not path.exists():
+            print(f"Mkdir: {path}")
             if key in securepathes:
                 path.mkdir(mode=0o700, parents=True)
             else:
                 path.mkdir(parents=True)
+            print(f"{path.exists()=}")
         ret[key] = path
     return ret
 # !FUNCTION - create_app_pathes

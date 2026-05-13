@@ -28,6 +28,10 @@ True
 >>> testfiles={"private":"securedir", "public":"opendir", "testexist":"test"}
 >>> Path("test").mkdir(exist_ok=True)
 >>> create_app_pathes(testfiles,["private",], "private", "public", "testexist") #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+Mkdir: /python_devel/anaconda_neu/home_dev/Projekte/ftw-pki/ftw-pki-libs/doc/source/devel/testhome/testoutput/securedir
+path.exists()=True
+Mkdir: /python_devel/anaconda_neu/home_dev/Projekte/ftw-pki/ftw-pki-libs/doc/source/devel/testhome/testoutput/opendir
+path.exists()=True
 {'private': ...Path('...testoutput/securedir'), 
  'public': ...Path('...testoutput/opendir'), 
  'testexist': ...Path('...testoutput/test')}
