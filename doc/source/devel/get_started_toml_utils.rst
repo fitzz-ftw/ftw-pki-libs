@@ -170,7 +170,7 @@ secureintermediate
 >>> toml2config("inter") #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
 Traceback (most recent call last):
     ...
-FileNotFoundError: [Errno 2] No such file or directory: '.../ftwpki/pkiconfig.toml'
+FileNotFoundError: [Errno 2] No such file or directory: '...pkiconfig.toml'
 
 >>> env.clean_home()
 >>> env.teardown()
