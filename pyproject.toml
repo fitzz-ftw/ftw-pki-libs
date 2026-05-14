@@ -43,11 +43,11 @@ requires-python = ">=3.11"
 license = "LGPL-2.1-or-later"
 
 [project.urls]
-Homepage = "https://github.com/fitzzftw/ftw-pki-libs"
-Documentation = "https://github.com/fitzzftw/ftw-pki-libs/blob/main/README.md"
-Repository = "https://github.com/fitzzftw/ftw-pki-libs.git"
-Issues = "https://github.com/fitzzftw/ftw-pki-libs/issues"
-Changelog = "https://github.com/fitzzftw/ftw-pki-libs/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/fitzz-ftw/ftw-pki-libs"
+Documentation = "https://github.com/fitzz-ftw/ftw-pki-libs/blob/main/README.md"
+Repository = "https://github.com/fitzz-ftw/ftw-pki-libs.git"
+Issues = "https://github.com/fitzz-ftw/ftw-pki-libs/issues"
+Changelog = "https://github.com/fitzz-ftw/ftw-pki-libs/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 doc = [

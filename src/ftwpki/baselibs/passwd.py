@@ -136,8 +136,12 @@ class PasswordManager:
             padded_data = decryptor.update(ciphertext) + decryptor.finalize()
 
             pad_len = padded_data[-1]
-            if pad_len < 1 or pad_len > 16:
-                raise PKISecurityError()
+            if ((pad_len < 1 or pad_len > 16)
+                or (padded_data[-pad_len:] != bytes([pad_len] * pad_len))):
+                raise PKISecurityError("Invalid padding length or content mismatch")
+
+            # if padded_data[-pad_len:] != bytes([pad_len] * pad_len):
+            #     raise PKISecurityError("Padding content mismatch")
 
             decrypted_data = padded_data[:-pad_len]
             return decrypted_data.decode("utf-8")

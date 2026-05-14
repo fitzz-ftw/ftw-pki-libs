@@ -4,6 +4,7 @@ from pathlib import Path
 import pytest
 
 from ftwpki.baselibs.exceptions import PKIEncryptionError, PKISecurityError
+from ftwpki.baselibs.passwd import PasswordManager
 
 # from ftwpki.baselibs.passwd import PasswordCli, prog_password_enc
 
@@ -69,8 +70,74 @@ def test_decrypt_padding_error_raises_security_error(tmp_path):
     mgr.encrypt_password_file(str(input_file), "test.enc", password="richtiges_passwort")
 
     # 3. Mit falschem Passwort entschlüsseln
-    # Da die Daten nun "Müll" sind, wird pad_len = padded_data[-1]
-    # höchstwahrscheinlich > 16 sein -> Zeile 124 wird aktiv.
+    # Erwartung: Hier ist es egal, welcher Teil der Kette den Fehler wirft,
+    # solange es ein PKISecurityError ist.
     with pytest.raises(PKISecurityError):
         mgr.decrypt_password_file("test.enc", password="falsches_passwort")
 
+def test_decrypt_padding_error_raises_security_error_gt16(tmp_path):
+    from ftwpki.baselibs.passwd import PasswordManager
+
+    mgr = PasswordManager(private_dir=tmp_path)
+    # Datei für den Test vorbereiten
+    input_file = tmp_path / "secret.txt"
+    input_file.write_text("Test-Daten fuer Padding", encoding="utf-8")
+
+    target_filename = "test.enc"
+    mgr.encrypt_password_file(str(input_file), target_filename, password="password123")
+
+    # Datei manipulieren: Das letzte Byte auf einen Wert setzen,
+    # der definitiv nicht zum Rest-Padding passt.
+    full_path = tmp_path / target_filename
+    data = bytearray(full_path.read_bytes())
+
+    # Wir setzen das letzte Byte des gesamten verschlüsselten Blocks auf 0x42 (beliebiger Wert)
+    data[-1] = 0x11 # > 16
+    full_path.write_bytes(data)
+
+    # Jetzt muss die Library den Fehler werfen, weil 0x42 nicht zum Padding-Standard passt
+    with pytest.raises(PKISecurityError):
+        mgr.decrypt_password_file(target_filename, password="password123")
+
+
+def test_decrypt_padding_length_error_lt1(tmp_path):
+    # Triggert: pad_len < 1 or pad_len > 16
+    mgr = PasswordManager(private_dir=tmp_path)
+    # ... (Datei erstellen und verschlüsseln)
+    input_file = tmp_path / "secret.txt"
+    input_file.write_text("Test-Daten fuer Padding", encoding="utf-8")
+
+    target_filename = "test.enc"
+    mgr.encrypt_password_file(str(input_file), target_filename, password="password123")
+
+    # Datei manipulieren: Das letzte Byte auf einen Wert setzen,
+    # der definitiv nicht zum Rest-Padding passt.
+    file_path = tmp_path / target_filename
+
+    data = bytearray(file_path.read_bytes())
+    data[-1] = 0x00  # Invalid: < 1
+    file_path.write_bytes(data)
+    with pytest.raises(PKISecurityError):
+        mgr.decrypt_password_file("test.enc", password="password")
+
+def test_decrypt_padding_content_error_missmage(tmp_path):
+    # Triggert: padded_data[-pad_len:] != bytes([pad_len] * pad_len)
+    mgr = PasswordManager(private_dir=tmp_path)
+    # ... (Datei erstellen und verschlüsseln)
+    input_file = tmp_path / "secret.txt"
+    input_file.write_text("Test-Daten fuer Padding", encoding="utf-8")
+
+    target_filename = "test.enc"
+    mgr.encrypt_password_file(str(input_file), target_filename, password="password123")
+
+    # Datei manipulieren: Das letzte Byte auf einen Wert setzen,
+    # der definitiv nicht zum Rest-Padding passt.
+    file_path = tmp_path / target_filename
+    data = bytearray(file_path.read_bytes())
+    # Wir setzen pad_len auf 2 (valide), manipulieren aber nur das letzte Byte,
+    # sodass das Padding nicht mehr aus [0x02, 0x02] besteht.
+    data[-1] = 0x02
+    data[-2] = 0x99  # Ungültig: 0x99 != 0x02
+    file_path.write_bytes(data)
+    with pytest.raises(PKISecurityError):
+        mgr.decrypt_password_file("test.enc", password="password")
