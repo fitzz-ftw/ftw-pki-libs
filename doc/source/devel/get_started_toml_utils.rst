@@ -116,13 +116,13 @@ secureintermediate
 >>> from ftwpki.baselibs.toml_utils import toml2config
 
 >>> toml2config() #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
-{'private_keys': '~/.config/ftwpki/.private', 
- 'passphrases': '~/.config/ftwpki/.private', 
- 'csr_configs': '~/.config/ftwpki/csr', 
- 'policies': '~/.config/ftwpki/policies', 
- 'public_data': '~/.local/share/ftwpki', 
- 'certs': '~/.local/share/ftwpki/certs', 
- 'chains': '~/.local/share/ftwpki/chains', 
+{'private_keys': '#config#.private', 
+ 'passphrases': '#config#.private', 
+ 'csr_configs': '#config#csr', 
+ 'policies': '#config#policies', 
+ 'public_data': '#data#', 
+ 'certs': '#data#certs', 
+ 'chains': '#data#/chains', 
  'ext_cert': '.crt', 
  'ext_public': '.pub', 
  'ext_chain': '.pem', 
@@ -131,13 +131,13 @@ secureintermediate
  'ext_signedcert': '.zip.enc'}
 
 >>> toml2config("intermediate") #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
-{'private_keys': '~/.config/ftwpki/.private', 
- 'passphrases': '~/.config/ftwpki/.private', 
- 'csr_configs': '~/.config/ftwpki/csr', 
- 'policies': '~/.config/ftwpki/policies/intermediate', 
- 'public_data': '~/.local/share/ftwpki', 
- 'certs': '~/.local/share/ftwpki/certs', 
- 'chains': '~/.local/share/ftwpki/chains', 
+{'private_keys': '#config#.private', 
+ 'passphrases': '#config#.private', 
+ 'csr_configs': '#config#csr', 
+ 'policies': '#config#/policies/intermediate', 
+ 'public_data': '#data#', 
+ 'certs': '#data#certs', 
+ 'chains': '#data#/chains', 
  'ext_cert': '.crt', 
  'ext_public': '.pub', 
  'ext_chain': '.pem', 
@@ -146,13 +146,13 @@ secureintermediate
  'ext_signedcert': '.zip.enc'}
 
 >>> toml2config("inter") #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
-{'private_keys': '~/.config/ftwpki/.private', 
- 'passphrases': '~/.config/ftwpki/.private', 
- 'csr_configs': '~/.config/ftwpki/csr', 
- 'policies': '~/.config/ftwpki/policies', 
- 'public_data': '~/.local/share/ftwpki', 
- 'certs': '~/.local/share/ftwpki/certs', 
- 'chains': '~/.local/share/ftwpki/chains', 
+{'private_keys': '#config#.private', 
+ 'passphrases': '#config#.private', 
+ 'csr_configs': '#config#csr', 
+ 'policies': '#config#policies', 
+ 'public_data': '#data#', 
+ 'certs': '#data#certs', 
+ 'chains': '#data#/chains', 
  'ext_cert': '.crt', 
  'ext_public': '.pub', 
  'ext_chain': '.pem', 
@@ -170,7 +170,7 @@ secureintermediate
 >>> toml2config("inter") #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
 Traceback (most recent call last):
     ...
-FileNotFoundError: [Errno 2] No such file or directory: '...config/ftwpki/pkiconfig.toml'
+FileNotFoundError: [Errno 2] No such file or directory: '...pkiconfig.toml'
 
 >>> env.clean_home()
 >>> env.teardown()

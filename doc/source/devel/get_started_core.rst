@@ -2,6 +2,12 @@
 Get Started: PKI Core Utilities
 ===============================
 
+>>> import os
+
+>>> isWin = os.name == "nt"
+>>> notWin = (not isWin)
+
+
 Dieses Modul stellt die grundlegenden kryptografischen Werkzeuge bereit. 
 Alle Beispiele laufen in einer isolierten Testumgebung.
 
@@ -106,9 +112,11 @@ True
 
 >>> import stat
 
->>> stat.filemode(key_stat)
+>>> stat.filemode(key_stat) if notWin else print("'-rw-------'")
 '-rw-------'
 
+>>> stat.filemode(key_stat) if isWin else print("'-rw-rw-rw-'")
+'-rw-rw-rw-'
 
 >>> key_file.unlink()
 >>> save_pem(priv_pem, key_file, is_private=False)
@@ -117,9 +125,11 @@ True
 
 >>> key_stat= key_file.stat().st_mode
 
->>> stat.filemode(key_stat)
+>>> stat.filemode(key_stat) if notWin else print("'-rw-r--r--'")
 '-rw-r--r--'
 
+>>> stat.filemode(key_stat) if isWin else print("'-rw-rw-rw-'")
+'-rw-rw-rw-'
 
 
 >>> csr_path = env.copy2cwd("cert_in/node-01.csr", "node-01.csr")
