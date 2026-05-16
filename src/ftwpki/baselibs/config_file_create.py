@@ -23,6 +23,17 @@ from pathlib import Path
 
 from ftwpki.baselibs.app_dirs import config_file_path
 
+MAIN_CONFIG = """
+[fallback]
+default_config="{file_name}"
+user = "user.toml"
+leaf="leaf.toml"
+server="leaf.toml"
+client="leaf.toml"
+clientserver="leaf.toml"
+intermediate = "intermed.toml"
+rootsign = "rsign.toml"
+"""
 
 toml_conf_str = """
 [fallback]
@@ -54,12 +65,12 @@ policies     = "#config#/policies/intermediate"
 
 USER_CONFIG = """[fallback]
 # Identity (encrypted & hidden)
-private_keys = "~/.config/ftwpki/.private"
+private_keys = "#config#.private"
 
 # Public data
-public_data  = "~/.local/share/ftwpki"
-certs        = "~/.local/share/ftwpki/certs"
-chains       = "~/.local/share/ftwpki/chains"
+public_data  = "#data#"
+certs        = "#data#certs"
+chains       = "#data#chains"
 
 # File extensions for public/semi-private data only
 ext_cert     = ".crt"
@@ -69,12 +80,12 @@ ext_signedcert= ".zip.enc"
 
 LEAF_CONFIG = """[fallback]
 # Identity (encrypted & hidden)
-private_keys = "~/.config/ftwpki/.private"
+private_keys = "#config#.private"
 
 # Public data
-public_data  = "~/.local/share/ftwpki"
-certs        = "~/.local/share/ftwpki/certs"
-chains       = "~/.local/share/ftwpki/chains"
+public_data  = "#data#"
+certs        = "#data#certs"
+chains       = "#data#chains"
 
 # File extensions for public/semi-private data only
 ext_cert     = ".crt"
@@ -84,18 +95,18 @@ ext_signedcert= ".zip.enc"
 
 INTERMED_CONFIG = """[fallback]
 # Identity (encrypted & hidden)
-private_keys = "~/.config/ftwpki/.private"
-passphrases  = "~/.config/ftwpki/.private"
+private_keys = "#config#.private"
+passphrases  = "#config#.private"
 
 
 # Infrastructure resources
-policies     = "~/.config/ftwpki/policies"
+policies     = "#config#policies"
 
 
 # Public data
-public_data  = "~/.local/share/ftwpki"
-certs        = "~/.local/share/ftwpki/certs"
-chains       = "~/.local/share/ftwpki/chains"
+public_data  = "#data#"
+certs        = "#data#certs"
+chains       = "#data#chains"
 
 # File extensions for public/semi-private data only
 ext_cert     = ".crt"
@@ -108,13 +119,13 @@ ext_signedcert= ".zip.enc"
 
 ROOT_SIGNER_CONFIG = """[fallback]
 # Identity (encrypted & hidden)
-private_keys = "~/.config/ftwpki/.private"
-passphrases  = "~/.config/ftwpki/.private"
+private_keys = "#config#.private"
+passphrases  = "#config#.private"
 
 # Public data
-public_data  = "~/.local/share/ftwpki"
-certs        = "~/.local/share/ftwpki/certs"
-chains       = "~/.local/share/ftwpki/chains"
+public_data  = "#data#"
+certs        = "#data#certs"
+chains       = "#data#chains"
 
 # File extensions for public/semi-private data only
 ext_cert     = ".crt"

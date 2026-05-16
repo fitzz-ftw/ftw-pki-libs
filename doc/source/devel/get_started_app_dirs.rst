@@ -25,12 +25,12 @@ True
 '.../ftwpki/pkiconfig.toml'
 
 >>> from ftwpki.baselibs.app_dirs import create_app_pathes
->>> testfiles={"private":"securedir", "public":"opendir", "testexist":"test"}
+>>> testfiles={"private":"#config#securedir", "public":"#data#opendir", "testexist":"test"}
 >>> Path("test").mkdir(exist_ok=True)
 >>> create_app_pathes(testfiles,["private",], "private", "public", "testexist") #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
-{'private': ...Path('...testoutput/securedir'), 
- 'public': ...Path('...testoutput/opendir'), 
- 'testexist': ...Path('...testoutput/test')}
+{'private': ...Path('...ftwpki/securedir'), 
+ 'public': ...Path('...ftwpki/opendir'), 
+ 'testexist': ...Path('test')}
 
 
 >>> from ftwpki.baselibs.app_dirs import get_uni_path

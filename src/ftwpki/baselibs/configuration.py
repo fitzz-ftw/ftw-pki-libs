@@ -12,25 +12,20 @@ Modul configuration documentation
 
 from copy import deepcopy
 from pathlib import Path
-from types import SimpleNamespace
-from typing import Any, NamedTuple, cast
+from typing import Any
 
 from ftwpki.baselibs.app_dirs import config_file_path, create_app_pathes
 from ftwpki.baselibs.config_file_create import (
     INTERMED_CONFIG,
     LEAF_CONFIG,
+    MAIN_CONFIG,
     ROOT_SIGNER_CONFIG,
     USER_CONFIG,
     toml_conf_str,
     write_example_config,
 )
 from ftwpki.baselibs.protocols import (
-    IntermedPathConfigPathesProtocol,
-    LeafPathConfigPathesProtocol,
     PathCategoryType,
-    PathConfigPathesProtocol,
-    RootSignPathConfigPathesProtocol,
-    UserPathConfigPathesProtocol,
 )
 from ftwpki.baselibs.toml_utils import toml2config
 
@@ -52,6 +47,11 @@ class BasePKIConfig:
         :raises PermissionError: If there are insufficient rights to create
                                  the configuration or directories.
         """
+        self._mainconfig= config_file_path()
+        self._file_name = file_name
+        if not self._mainconfig.is_file():
+            main_content = MAIN_CONFIG.format(file_name = file_name)
+            write_example_config(main_content)
         self._path: Path = config_file_path(file_name=file_name)
         if not self._path.is_file():
             match file_name:
@@ -83,7 +83,9 @@ class BasePKIConfig:
 
         :param section: The section name within the TOML file.
         """
-        self._raw_data: dict[str, str] = toml2config(section=section)
+        default_config:str = (toml2config().get("default_config", "") 
+                              if not self._file_name else self._file_name)
+        self._raw_data: dict[str, str] = toml2config(section=section, file_name=default_config)
         dirs_to_setup: list[str] = [k for k in self._raw_data if not k.startswith("ext")]
         self._paths: dict[str, Path] = create_app_pathes(
             self._raw_data, self._secure_dirs, *dirs_to_setup
@@ -333,6 +335,7 @@ if __name__ == "__main__":  # pragma: no cover
     testfiles_dir = Path(__file__).parents[3] / "doc/source/devel"
     test_files = [
         "get_started_configuration.rst",
+        # "debug-configuration.rst"
     ]
     for file in test_files:
         test_file = testfiles_dir / file
