@@ -14,7 +14,7 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
-from ftwpki.baselibs.app_dirs import config_file_path, create_app_pathes
+from ftwpki.baselibs.app_dirs import config_file_path, create_app_pathes, get_uni_path
 from ftwpki.baselibs.config_file_create import (
     INTERMED_CONFIG,
     LEAF_CONFIG,
@@ -25,9 +25,170 @@ from ftwpki.baselibs.config_file_create import (
     write_example_config,
 )
 from ftwpki.baselibs.protocols import (
+    ConfigTypeName,
     PathCategoryType,
 )
 from ftwpki.baselibs.toml_utils import toml2config
+
+
+# CLASS - ReadPKIConfig
+#DOC - new
+class ReaderPKIConfig:
+    #DOC - new
+    def __init__(self, file_name: str | None = None) -> None:
+        self._mainconfig = config_file_path()
+        self._file_name = file_name
+        self._paths:dict[str,Path] = {} #cast(dict[str,Path],{})
+        self._raw_data: dict[str, str] = {} #cast(dict[str, str], {})
+        self._conf_type: ConfigTypeName = None
+        self._configmain:dict[str,str] = {}
+
+    #DOC - new
+    def read_main_config(self):
+        self._configmain = toml2config()
+    
+    #DOC - new
+    def read_config(self, name:str="") -> None:
+        if not self._configmain:
+            self.read_main_config()
+
+        # Resolve tier name or use default target config from main layout
+        tier_target = name if name else self.default_config
+        # Resolve mapped file name (e.g., "intermediate" -> "intermed.toml")
+        # If it's already a direct file name containing a dot, keep it as is
+        if "." in tier_target:
+            config_file = tier_target
+        else:
+            config_file = self._configmain.get(tier_target, self.default_config)
+        self._raw_data = toml2config(file_name=config_file)
+        pathes = [k for k in self._raw_data if not k.startswith("ext")]
+        for path_ in pathes:
+            self._paths[path_]= get_uni_path(self._raw_data[path_])
+        
+        if "policies" in self._raw_data:
+            self._conf_type = "intermediate"
+        elif "passphrases" in self._raw_data:
+            self._conf_type = "root"
+        else:
+            self._conf_type = "leaf"
+
+    def list_mainconfig(self) -> dict[str, str]:
+        return {k: v for k,v in self._configmain.items() if k != "default_config" }
+
+    #SECTION - Properties
+    #DOC - new
+    @property
+    def config_type(self)->ConfigTypeName:
+        return self._conf_type
+    
+    #DOC - new
+    @property
+    def default_config(self)->str:
+        return self._configmain.get("default_config", "")
+
+    @property
+    def private_keys(self) -> Path:
+        """
+        The path to the private keys directory **(ro)**.
+
+        :returns: The directory path as defined in the configuration.
+        """
+        return self._paths.get("private_keys")
+
+    @property
+    def public_data(self) -> Path | None:
+        """
+        The path to the public data directory **(ro)**.
+
+        :returns: The directory path for public files.
+        """
+        return self._paths.get("public_data")
+
+    @property
+    def certs(self) -> Path | None:
+        """
+        The path to the directory where certificates are stored **(ro)**.
+
+        :returns: The directory path for certificates.
+        """
+        return self._paths.get("certs")
+
+    @property
+    def chains(self) -> Path | None:
+        """
+        The path to the directory where certificate chains are stored **(ro)**.
+
+        :returns: The directory path for chains.
+        """
+        return self._paths.get("chains")
+
+    @property
+    def passphrases(self) -> Path | None:
+        """
+        The path to the directory where passphrases are stored **(ro)**.
+
+        :returns: The directory path for passphrase files.
+        """
+        return self._paths.get("passphrases")
+
+    @property
+    def policies(self) -> Path | None:
+        """
+        The path to the directory where certificate policies are stored **(ro)**.
+
+        :returns: The directory path for policy files.
+        """
+        return self._paths.get("policies")
+
+    @property
+    def ext_policy(self) -> str | None:
+        """
+        The file extension for certificate policy files **(ro)**.
+
+        :returns: The configured extension for policies.
+        """
+        return self._raw_data.get("ext_policy")
+
+    @property
+    def ext_chain(self) -> str | None:
+        """
+        The file extension for certificate chain files **(ro)**.
+
+        :returns: The configured extension for chains.
+        """
+        return self._raw_data.get("ext_chain")
+
+    @property
+    def ext_cert(self) -> str | None:
+        """
+        The file extension for certificate files **(ro)**.
+
+        :returns: The configured certificate extension.
+        """
+        return self._raw_data.get("ext_cert")
+
+    @property
+    def ext_public(self) -> str | None:
+        """
+        The file extension for public data files **(ro)**.
+
+        :returns: The configured public data extension.
+        """
+        return self._raw_data.get("ext_public")
+
+    @property
+    def ext_signedcert(self) -> str | None:
+        """
+        The file extension for signed certificates **(ro)**.
+
+        :returns: The configured signed certificate extension.
+        """
+        return self._raw_data.get("ext_signedcert")
+
+    # !SECTION - Properties
+
+
+# !CLASS - ReadPKIConfig
 
 
 # CLASS - BasePKIConfig
@@ -39,6 +200,7 @@ class BasePKIConfig:
     provides methods to resolve relative paths into absolute ones based
     on the configuration directory.
     """
+
     def __init__(self, file_name: str | None = None) -> None:
         """
         Initialize the configuration directly from a file.
@@ -47,10 +209,10 @@ class BasePKIConfig:
         :raises PermissionError: If there are insufficient rights to create
                                  the configuration or directories.
         """
-        self._mainconfig= config_file_path()
+        self._mainconfig = config_file_path()
         self._file_name = file_name
         if not self._mainconfig.is_file():
-            main_content = MAIN_CONFIG.format(file_name = file_name)
+            main_content = MAIN_CONFIG.format(file_name=file_name)
             write_example_config(main_content)
         self._path: Path = config_file_path(file_name=file_name)
         if not self._path.is_file():
@@ -68,7 +230,7 @@ class BasePKIConfig:
                     print(f"{file_name=}")
                     conf_str = toml_conf_str
                     # print(conf_str)
-            write_example_config(conf_str,file_name=file_name)
+            write_example_config(conf_str, file_name=file_name)
 
         self._secure_dirs: list[str] = ["private_keys"]
         self._raw_data: dict[str, str] = {}
@@ -83,8 +245,9 @@ class BasePKIConfig:
 
         :param section: The section name within the TOML file.
         """
-        default_config:str = (toml2config().get("default_config", "") 
-                              if not self._file_name else self._file_name)
+        default_config: str = (
+            toml2config().get("default_config", "") if not self._file_name else self._file_name
+        )
         self._raw_data: dict[str, str] = toml2config(section=section, file_name=default_config)
         dirs_to_setup: list[str] = [k for k in self._raw_data if not k.startswith("ext")]
         self._paths: dict[str, Path] = create_app_pathes(
@@ -154,7 +317,7 @@ class BasePKIConfig:
         """
         return self._raw_data["ext_signedcert"]
 
-    def resolve(self, name: str, category: PathCategoryType|None=None) -> Path:
+    def resolve(self, name: str, category: PathCategoryType | None = None) -> Path:
         """
         Resolve a string name into an absolute Path object.
 
@@ -183,8 +346,8 @@ class BasePKIConfig:
             return Path(name).expanduser().resolve()
 
     @property
-    def current_configfile_entries(self)->dict[str,Any]:
-        """The entries of the configuration file for this configuration **(ro)**. 
+    def current_configfile_entries(self) -> dict[str, Any]:
+        """The entries of the configuration file for this configuration **(ro)**.
 
         :return: A deepcopy of the dictionary with the entries.
         """
@@ -192,7 +355,6 @@ class BasePKIConfig:
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(Path={self._path.as_posix()})"
-
 
 # !CLASS - BasePKIConfig
 
@@ -205,6 +367,7 @@ class UserPKIConfig(BasePKIConfig):
     This class inherits from BasePKIConfig and specializes it for
     handling the user configuration file.
     """
+
     def __init__(self, file_name: str | None = "user.toml") -> None:
         """
         Initialize the User PKI configuration.
@@ -213,7 +376,6 @@ class UserPKIConfig(BasePKIConfig):
         """
         super().__init__(file_name)
         self.set_config()
-
 
 
 # !CLASS - UserPKIConfig
@@ -227,6 +389,7 @@ class LeafPKIConfig(BasePKIConfig):
     This class provides settings for clients, servers, and client-server
     applications that interact within the PKI infrastructure.
     """
+
     def __init__(self, file_name: str | None = "leaf.toml") -> None:
         """
         Initialize the Leaf PKI configuration.
@@ -235,7 +398,6 @@ class LeafPKIConfig(BasePKIConfig):
         """
         super().__init__(file_name)
         self.set_config()
-
 
 
 # !CLASS - Leaf Configuration
@@ -249,6 +411,7 @@ class RootSignerPKIConfig(BasePKIConfig):
     This class handles settings for Root CAs and signing entities,
     including secure storage for passphrases and chain extensions.
     """
+
     def __init__(self, file_name: str | None = "rsign.toml") -> None:
         """
         Initialize the Root Signer configuration.
@@ -278,7 +441,6 @@ class RootSignerPKIConfig(BasePKIConfig):
         return self._raw_data["ext_chain"]
 
 
-
 # !CLASS - Root Signer Configuration
 
 
@@ -290,6 +452,7 @@ class IntermedPKIConfig(RootSignerPKIConfig):
     This class extends the Root Signer configuration to include
     certificate policies and specific policy file extensions.
     """
+
     def __init__(self, file_name: str | None = "intermed.toml") -> None:
         """
         Initialize the Intermediate CA configuration.
@@ -317,7 +480,6 @@ class IntermedPKIConfig(RootSignerPKIConfig):
         return self._raw_data["ext_policy"]
 
 
-
 # !CLASS - Intermediate Configuration
 
 
@@ -334,8 +496,8 @@ if __name__ == "__main__":  # pragma: no cover
     # Pfad zu den dokumentierenden Tests
     testfiles_dir = Path(__file__).parents[3] / "doc/source/devel"
     test_files = [
-        "get_started_configuration.rst",
-        # "debug-configuration.rst"
+        # "get_started_configuration.rst",
+        "get_started_develop_config_reader.rst"
     ]
     for file in test_files:
         test_file = testfiles_dir / file

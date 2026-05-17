@@ -19,8 +19,6 @@ Get Stated with ConfigurationcClasses
 
 >>> shared_data_path = user_data_path("ftwpki", "FitzzTeXnikWelt")
 >>> shared_data_path.as_posix() #doctest: +ELLIPSIS
-'/python_devel/anaconda_neu/home_dev/Projekte/ftw-pki/ftw-pki-libs/doc/source/devel/testhome/.local/share/ftwpki'
-
 '.../ftwpki'
 
 
@@ -121,6 +119,7 @@ KeyError: "Pfad-Kategorie 'wrong_name' nicht konfiguriert."
  'chains': '#data#chains', 
  'ext_cert': '.crt', 
  'ext_public': '.pub', 
+ 'ext_chain': '.pem', 
  'ext_signedcert': '.zip.enc'}
 
 

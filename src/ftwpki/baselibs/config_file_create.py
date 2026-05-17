@@ -75,6 +75,7 @@ chains       = "#data#chains"
 # File extensions for public/semi-private data only
 ext_cert     = ".crt"
 ext_public   = ".pub"
+ext_chain    = ".pem"
 ext_signedcert= ".zip.enc"
 """
 
@@ -90,6 +91,7 @@ chains       = "#data#chains"
 # File extensions for public/semi-private data only
 ext_cert     = ".crt"
 ext_public   = ".pub"
+ext_chain    = ".pem"
 ext_signedcert= ".zip.enc"
 """
 

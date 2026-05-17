@@ -30,7 +30,7 @@ True
 >>> create_app_pathes(testfiles,["private",], "private", "public", "testexist") #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
 {'private': ...Path('...ftwpki/securedir'), 
  'public': ...Path('...ftwpki/opendir'), 
- 'testexist': ...Path('test')}
+ 'testexist': ...Path('.../testoutput/test')}
 
 
 >>> from ftwpki.baselibs.app_dirs import get_uni_path

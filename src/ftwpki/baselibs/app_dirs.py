@@ -126,7 +126,7 @@ def create_app_pathes(
     ret = {}
     for key in keys:
         # path = Path(config[key]).expanduser().resolve()
-        path = get_uni_path(config[key]) #.expanduser().resolve()
+        path = get_uni_path(config[key]).expanduser().resolve()
         if not path.exists():
             if key in securepathes:
                 path.mkdir(mode=0o700, parents=True)

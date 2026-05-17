@@ -86,6 +86,7 @@ Supported values:
     * 'clsrvr' or 'client-server': For both authentication types.
 """
 
+ConfigTypeName = Literal["leaf", "root", "intermediate", None]
 
 # CLASS - ServerClientCSR
 class ServerClientCSRProtocol(CSRProtocol):
