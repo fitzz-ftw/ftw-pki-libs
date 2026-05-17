@@ -28,7 +28,6 @@ from tomllib import TOMLDecodeError, load, loads
 from typing import cast
 
 from ftwpki.baselibs.app_dirs import config_file_path
-from ftwpki.baselibs.protocols import FullConfigProtocol
 
 
 # FUNCTION - list_policy_sections
@@ -238,7 +237,7 @@ def toml2san_policy(
 # !FUNCTION - toml2san_policy
 
 # FUNCTION - toml2config
-def toml2config(section:str="") -> dict[str,str]:
+def toml2config(section:str="", file_name:str|None=None) -> dict[str,str]:
     """
     Load application configuration from a TOML file. (ro)
 
@@ -247,12 +246,13 @@ def toml2config(section:str="") -> dict[str,str]:
     overwrites them with values from a specific secondary section.
 
     :param section: The name of the additional configuration section
-                    to load. Defaults to an empty string.
+                    to load.
+    :param file_name: The name of the configuration file.
     :raises FileNotFoundError: If the configuration file does not exist.
     :raises OSError: If the file cannot be opened or read.
     :returns: A dictionary containing the merged configuration settings.
     """
-    conf_file = config_file_path()
+    conf_file = config_file_path(file_name=file_name)
     with conf_file.open("rb") as f:
         raw_dic = load(f)
     ret_dict:dict[str,str] = raw_dic["fallback"].copy()

@@ -63,7 +63,10 @@ def config_file_path(file_name: str|None = None) -> Path:
 
     :returns: The absolute path to the main TOML configuration file.
     """
-    return PKIDirs().user_config_path / (file_name if file_name else "pkiconfig.toml")
+    ret = PKIDirs().user_config_path / (file_name if file_name else "pkiconfig.toml")
+    # return PKIDirs().user_config_path / (file_name if file_name else "pkiconfig.toml")
+    # print(ret)
+    return ret
 # !FUNCTION - config_file_path
 
 # FUNCTION - get_uni_path

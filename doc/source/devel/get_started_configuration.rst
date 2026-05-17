@@ -22,13 +22,14 @@ Get Stated with ConfigurationcClasses
 '.../ftwpki'
 
 
+>>> BasePKIConfig("wrong.toml") #doctest: +ELLIPSIS
+file_name='wrong.toml'
+BasePKIConfig(Path=...ftwpki/wrong.toml)
 
-
->>> base_conf = BasePKIConfig() 
-file_name=None
+>>> base_conf = BasePKIConfig(file_name="user.toml") 
 
 >>> base_conf  #doctest: +ELLIPSIS
-BasePKIConfig(Path=...ftwpki/pkiconfig.toml)
+BasePKIConfig(Path=...ftwpki/user.toml)
 
 Linux:
 /testhome/.config/ftwpki/pkiconfig.toml
@@ -43,6 +44,7 @@ Windows:
 
 
 >>> base_conf.set_config()
+
 
 .. SECTION Test für CI entfernen Laufen nur auf Linux
 
@@ -112,17 +114,12 @@ KeyError: "Pfad-Kategorie 'wrong_name' nicht konfiguriert."
 
 >>> base_conf.current_configfile_entries # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
 {'private_keys': '#config#.private', 
- 'passphrases': '#config#.private', 
- 'csr_configs': '#config#csr', 
- 'policies': '#config#policies', 
  'public_data': '#data#', 
  'certs': '#data#certs', 
- 'chains': '#data#/chains', 
+ 'chains': '#data#chains', 
  'ext_cert': '.crt', 
  'ext_public': '.pub', 
  'ext_chain': '.pem', 
- 'ext_csr_conf': '.toml', 
- 'ext_policy': '.policy', 
  'ext_signedcert': '.zip.enc'}
 
 
@@ -155,7 +152,7 @@ RootSignerPKIConfig(Path=.../ftwpki/rsign.toml)
 '.../ftwpki/.private'
 
 >>> root_signer_conf.ext_chain
-'.pem'
+'.chain.pem'
 
 
 

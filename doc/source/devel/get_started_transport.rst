@@ -34,14 +34,17 @@ Preparation
 
 
 Root-CA als CertObjekt
+
 >>> ca_cert = load_certificate_from_pem(ca_cert_path.read_bytes())
 
 Root-CA Privatkey
+
 >>> ca_key = load_private_key_from_pem(ca_key_path.read_bytes(), pw)
 
 >>> from cryptography.hazmat.primitives import serialization
 
 Root-CA als bytes
+
 >>> ca_cert_pem = ca_cert.public_bytes(serialization.Encoding.PEM)
 
 
@@ -61,6 +64,7 @@ True
 >>> chain = validate_and_format_chain(ca_cert_pem, ca_cert_pem, ca_cert_pem)
 
 Jetz chain als dreier certificat.
+
 >>> len(chain.strip()) >= len(ca_cert_pem.strip())*3
 True
 
@@ -109,6 +113,7 @@ Technischer Check: Enthält das Ergebnis die S/MIME Header?
 
 >>> b"Content-Type: application/pkcs7-mime" in p7m_bytes
 True
+
 >>> b"smime.p7m" in p7m_bytes
 True
 
@@ -120,7 +125,9 @@ True
 
 
 >>> from ftwpki.baselibs.transport import decrypt_bytedata
+
 >>> import io
+
 >>> import zipfile
 
 
@@ -149,6 +156,7 @@ True
 
 >>> with zipfile.ZipFile(io.BytesIO(decrypted_zip_bytes)) as zf:
 ...     extracted_chain = zf.read("certificate_chain.pem")
+
 >>> b"-----BEGIN CERTIFICATE-----" in extracted_chain
 True
 
@@ -234,7 +242,8 @@ True
 
 >> ca_key.public_key()
 
->>> # package_data wurde weiter oben im File bereits erstellt
+package_data wurde weiter oben im File bereits erstellt
+
 >>> decrypted = decrypt_transport_package(p7m_bytes, ca_key) #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
 >>> decrypted.startswith(b"PK")
 True
