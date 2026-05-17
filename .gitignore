@@ -56,3 +56,4 @@ git_dif*
 _build
 git-diff.txt
 gitdiff.txt
+git-log.txt
