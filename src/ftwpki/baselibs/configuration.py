@@ -32,10 +32,16 @@ from ftwpki.baselibs.toml_utils import toml2config
 
 
 # CLASS - ReadPKIConfig
-#DOC - new
 class ReaderPKIConfig:
-    #DOC - new
+    """
+    Reader for dynamic multi-tier PKI configuration layouts.
+    """
     def __init__(self, file_name: str | None = None) -> None:
+        """
+        Initialize the multi-tier PKI configuration reader.
+
+        :param file_name: Optional custom configuration file name.
+        """
         self._mainconfig = config_file_path()
         self._file_name = file_name
         self._paths:dict[str,Path] = {} #cast(dict[str,Path],{})
@@ -43,12 +49,18 @@ class ReaderPKIConfig:
         self._conf_type: ConfigTypeName = None
         self._configmain:dict[str,str] = {}
 
-    #DOC - new
-    def read_main_config(self):
+    def read_main_config(self) -> None:
+        """
+        Read and load the main application configuration mapping.
+        """
         self._configmain = toml2config()
     
-    #DOC - new
     def read_config(self, name:str="") -> None:
+        """
+        Load a specific tier configuration and resolve directory paths.
+
+        :param name: The name of the PKI tier or direct configuration file.
+        """
         if not self._configmain:
             self.read_main_config()
 
@@ -73,17 +85,30 @@ class ReaderPKIConfig:
             self._conf_type = "leaf"
 
     def list_mainconfig(self) -> dict[str, str]:
+        """
+        Get the main configuration map excluding the default tier key.
+
+        :returns: A dictionary of the filtered main configuration settings.
+        """
         return {k: v for k,v in self._configmain.items() if k != "default_config" }
 
     #SECTION - Properties
-    #DOC - new
     @property
     def config_type(self)->ConfigTypeName:
+        """
+        Get the detected configuration type tier **(ro)**.
+
+        :returns: The configuration type tier name.
+        """
         return self._conf_type
     
-    #DOC - new
     @property
     def default_config(self)->str:
+        """
+        Get the default configuration file name **(ro)**.
+
+        :returns: The default configuration file name string.
+        """
         return self._configmain.get("default_config", "")
 
     @property
