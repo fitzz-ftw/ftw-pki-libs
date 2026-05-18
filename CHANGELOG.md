@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.3a2] - 2026-05-18
+
+### Added
+- Add explicit, Sphinx-compliant English docstrings for configuration paths and setup routines (`set_config`, `config_path`, `data_path`).
+
+### Changed
+- Standardize expected file extensions in internal doctests to use explicit `.pem` suffixes (`.crt.pem`, `.pub.pem`, `.chain.pem`).
+- Enforce the use of `:returns:` fields within read-only property docstrings to ensure proper Sphinx type linking.
+
+### Fixed
+- Reactivate and repair rigid doctests for `get_started_configuration.rst` within the core test runner block.
+
 ## [0.0.3a1] - 2026-05-17
 
 ### Added
