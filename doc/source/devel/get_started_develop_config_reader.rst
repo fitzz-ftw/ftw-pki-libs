@@ -52,9 +52,9 @@ Get Stated with ConfigurationcClasses
  'public_data': '#data#', 
  'certs': '#data#certs', 
  'chains': '#data#chains', 
- 'ext_cert': '.crt', 
- 'ext_public': '.pub',
- 'ext_chain': '.pem',  
+ 'ext_cert': '.crt.pem', 
+ 'ext_public': '.pub.pem',
+ 'ext_chain': '.chain.pem',  
  'ext_signedcert': '.zip.enc'}
 
 >>> reader._paths  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE

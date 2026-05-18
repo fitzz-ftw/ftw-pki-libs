@@ -264,12 +264,15 @@ class BasePKIConfig:
         # und gibt ein dict mit Path-Objekten zurück
         self._paths: dict[str, Path] = {}
 
-    #DOC - change?
     def set_config(self, section: str = "") -> None:
         """
-        Load and setup the configuration paths from a specific section.
+        Load configuration data from a TOML section and initialize application paths.
 
-        :param section: The section name within the TOML file.
+        This method fetches the raw configuration data for the specified section,
+        injects default path keys, and generates the internal secure path mappings.
+
+        :param section: The section name within the TOML file. If empty, the
+                        default or root configuration is used.
         """
         default_config: str = (
             toml2config().get("default_config", "") if not self._file_name else self._file_name
@@ -283,14 +286,22 @@ class BasePKIConfig:
             self._raw_data, self._secure_dirs, *dirs_to_setup
         )
 
-    # DOC -new
     @property
     def config_path(self)->Path:
+        """
+        The absolute path to the application configuration directory **(ro)**.
+
+        :returns: The configuration directory path.
+        """
         return self._paths["config_path"]
 
-    #DOC - new
     @property
     def data_path(self)->Path:
+        """
+        The absolute path to the application data directory **(ro)**.
+
+        :returns: The data directory path.
+        """
         return self._paths["data_path"] 
 
     @property
@@ -535,7 +546,7 @@ if __name__ == "__main__":  # pragma: no cover
     # Pfad zu den dokumentierenden Tests
     testfiles_dir = Path(__file__).parents[3] / "doc/source/devel"
     test_files = [
-        # "get_started_configuration.rst",
+        "get_started_configuration.rst",
         "get_started_develop_config_reader.rst"
     ]
     for file in test_files:

@@ -51,10 +51,14 @@ Windows:
 
 >> for child in config_path.iterdir(): print(child)
 
+>>> base_conf.config_path == config_path
+True
 
 >>> (config_path / "pkiconfig.toml").exists()
 True
 
+>>> base_conf.data_path == shared_data_path
+True
 
 >>> (shared_data_path /"certs").exists()
 True
@@ -75,10 +79,10 @@ True
 '.../ftwpki/chains'
 
 >>> base_conf.ext_cert
-'.crt'
+'.crt.pem'
 
 >>> base_conf.ext_public
-'.pub'
+'.pub.pem'
 
 >>> base_conf.ext_signedcert
 '.zip.enc'
@@ -117,10 +121,12 @@ KeyError: "Pfad-Kategorie 'wrong_name' nicht konfiguriert."
  'public_data': '#data#', 
  'certs': '#data#certs', 
  'chains': '#data#chains', 
- 'ext_cert': '.crt', 
- 'ext_public': '.pub', 
- 'ext_chain': '.pem', 
- 'ext_signedcert': '.zip.enc'}
+ 'ext_cert': '.crt.pem', 
+ 'ext_public': '.pub.pem', 
+ 'ext_chain': '.chain.pem', 
+ 'ext_signedcert': '.zip.enc',
+ 'config_path': '#config#', 
+ 'data_path': '#data#'}
 
 
 >>> from ftwpki.baselibs.configuration import UserPKIConfig
