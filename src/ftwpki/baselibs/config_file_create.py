@@ -51,9 +51,9 @@ certs        = "#data#certs"
 chains       = "#data#/chains"
 
 # File extensions for public/semi-private data only
-ext_cert     = ".crt"
-ext_public   = ".pub"
-ext_chain    = ".pem"
+ext_cert     = ".crt.pem"
+ext_public   = ".pub.pem"
+ext_chain    = ".chain.pem"
 ext_csr_conf = ".toml"
 ext_policy   = ".policy"
 ext_signedcert= ".zip.enc"
@@ -73,9 +73,9 @@ certs        = "#data#certs"
 chains       = "#data#chains"
 
 # File extensions for public/semi-private data only
-ext_cert     = ".crt"
-ext_public   = ".pub"
-ext_chain    = ".pem"
+ext_cert     = ".crt.pem"
+ext_public   = ".pub.pem"
+ext_chain    = ".chain.pem"
 ext_signedcert= ".zip.enc"
 """
 
@@ -90,8 +90,8 @@ chains       = "#data#chains"
 
 # File extensions for public/semi-private data only
 ext_cert     = ".crt"
-ext_public   = ".pub"
-ext_chain    = ".pem"
+ext_public   = ".pub.pem"
+ext_chain    = ".chain.pem"
 ext_signedcert= ".zip.enc"
 """
 
@@ -111,9 +111,9 @@ certs        = "#data#certs"
 chains       = "#data#chains"
 
 # File extensions for public/semi-private data only
-ext_cert     = ".crt"
-ext_public   = ".pub"
-ext_chain    = ".pem"
+ext_cert     = ".crt.pem"
+ext_public   = ".pub.pem"
+ext_chain    = ".chain.pem"
 ext_policy   = ".policy"
 ext_signedcert= ".zip.enc"
 
@@ -130,8 +130,8 @@ certs        = "#data#certs"
 chains       = "#data#chains"
 
 # File extensions for public/semi-private data only
-ext_cert     = ".crt"
-ext_public   = ".pub"
+ext_cert     = ".crt.pem"
+ext_public   = ".pub.pem"
 ext_chain    = ".chain.pem"
 
 """

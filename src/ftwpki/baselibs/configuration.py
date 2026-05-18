@@ -264,6 +264,7 @@ class BasePKIConfig:
         # und gibt ein dict mit Path-Objekten zurück
         self._paths: dict[str, Path] = {}
 
+    #DOC - change?
     def set_config(self, section: str = "") -> None:
         """
         Load and setup the configuration paths from a specific section.
@@ -275,9 +276,22 @@ class BasePKIConfig:
         )
         self._raw_data: dict[str, str] = toml2config(section=section, file_name=default_config)
         dirs_to_setup: list[str] = [k for k in self._raw_data if not k.startswith("ext")]
+        self._raw_data["config_path"] = "#config#"
+        self._raw_data["data_path"] = "#data#"
+        dirs_to_setup.extend(["config_path", "data_path"])
         self._paths: dict[str, Path] = create_app_pathes(
             self._raw_data, self._secure_dirs, *dirs_to_setup
         )
+
+    # DOC -new
+    @property
+    def config_path(self)->Path:
+        return self._paths["config_path"]
+
+    #DOC - new
+    @property
+    def data_path(self)->Path:
+        return self._paths["data_path"] 
 
     @property
     def private_keys(self) -> Path:
