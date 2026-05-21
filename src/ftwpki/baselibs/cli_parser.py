@@ -56,7 +56,6 @@ into the full identifiers used by the cryptography library and the
 DistinguishedNameProtocol. It is used during subject string parsing and 
 argument synchronization.
 """
-# CLASS - SubjAction
 
 
 # CLASS - SubjAction

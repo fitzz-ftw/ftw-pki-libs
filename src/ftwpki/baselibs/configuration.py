@@ -36,6 +36,7 @@ class ReaderPKIConfig:
     """
     Reader for dynamic multi-tier PKI configuration layouts.
     """
+    # DOC - change?
     def __init__(self, file_name: str | None = None) -> None:
         """
         Initialize the multi-tier PKI configuration reader.
@@ -44,6 +45,9 @@ class ReaderPKIConfig:
         """
         self._mainconfig = config_file_path()
         self._file_name = file_name
+        if not self._mainconfig.is_file():
+            main_content = MAIN_CONFIG.format(file_name=file_name)
+            write_example_config(main_content)
         self._paths:dict[str,Path] = {} #cast(dict[str,Path],{})
         self._raw_data: dict[str, str] = {} #cast(dict[str, str], {})
         self._conf_type: ConfigTypeName = None

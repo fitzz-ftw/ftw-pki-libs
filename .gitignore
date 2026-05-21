@@ -57,3 +57,5 @@ _build
 git-diff.txt
 gitdiff.txt
 git-log.txt
+doc/TODO_baselibs.md
+doc/TODO.TXT

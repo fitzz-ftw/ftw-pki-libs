@@ -280,7 +280,8 @@ def convert_pem_to_der(pem_bytes: bytes, is_key: bool = False, password: str = "
 
 
 # FUNCTION - create_csr_name
-def create_csr_name(*args: str) -> str:
+#DOC - change
+def create_csr_name(*args: str, suffix:str=".csr") -> str:
     """
     Create a file name for a Certificate Signing Request. (ro)
 
@@ -292,7 +293,7 @@ def create_csr_name(*args: str) -> str:
     :raises TypeError: If any of the provided arguments is not a string.
     :returns: A formatted string suitable for a CSR file name.
     """
-    return "_".join(args).replace(" ", "-") + ".csr"
+    return "_".join(args).replace(" ", "-").replace(".","") + suffix
 # !FUNCTION - create_csr_name
 
 
