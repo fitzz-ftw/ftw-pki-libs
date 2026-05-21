@@ -214,6 +214,10 @@ class ReaderPKIConfig:
         """
         return self._raw_data.get("ext_signedcert")
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(Type={self._conf_type})"
+
+
     # !SECTION - Properties
 
 

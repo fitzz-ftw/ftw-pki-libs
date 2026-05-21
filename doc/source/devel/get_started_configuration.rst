@@ -176,7 +176,12 @@ IntermedPKIConfig(Path=.../ftwpki/intermed.toml)
 
 >>> intermed2_conf=IntermedPKIConfig()
 
+>>> env.clean_home()
 
+>>> from ftwpki.baselibs.configuration import ReaderPKIConfig
+
+>>> ReaderPKIConfig()
+ReaderPKIConfig(Type=None)
 
 >>> env.clean_home()
 >>> env.teardown()

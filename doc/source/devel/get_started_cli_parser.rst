@@ -78,10 +78,11 @@ Namespace(countryName='de',
     commonName='Mein Name', 
     dnsubject={'commonName': 'Mein Name', 
             'countryName': 'de'}, 
-    conf_file=None,  
+    conf_file=None, 
+    key_name='', 
+    privatdir='', 
     private_key='', 
-    public_key='', 
-    privatdir='')
+    public_key='')
 
 >>> from ftwpki.baselibs.cli_parser import ServerClientCSRParser, get_server_client_csr_parser
 
@@ -115,12 +116,11 @@ Namespace(countryName='de',
     dnsubject={'commonName': 'Mein Name', 
             'countryName': 'de'}, 
     conf_file=None,  
-    private_key='', 
-    public_key='', 
+    key_name='', 
     privatdir='',
     email='test@example.org',
     ip_addresses=['192.168.1.1'], 
-    host_names=[])
+    host_names=[], private_key='', public_key='')
 
 >>> from ftwpki.baselibs.cli_parser import PolicyParser, get_policy_parser
 
@@ -186,7 +186,7 @@ Namespace(countryName='match',
     commonName='no', 
     policy_name=None,
     conf_file=None, 
-    private_key=None, 
+    key_name=None, 
     private_dir=None,
     certificate='', 
     validity_days=365, 
@@ -198,7 +198,8 @@ Namespace(countryName='match',
         'localityName': 'no', 
         'organizationName': 'no', 
         'organizationalUnitName': 'no', 
-        'commonName': 'no'})
+        'commonName': 'no'},
+    private_key='')
 
 >>> from ftwpki.baselibs.cli_parser import CertImportParser, get_cert_import_parser
 
@@ -222,7 +223,7 @@ CertImportParser(prog='...',
 >>> cip.parse_args([ "signed_certificat.zip.enc"])  #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
 Traceback (most recent call last):
     ...
-argparse.ArgumentError: the following arguments are required: --keyfile/-k
+argparse.ArgumentError: the following arguments are required: --key-name/-k
 
 SystemExit: 2
 
@@ -230,8 +231,9 @@ usage: cli_parser.py [-h] --keyfile PRIVATE_KEYFILE enc-zipfile
 cli_parser.py: error: the following arguments are required: --keyfile/-k
 
 >>> cip.parse_args([ "-k", "my-private-key",  "signed_certificat.zip.enc"])  #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
-Namespace(enc_zipfile='signed_certificat.zip.enc', 
-    private_keyfile='my-private-key')
+Namespace(enc_zipfile='signed_certificat.zip.enc',
+    key_name='my-private-key',
+    private_keyfile='my-private-key.key.pem')
 
 >>> from ftwpki.baselibs.cli_parser import IntermedImportParser , get_intermed_import_parser
 
@@ -259,9 +261,10 @@ IntermedImportParser(prog='...',
 ...     )  #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
 Namespace(passphrase_file='mypassphrasefile', 
     enc_zipfile='signed_certificat.zip.enc', 
-    private_keyfile='my-private-key', 
+    key_name='my-private-key', 
     policies='', 
-    policy='server')
+    policy='server', 
+    private_keyfile='my-private-key.key.pem')
 
 
 >>> from ftwpki.baselibs.cli_parser import CSRMultiSigningParser, get_csr_multi_sign_parser
@@ -291,7 +294,7 @@ Namespace(countryName='match',
     commonName='no', 
     policy_name=None,
     conf_file=None, 
-    private_key=None, 
+    key_name=None, 
     private_dir=None,
     certificate='', 
     validity_days=365, 
@@ -304,5 +307,6 @@ Namespace(countryName='match',
         'localityName': 'no', 
         'organizationName': 'no', 
         'organizationalUnitName': 'no', 
-        'commonName': 'no'})
+        'commonName': 'no'},
+     private_key='')
 

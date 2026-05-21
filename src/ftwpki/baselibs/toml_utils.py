@@ -51,7 +51,7 @@ def list_policy_sections(data:dict, policy_type:str) -> bool:
 # !FUNCTION - list_policy_sections
 
 # FUNCTION - toml2dn
-def toml2dn(argv: list[str] | None = None, argname: str = "--conf_file") -> dict[str, str]:
+def toml2dn(argv: list[str] | None = None, argname: str = "--conf-file") -> dict[str, str]:
     """
     Extract distinguished name attributes from a TOML configuration file. (ro)
 

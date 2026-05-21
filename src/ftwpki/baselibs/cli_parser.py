@@ -208,7 +208,7 @@ class DistinguishedNameParser(ArgparseFix311):
             help="DN im OpenSSL-Format, z.B. /C=DE/O=Firma/CN=Server",
         )
         conf_group.add_argument(
-            "--conf_file",
+            "--conf-file",
             dest="conf_file",
             type=Path,
             help="Path to a TOML-Configfile",
@@ -269,14 +269,15 @@ class CSRParser(DistinguishedNameParser):
     def _setup_parser(self) -> None:
         """Configure additional arguments for CSR key paths. (rw)"""
         super()._setup_parser()
-        self.add_argument("-k", "--key", "--private-key", default="", dest="private_key")
-        self.add_argument(
-            "-p",
-            "--pub",
-            "--public-key",
-            dest="public_key",
-            default="",
-        )
+        self.add_argument("-k", "--key", "--key-name", default="", dest="key_name")
+        # self.add_argument("-k", "--key", "--private-key", default="", dest="private_key")
+        # self.add_argument(
+        #     "-p",
+        #     "--pub",
+        #     "--public-key",
+        #     dest="public_key",
+        #     default="",
+        # )
         self.add_argument("--private-dir", dest="privatdir", default="")
 
     def parse_args(
@@ -287,7 +288,11 @@ class CSRParser(DistinguishedNameParser):
 
         :returns: An object following the CSRProtocol.
         """
-        return cast(CSRProtocol, super().parse_args(args, namespace))
+        arg_parsed = super().parse_args(args, namespace)
+        base_name = arg_parsed.key_name
+        arg_parsed.private_key = f"{base_name}.key.pem" if base_name else ""
+        arg_parsed.public_key = f"{base_name}.pub.pem" if base_name else ""
+        return cast(CSRProtocol, arg_parsed)
 # !CLASS - CSRParser
 
 
@@ -452,7 +457,8 @@ class CSRSigningParser(PolicyParser):
     def _setup_parser(self) -> None:
         """Configure arguments for the signing process. (rw)"""
         super()._setup_parser()
-        self.add_argument("-k", "--key", "--private-key", dest="private_key")
+        self.add_argument("-k", "--key", "--key-name", dest="key_name")
+        # self.add_argument("-k", "--key", "--private-key", dest="private_key")
         self.add_argument("--private-dir", dest="private_dir")
         self.add_argument(
             "-c",
@@ -478,8 +484,10 @@ class CSRSigningParser(PolicyParser):
             default=0,
             help="Length of the path for intermediate certificates.",
         )
-        self.add_argument("passphrasefile")
-        self.add_argument("certificat_sign_request")
+        self.add_argument("passphrasefile",
+                          metavar="passphrase-file")
+        self.add_argument("certificat_sign_request",
+                          metavar="CSR-file")
 
     def parse_args(
         self, args: list[str] | None = None, namespace: Namespace | None = None
@@ -489,7 +497,10 @@ class CSRSigningParser(PolicyParser):
 
         :returns: An object following the SignParserProtocol.
         """
-        return cast(SignParserProtocol, super().parse_args(args=args, namespace=namespace))
+        arg_parsed = super().parse_args(args=args, namespace=namespace)
+        base_name = arg_parsed.key_name
+        arg_parsed.private_key =  f"{base_name}.key.pem" if base_name else ""
+        return cast(SignParserProtocol, arg_parsed)
 # !CLASS - CSRSigningParser
 
 
@@ -561,10 +572,15 @@ class CertImportParser(ArgparseFix311):
 
     def _setup_parser(self) -> None:
         """Configure positional and required key arguments for import. (rw)"""
-        self.add_argument("enc_zipfile", help="Encrypted certificate zipfile.")
+        self.add_argument("enc_zipfile",
+                          metavar="encrypted-zip-file", 
+                          help="Encrypted certificate zipfile.")
         self.add_argument(
-            "--keyfile", "-k", dest="private_keyfile", required=True, help="Name des Private Keys"
+            "--key-name", "-k", dest="key_name", required=True, help="Name des Private Keys"
         )
+        # self.add_argument(
+        #             "--keyfile", "-k", dest="private_keyfile", required=True, help="Name des Private Keys"
+        #         )
 
     def parse_args(
         self, args: list[str] | None = None, namespace: Namespace | None = None
@@ -574,7 +590,10 @@ class CertImportParser(ArgparseFix311):
 
         :returns: An object following the CertImportProtocol.
         """
-        return cast(CertImportProtocol, super().parse_args(args, namespace))
+        arg_parsed = super().parse_args(args, namespace)
+        base_name = arg_parsed.key_name
+        arg_parsed.private_keyfile = f"{base_name}.key.pem" if base_name else ""
+        return cast(CertImportProtocol, arg_parsed)
 # !CLASS - CertImportParser
 
 
@@ -597,7 +616,7 @@ class IntermedImportParser(CertImportParser):
         self.add_argument("passphrase_file", help="Name of the file with the passphrase")
         super()._setup_parser()
         self.add_argument(
-            "--policies",
+            "--policies-dir",
             default="",
             dest="policies",
             help="Directory with policy files",
