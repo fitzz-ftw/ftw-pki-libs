@@ -50,8 +50,8 @@ def list_policy_sections(data:dict, policy_type:str) -> bool:
     # raise ArgumentError(None,message="No or wrong policyname given")
 # !FUNCTION - list_policy_sections
 
-# FUNCTION - toml2dn
-def toml2dn(argv: list[str] | None = None, argname: str = "--conf-file") -> dict[str, str]:
+# FUNCTION - toml2_dn
+def toml2_dn(argv: list[str] | None = None, argname: str = "--conf-file") -> dict[str, str]:
     """
     Extract distinguished name attributes from a TOML configuration file. (ro)
 
@@ -88,7 +88,7 @@ def toml2dn(argv: list[str] | None = None, argname: str = "--conf-file") -> dict
         return {"dnsubject": ""}
     dn["dnsubject"] = ""
     return dn
-# !FUNCTION - toml2dn
+# !FUNCTION - toml2_dn
 
 # FUNCTION - _get_toml_policy_data
 def _get_toml_policy_data(argv: list[str] | None, 
@@ -154,8 +154,8 @@ def _get_toml_policy_data(argv: list[str] | None,
             return {}
 # !FUNCTION - _get_toml_policy_data
 
-# FUNCTION - toml2dn_policy
-def toml2dn_policy(
+# FUNCTION - toml2_dn_policy
+def toml2_dn_policy(
     argv: list[str] | None = None,
     argconfname: str = "--conf-file",
     argsecname: str = "--policy-name",
@@ -179,7 +179,7 @@ def toml2dn_policy(
     :returns: A dictionary containing the mapped DN policy attributes.
     """
     return _get_toml_policy_data(argv, argconfname, argsecname, "dn", filename,section)
-# !FUNCTION - toml2dn_policy
+# !FUNCTION - toml2_dn_policy
 
 # FUNCTION - toml2ext_policy
 def toml2ext_policy( 

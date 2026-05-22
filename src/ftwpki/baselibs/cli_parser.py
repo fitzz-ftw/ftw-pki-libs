@@ -93,10 +93,13 @@ class SubjAction(Action):
 
         return subj_dict
 
-    def __call__(self, parser:ArgumentParser, 
-                 namespace:Namespace, 
-                 values:str, 
-                 option_string:str|None=None):
+    def __call__(
+        self,
+        parser: ArgumentParser,
+        namespace: Namespace,
+        values: str,
+        option_string: str | None = None,
+    ):
         """
         Execute the action during argument parsing. (rw)
 
@@ -107,6 +110,8 @@ class SubjAction(Action):
             setattr(namespace, self.dest, subj_dict)
         except Exception as e:
             raise ArgumentError(self, f"Ungültiges Subj-Format: {e}")
+
+
 # !CLASS - SubjAction
 
 
@@ -126,9 +131,9 @@ class ArgparseFix311(ArgumentParser):
         :param message: The error message to report.
         :raises ArgumentError: Always raises to prevent SystemExit.
         """
-        if sys.version_info[:2] == (3, 11): # py 3.11 only no cover
+        if sys.version_info[:2] == (3, 11):  # py 3.11 only no cover
             raise ArgumentError(None, message)
-        super().error(message) # not py 3.11 no·‌cover
+        super().error(message)  # not py 3.11 no·‌cover
 
     def exit(self, status=0, message=None):
         """
@@ -137,10 +142,52 @@ class ArgparseFix311(ArgumentParser):
         :param status: Exit status code.
         :param message: Optional error message.
         """
-        if sys.version_info[:2] == (3, 11) and status != 0: # py 3.11 only no cover
+        if sys.version_info[:2] == (3, 11) and status != 0:  # py 3.11 only no cover
             self.error(message or f"Exited with status {status}")
         super().exit(status, message)  # not py 3.11 no cover
+
+
 # !CLASS - ArgparseFix311
+
+
+# CLASS - TomlPreParser
+# DOC - new
+class TomPreParser(ArgparseFix311):
+    # DOC - new
+    def __init__(
+        self,
+        prog: str | None = None,
+        usage: str | None = None,
+        description: str | None = None,
+        epilog: str | None = None,
+        exit_on_error: bool = False,
+        **kwargs,
+    ) -> None:
+        kwargs["add_help"] = False
+        kwargs["allow_abbrev"] = False
+        super().__init__(prog, 
+                         usage, 
+                         description, 
+                         epilog, 
+                         exit_on_error=exit_on_error,
+                         **kwargs)
+        self._setup_parser()
+
+    # DOC - new
+    def _setup_parser(self) -> None:
+        self.add_argument(
+            "--conf-file",
+            default=None,
+            dest="conf_file",
+        )
+        self.add_argument(
+            "--policy-name", 
+            default=None, 
+            dest="policy_name"
+        )
+
+
+# !CLASS - TomlPreParser
 
 
 # CLASS - DistinguishedNameParser
@@ -247,6 +294,8 @@ class DistinguishedNameParser(ArgparseFix311):
             DistinguishedNameProtocol, super().parse_args(args=args, namespace=namespace)
         )
         return self.sync_arguments(arg_parsed)
+
+
 # !CLASS - DistinguishedNameParser
 
 
@@ -257,6 +306,7 @@ def get_dn_parser() -> DistinguishedNameParser:
     :returns: A new instance of the Distinguished Name parser.
     """
     return DistinguishedNameParser()
+
 
 # CLASS - CSRParser
 class CSRParser(DistinguishedNameParser):
@@ -293,6 +343,8 @@ class CSRParser(DistinguishedNameParser):
         arg_parsed.private_key = f"{base_name}.key.pem" if base_name else ""
         arg_parsed.public_key = f"{base_name}.pub.pem" if base_name else ""
         return cast(CSRProtocol, arg_parsed)
+
+
 # !CLASS - CSRParser
 
 
@@ -304,14 +356,16 @@ def get_csr_parser() -> CSRParser:
     """
     return CSRParser()
 
+
 # CLASS - ServerClientCSRParser
 class ServerClientCSRParser(CSRParser):
     """
     Parser for server and client certificate signing requests. (ro)
 
-    This class extends the basic CSR parser to include network-specific 
+    This class extends the basic CSR parser to include network-specific
     arguments like email, IP addresses, and hostnames.
     """
+
     def __init__(self, **kwargs) -> None:
         """
         Initialize the ServerClient parser.
@@ -331,22 +385,27 @@ class ServerClientCSRParser(CSRParser):
         :raises argparse.ArgumentError: If an argument conflict occurs.
         """
         super()._setup_parser()
-        self.add_argument("email",
-                          help="Email address the signed certificate send to."
-                          )
-        self.add_argument("-ip", "--ip-address",
-                          action="append",
-                          default=[],
-                          dest="ip_addresses",
-                          help=f"The ip addresses of the {self._type_name}.")
-        self.add_argument("-hn", "--host-name",
-                          action="append",
-                          default=[],
-                          dest="host_names",
-                          help=f"The hostnames of the {self._type_name}.")
+        self.add_argument("email", help="Email address the signed certificate send to.")
+        self.add_argument(
+            "-ip",
+            "--ip-address",
+            action="append",
+            default=[],
+            dest="ip_addresses",
+            help=f"The ip addresses of the {self._type_name}.",
+        )
+        self.add_argument(
+            "-hn",
+            "--host-name",
+            action="append",
+            default=[],
+            dest="host_names",
+            help=f"The hostnames of the {self._type_name}.",
+        )
 
-    def parse_args(self, args: list[str] | None = None, 
-                   namespace: Namespace | None = None) -> ServerClientCSRProtocol:
+    def parse_args(
+        self, args: list[str] | None = None, namespace: Namespace | None = None
+    ) -> ServerClientCSRProtocol:
         """
         Parse command line arguments and validate network identity.
 
@@ -355,12 +414,14 @@ class ServerClientCSRParser(CSRParser):
         :raises argparse.ArgumentError: If neither an IP address nor a hostname is provided.
         :returns: An object containing the parsed and validated CSR data.
         """
-        ret = cast(ServerClientCSRProtocol,super().parse_args(args, namespace))
+        ret = cast(ServerClientCSRProtocol, super().parse_args(args, namespace))
         if not ret.ip_addresses and not ret.host_names:
-            raise ArgumentError(None,"At least an ip address or a hostname has to be given")
+            raise ArgumentError(None, "At least an ip address or a hostname has to be given")
         return ret
 
+
 #!CLASS - ServerClientCSRParser
+
 
 def get_server_client_csr_parser() -> ServerClientCSRParser:
     """
@@ -368,7 +429,8 @@ def get_server_client_csr_parser() -> ServerClientCSRParser:
 
     :returns: A new instance of the Server/Client CSR parser.
     """
-    return ServerClientCSRParser() 
+    return ServerClientCSRParser()
+
 
 # CLASS - PolicyParser
 class PolicyParser(ArgparseFix311):
@@ -435,6 +497,7 @@ class PolicyParser(ArgparseFix311):
             ret_args.policy[v] = getattr(ret_args, v, "no")
         return cast(PolicyProtocol, ret_args)
 
+
 # !CLASS - PolicyParser
 
 
@@ -445,6 +508,7 @@ def get_policy_parser() -> PolicyParser:
     :returns: A new instance of the certificate policy parser.
     """
     return PolicyParser()
+
 
 # CLASS - CSRSigningParser
 class CSRSigningParser(PolicyParser):
@@ -484,10 +548,8 @@ class CSRSigningParser(PolicyParser):
             default=0,
             help="Length of the path for intermediate certificates.",
         )
-        self.add_argument("passphrasefile",
-                          metavar="passphrase-file")
-        self.add_argument("certificat_sign_request",
-                          metavar="CSR-file")
+        self.add_argument("passphrasefile", metavar="passphrase-file")
+        self.add_argument("certificat_sign_request", metavar="CSR-file")
 
     def parse_args(
         self, args: list[str] | None = None, namespace: Namespace | None = None
@@ -499,8 +561,10 @@ class CSRSigningParser(PolicyParser):
         """
         arg_parsed = super().parse_args(args=args, namespace=namespace)
         base_name = arg_parsed.key_name
-        arg_parsed.private_key =  f"{base_name}.key.pem" if base_name else ""
+        arg_parsed.private_key = f"{base_name}.key.pem" if base_name else ""
         return cast(SignParserProtocol, arg_parsed)
+
+
 # !CLASS - CSRSigningParser
 
 
@@ -511,6 +575,7 @@ def get_csr_signing_parser() -> CSRSigningParser:
     :returns: A new instance of the certificate signing parser.
     """
     return CSRSigningParser()
+
 
 # CLASS - CSRMultiSigningParser
 class CSRMultiSigningParser(CSRSigningParser):
@@ -539,6 +604,8 @@ class CSRMultiSigningParser(CSRSigningParser):
         :returns: An object following the MultiSignParserProtocol.
         """
         return cast(MultiSignParserProtocol, super().parse_args(args=args, namespace=namespace))
+
+
 # !CLASS - CSRMultiSigningParser
 
 
@@ -549,6 +616,7 @@ def get_csr_multi_sign_parser() -> CSRMultiSigningParser:
     :returns: A new instance of the multi-policy signing parser.
     """
     return CSRMultiSigningParser()
+
 
 # CLASS - CertImportParser
 class CertImportParser(ArgparseFix311):
@@ -572,9 +640,9 @@ class CertImportParser(ArgparseFix311):
 
     def _setup_parser(self) -> None:
         """Configure positional and required key arguments for import. (rw)"""
-        self.add_argument("enc_zipfile",
-                          metavar="encrypted-zip-file", 
-                          help="Encrypted certificate zipfile.")
+        self.add_argument(
+            "enc_zipfile", metavar="encrypted-zip-file", help="Encrypted certificate zipfile."
+        )
         self.add_argument(
             "--key-name", "-k", dest="key_name", required=True, help="Name des Private Keys"
         )
@@ -594,6 +662,8 @@ class CertImportParser(ArgparseFix311):
         base_name = arg_parsed.key_name
         arg_parsed.private_keyfile = f"{base_name}.key.pem" if base_name else ""
         return cast(CertImportProtocol, arg_parsed)
+
+
 # !CLASS - CertImportParser
 
 
@@ -604,6 +674,7 @@ def get_cert_import_parser() -> CertImportParser:
     :returns: A new instance of the certificate import parser.
     """
     return CertImportParser()
+
 
 # CLASS - IntermedImportParser
 class IntermedImportParser(CertImportParser):
@@ -638,6 +709,8 @@ class IntermedImportParser(CertImportParser):
         :returns: An object following the IntermedImportProtocol.
         """
         return cast(IntermedImportProtocol, super().parse_args(args, namespace))
+
+
 # !CLASS - IntermedImportParser
 
 
@@ -648,6 +721,7 @@ def get_intermed_import_parser() -> IntermedImportParser:
     :returns: A new instance of the certificate import parser.
     """
     return IntermedImportParser()
+
 
 if __name__ == "__main__":  # pragma: no cover
     from doctest import FAIL_FAST, testfile
