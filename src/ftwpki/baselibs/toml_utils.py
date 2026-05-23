@@ -50,6 +50,24 @@ def list_policy_sections(data:dict, policy_type:str) -> bool:
     # raise ArgumentError(None,message="No or wrong policyname given")
 # !FUNCTION - list_policy_sections
 
+
+# FUNCTION - toml2dn
+
+
+def toml2dn(file_name: str | Path| None) -> dict[str, str]:
+    """
+    Extract distinguished name attributes from a TOML configuration file. (ro)
+
+    This is the new standard implementation that operates directly on a
+    file path, bypassing any global sys.argv context.
+
+    :param file_name: The path or name of the TOML configuration file.
+    :returns: A dictionary containing the distinguished name attributes.
+    """
+    argv = ["filename", str(file_name)] if file_name else None
+    return toml2_dn(argv,"filename")
+
+#FIXME - transfer Logik
 # FUNCTION - toml2_dn
 def toml2_dn(argv: list[str] | None = None, argname: str = "--conf-file") -> dict[str, str]:
     """
@@ -89,12 +107,10 @@ def toml2_dn(argv: list[str] | None = None, argname: str = "--conf-file") -> dic
     dn["dnsubject"] = ""
     return dn
 # !FUNCTION - toml2_dn
+# !FUNCTION - toml2dn
 
 # FUNCTION - _get_toml_policy_data
-def _get_toml_policy_data(argv: list[str] | None, 
-                          argconfname: str,
-                          argsecname:str,
-                          policy_type:str,
+def _get_toml_policy_data(policy_type:str,
                           filename: str | None,
                           section:str|None
                           ) -> dict:
@@ -118,18 +134,9 @@ def _get_toml_policy_data(argv: list[str] | None,
     """
     toml_path_str = filename
     section_name = section
-    if toml_path_str is None or section_name is None:
-        if argv is None:
-            argv = sys.argv[1:]
-        try:
-            if toml_path_str is None:
-                index_conf = argv.index(argconfname)
-                toml_path_str = argv[index_conf + 1]
-            if section_name is None and argsecname in argv:
-                index_section = argv.index(argsecname)
-                section_name = argv[index_section + 1] if argsecname in argv else None
-        except (ValueError, IndexError):
-            return {}
+
+    if toml_path_str is None:
+        return {}
     try:
         data:dict[str,dict] = loads(Path(toml_path_str).read_text())
     except (FileNotFoundError, TOMLDecodeError, Exception) as e:
@@ -149,91 +156,79 @@ def _get_toml_policy_data(argv: list[str] | None,
                 extensions.update(specific_ext)
                 return extensions
             else:
-                return data[section_name][policy_type]
+                ret_data = data.get(policy_type,{})
+                ret_data.update(data[section_name][policy_type])
+                return ret_data  #!SECTION[section_name][policy_type]
         except KeyError:
             return {}
 # !FUNCTION - _get_toml_policy_data
 
-# FUNCTION - toml2_dn_policy
-def toml2_dn_policy(
-    argv: list[str] | None = None,
-    argconfname: str = "--conf-file",
-    argsecname: str = "--policy-name",
-    filename: str | None = None,
-    section: str | None = None,
-) -> dict[str, str]:
+# FUNCTION - toml2ext
+def toml2ext(filename: str | Path, section: str|None=None) -> dict[str, str]:
     """
-    Retrieve distinguished name policy data from a configuration file. (ro)
+    Extract X.509 extension attributes from a TOML configuration file. (ro)
 
-    This function acts as a high-level interface to extract DN-specific
-    policy settings. It resolves the configuration source and section
-    either through direct parameters or command-line arguments.
+    This is the new standard implementation operating directly on a
+    file path and section name, bypassing legacy CLI argument parsing.
 
-    :param argv: List of command-line arguments for path discovery.
-    :param argconfname: The flag used to identify the config file path.
-                        Defaults to "--conf-file".
-    :param argsecname: The flag used to identify the policy section.
-                       Defaults to "--policy-name".
-    :param filename: Direct path to the TOML file. Overrides argv if provided.
-    :param section: Specific section name. Overrides argv if provided.
-    :returns: A dictionary containing the mapped DN policy attributes.
+    :param file_name: The path or name of the TOML configuration file.
+    :param policy_name: The specific section name of the extensions.
+    :returns: A dictionary containing the extension attributes.
     """
-    return _get_toml_policy_data(argv, argconfname, argsecname, "dn", filename,section)
-# !FUNCTION - toml2_dn_policy
+    # Comments and docstrings are in simple English as requested.
+    # Direct and clean call to the internal helper
+    return _get_toml_policy_data("ext", filename=filename, section=section)
+
+# !FUNCTION - toml2ext
+
+# FUNCTION - toml2dn_policy
+def toml2dn_policy(filename: str | Path, section: str|None=None) -> dict[str, str]:
+    """
+    Extract specific policy section data from a TOML configuration file. (ro)
+
+    This is the temporary wrapper for the new standard implementation
+    operating directly on a file path and section name.
+
+    :param filename: The path or name of the TOML configuration file.
+    :param policyname: The specific section name of the policy.
+    :returns: A dictionary containing the policy attributes.
+    """
+    # Using the fake_argv array to bridge safely to the legacy parser
+    return _get_toml_policy_data("dn", filename=filename, section=section)
+
+
 
 # FUNCTION - toml2ext_policy
-def toml2ext_policy( 
-    argv: list[str] | None = None,
-    argconfname: str = "--conf-file",
-    argsecname: str = "--policy-name",
-    filename: str | None = None,
-    section: str | None = None,
-) -> dict[str, str]:
+def toml2ext_policy(filename: str | Path, section: str | None = None) -> dict[str, str]:
     """
-    Load and merge extension policy data from a TOML configuration. (ro)
+    Extract extension policy attributes from a TOML configuration file. (ro)
 
-    This function retrieves X.509 extension settings. It implements a
-    priority logic where global extensions defined in 'policy.ext' are
-    overwritten by specific extensions found in the named policy section.
+    This is the temporary wrapper for the new standard implementation
+    operating directly on a file path and section name.
 
-    :param argv: List of command-line arguments for path discovery.
-    :param argconfname: The flag used to identify the config file path.
-                        Defaults to "--conf-file".
-    :param argsecname: The flag used to identify the policy section.
-                       Defaults to "--policy-name".
-    :param filename: Direct path to the TOML file. Overrides argv if provided.
-    :param section: Specific section name. Overrides argv if provided.
-    :returns: A dictionary containing the merged extension attributes.
+    :param file_name: The path or name of the TOML configuration file.
+    :param policy_name: The specific section name of the policy.
+    :returns: A dictionary containing the extension attributes.
     """
-    return _get_toml_policy_data(argv, argconfname, argsecname, "ext", filename,section)
+    return _get_toml_policy_data("ext", filename=filename, section=section)
+
 # !FUNCTION - toml2ext_policy
 
+
 # FUNCTION - toml2san_policy
-def toml2san_policy(
-    argv: list[str] | None = None,
-    argconfname: str = "--conf-file",
-    argsecname: str = "--policy-name",
-    filename: str | None = None,
-    section: str | None = None,
-) -> dict[str, str | int]:  # for future use
+def toml2san_policy(filename: str | Path, section: str | None = None) -> dict[str, str]:
     """
-    Retrieve Subject Alternative Name (SAN) policy data from a configuration. (ro)
+    Extract Subject Alternative Name policy attributes from a TOML file. (ro)
 
-    This function extracts SAN-specific settings from a TOML file. It
-    resolves the configuration source and section through direct
-    parameters or command-line arguments. Note that validation logic
-    for the returned data is not yet implemented.
+    This is the temporary wrapper for the new standard implementation
+    operating directly on a file path and section name.
 
-    :param argv: List of command-line arguments for path discovery.
-    :param argconfname: The flag used to identify the config file path.
-                        Defaults to "--conf-file".
-    :param argsecname: The flag used to identify the policy section.
-                       Defaults to "--policy-name".
-    :param filename: Direct path to the TOML file. Overrides argv if provided.
-    :param section: Specific section name. Overrides argv if provided.
-    :returns: A dictionary containing the SAN policy attributes.
+    :param file_name: The path or name of the TOML configuration file.
+    :param policy_name: The specific section name of the policy.
+    :returns: A dictionary containing the SAN attributes.
     """
-    return _get_toml_policy_data(argv, argconfname, argsecname, "san", filename, section)
+    return _get_toml_policy_data("san", filename=filename, section=section)
+
 # !FUNCTION - toml2san_policy
 
 # FUNCTION - toml2config

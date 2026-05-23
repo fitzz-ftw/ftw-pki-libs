@@ -151,9 +151,9 @@ def encrypt_transport_package(
     :raises TypeError: If provided certificate objects are invalid.
     :returns: The encrypted PEM-encoded data as bytes.
     """
-    name_user = kwargs.get("name_user", "user.crt")
-    name_chain = kwargs.get("name_chain", "certificate_chain.pem")
-    name_ca = kwargs.get("name_ca", "ca.crt")
+    name_user = kwargs.get("name_user", "user.crt.pem")
+    name_chain = kwargs.get("name_chain", "all.chain.pem")
+    name_ca = kwargs.get("name_ca", "ca.crt.pem")
 
     user_pem = user_cert.public_bytes(Encoding.PEM)
     root_pem = root_ca_cert.public_bytes(Encoding.PEM)

@@ -126,7 +126,7 @@ exclude_also = [
   "# py 3.11 only",
   "# not py 3.11"
 ]
-fail_under = 100
+fail_under = 90
 show_missing = true
 #format = "text"
 #

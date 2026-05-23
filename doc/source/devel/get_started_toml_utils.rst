@@ -9,12 +9,18 @@ Utilities for TOML
 
 
 
->>> from ftwpki.baselibs.toml_utils import toml2_dn
+>>> from ftwpki.baselibs.toml_utils import toml2dn
 
->>> toml2_dn([])
+>>> from ftwpki.baselibs.cli_parser import TomlPreParser
+
+>>> pre_parser = TomlPreParser()
+
+
+>>> toml2dn(None)
 {}
 
->>> toml2_dn(["--conf-file", "not_there.toml"])
+>>> argv, _ = pre_parser.parse_known_args(["--conf-file", "not_there.toml"])
+>>> toml2dn(argv.conf_file)
 File 'not_there.toml' not found!
 {'dnsubject': ''}
 
@@ -23,24 +29,25 @@ File 'not_there.toml' not found!
 >>> conf_ca.name
 'ca_conf.toml'
 
->>> toml2_dn(["--conf-file", conf_ca.name]) # doctest: +NORMALIZE_WHITESPACE
+>>> argv, _ = pre_parser.parse_known_args(["--conf-file", conf_ca.name])
+>>> toml2dn(argv.conf_file) # doctest: +NORMALIZE_WHITESPACE
 {'countryName': 'DE', 
  'organizationName': 'Fitzz TeXnik Welt', 
  'commonName': 'Fitzz Root CA', 
  'dnsubject': ''}
 
 >>> conf_keyerror = env.copy2cwd("toml_2_dn_keyerror.toml", "ca_keyerror.toml" )
->>> toml2_dn(["--conf-file", conf_keyerror.name])
+>>> argv, _ = pre_parser.parse_known_args(["--conf-file", conf_keyerror.name])
+>>> toml2dn(argv.conf_file)
 No table 'identity.dn' in config file!
 {'dnsubject': ''}
 
 >>> conf_dec_error = env.copy2cwd("toml_decode_error.txt", "ca_decode_error.toml" )
->>> toml2_dn(["--conf-file", conf_dec_error.name])
+>>> argv, _ = pre_parser.parse_known_args(["--conf-file", conf_dec_error.name])
+>>> toml2dn(argv.conf_file)
 Could not decode file ca_decode_error.toml!
 {'dnsubject': ''}
 
->>> toml2_dn()
-{}
 
 >>> from ftwpki.baselibs.toml_utils import list_policy_sections
 
@@ -51,11 +58,11 @@ intermediate
 clientsecure
 True
 
->>> from ftwpki.baselibs.toml_utils import toml2_dn_policy
+>>> from ftwpki.baselibs.toml_utils import toml2dn_policy
 >>> _ = env.copy2cwd("toml_2_dn_test.toml")
->>> argv=["--conf_file", "toml_2_dn_test.toml"]
+>>> argv,_ = pre_parser.parse_known_args(["--conf-file", "toml_2_dn_test.toml"])
 
->> toml2_dn_policy(argv)
+>>> toml2dn_policy(argv.conf_file)
 intermediate
 server
 user
@@ -63,46 +70,50 @@ server_l2
 {'commonName': 'error'}
 
 >>> argv=["--conf-file", "toml_2_dn_test.toml", "--policy-name", "intermediate"]
->>> toml2_dn_policy(argv)
+>>> pre_args , _ = pre_parser.parse_known_args(argv)
+
+
+>>> toml2dn_policy(pre_args.conf_file, pre_args.policy_name) # doctest: +ELLIPSIS   
 {'countryName': 'match', 'organizationName': 'match', 'commonName': 'supplied'}
 
->>> toml2_dn_policy(filename="toml_2_dn_test.toml", section="server") #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+>>> toml2dn_policy("toml_2_dn_test.toml", "server") #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
 {'countryName': 'match', 
  'organizationName': 'match', 
  'organizationalUnitName': 'supplied', 
  'commonName': 'supplied'}
 
->>> toml2_dn_policy()
+
+>>> toml2dn_policy(None,'') # doctest: +ELLIPSIS   
 {}
 
->>> toml2_dn_policy(filename="toml_2_dn_test.toml")
+>>> toml2dn_policy(filename="toml_2_dn_test.toml") # doctest: +ELLIPSIS   
 intermediate
 server
 user
 server_l2
 {'commonName': 'error'}
 
->>> toml2_dn_policy(filename="not_exists.toml")
+>>> toml2dn_policy(filename="not_exists.toml") # doctest: +ELLIPSIS   
 Error loading TOML 'not_exists.toml': [Errno 2] No such file or directory: 'not_exists.toml'
 {}
 
->>> toml2_dn_policy(filename="toml_2_dn_test.toml", section="secureintermediate") #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+>>> toml2dn_policy("toml_2_dn_test.toml", "secureintermediate") #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
 {}
 
->>> from ftwpki.baselibs.toml_utils import toml2ext_policy
+>>> from ftwpki.baselibs.toml_utils import toml2ext
 
 >>> ext_only_toml=env.copy2cwd("toml_2_ext_test_only.toml")
 
->>> toml2ext_policy(filename="toml_2_ext_test_only.toml")
+>>> toml2ext(filename="toml_2_ext_test_only.toml")
 secureintermediate
 {'commonName': 'error'}
 
->>> toml2ext_policy(filename="toml_2_ext_test_only.toml", section="intermediate") #doctest: +NORMALIZE_WHITESPACE
+>>> toml2ext(filename="toml_2_ext_test_only.toml", section="intermediate") #doctest: +NORMALIZE_WHITESPACE
 {'ocspURI': 'http://ocsp.deine-pki.test', 
  'crlURI': 'http://pki.deine-pki.test/crl', 
  'caIssuerURI': 'http://pki.deine-pki.test/ca.crt'}
 
->>> toml2ext_policy(filename="toml_2_ext_test_only.toml", section="secureintermediate") #doctest: +NORMALIZE_WHITESPACE
+>>> toml2ext(filename="toml_2_ext_test_only.toml", section="secureintermediate") #doctest: +NORMALIZE_WHITESPACE
 {'ocspURI': 'http://ocsp.deine-pki.test', 
  'crlURI': 'http://pki.deine-pki.test/crl_intermediate', 
  'caIssuerURI': 'http://pki.deine-pki.test/ca.crt'}
@@ -171,6 +182,18 @@ secureintermediate
 Traceback (most recent call last):
     ...
 FileNotFoundError: [Errno 2] No such file or directory: '...pkiconfig.toml'
+
+
+For Future Usage
+-----------------
+
+>>> from ftwpki.baselibs.toml_utils import toml2san_policy, toml2ext_policy
+
+>>> toml2san_policy(pre_args.conf_file)
+{'commonName': 'error'}
+
+>>> toml2ext_policy(pre_args.conf_file)
+{'commonName': 'error'}
 
 >>> env.clean_home()
 >>> env.teardown()

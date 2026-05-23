@@ -152,7 +152,7 @@ class ArgparseFix311(ArgumentParser):
 
 # CLASS - TomlPreParser
 # DOC - new
-class TomPreParser(ArgparseFix311):
+class TomlPreParser(ArgparseFix311):
     # DOC - new
     def __init__(
         self,
@@ -180,7 +180,7 @@ class TomPreParser(ArgparseFix311):
             default=None,
             dest="conf_file",
         )
-        self.add_argument(
+        self.add_argument("-p",
             "--policy-name", 
             default=None, 
             dest="policy_name"
@@ -188,6 +188,13 @@ class TomPreParser(ArgparseFix311):
 
 
 # !CLASS - TomlPreParser
+def get_toml_pre_parser() -> TomlPreParser:
+    """
+    Factory function to create a TomlPreParser instance.
+
+    :returns: A new instance of the TomlPreParser.
+    """
+    return TomlPreParser()
 
 
 # CLASS - DistinguishedNameParser
@@ -647,7 +654,8 @@ class CertImportParser(ArgparseFix311):
             "--key-name", "-k", dest="key_name", required=True, help="Name des Private Keys"
         )
         # self.add_argument(
-        #             "--keyfile", "-k", dest="private_keyfile", required=True, help="Name des Private Keys"
+        #             "--keyfile", "-k", 
+        #               dest="private_keyfile", required=True, help="Name des Private Keys"
         #         )
 
     def parse_args(
