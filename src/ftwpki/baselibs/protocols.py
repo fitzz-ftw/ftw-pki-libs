@@ -72,7 +72,7 @@ class CSRProtocol(DistinguishedNameProtocol):
     """The filename or path of the private key."""
     privatdir: str
     """The directory where sensitive key material is stored."""
-
+    key_name:str
 
 # !CLASS - CSRProtocol
 
@@ -170,8 +170,9 @@ class SigningProtocol(PolicyProtocol):
     It ensures that objects used for issuing certificates provide all
     necessary paths, keys, and validity constraints.
     """
-
-    private_key: str
+    #DOC - new
+    key_name:str
+    private_key: str #Deprecated
     """The filename or path of the CA private key."""
     private_dir: str
     """The directory where the private key is located."""
@@ -237,6 +238,9 @@ class CertImportProtocol(Protocol):
     processing.
     """
 
+    #DOC - new
+    key_name:str
+
     private_keyfile: str
     """The filename or path to the private key
                                associated with the import."""
@@ -249,7 +253,7 @@ class CertImportProtocol(Protocol):
 
 
 # CLASS - IntermedImportProtocol
-class IntermedImportProtocol(Protocol):
+class IntermedImportProtocol(CertImportProtocol):
     """
     Structural interface for intermediate certificate import operations. (ro)
 

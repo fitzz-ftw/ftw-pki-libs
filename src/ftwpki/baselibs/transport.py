@@ -20,6 +20,7 @@ import datetime
 import io
 import zipfile
 from pathlib import Path
+from typing import cast
 
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes
@@ -27,7 +28,7 @@ from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey, RSAPubl
 from cryptography.hazmat.primitives.serialization import Encoding, pkcs7
 from cryptography.x509 import Certificate
 
-from ftwpki.baselibs.utils import assert_is_pem_cert  #get_cert_text_from_cert
+from ftwpki.baselibs.utils import assert_is_pem_cert  # get_cert_text_from_cert
 
 
 # FUNCTION - Transport Identity
@@ -44,9 +45,10 @@ def _get_transport_identity() -> x509.Name:
     """
     return x509.Name([x509.NameAttribute(x509.NameOID.COMMON_NAME, "FTW-PKI-Transport-Service")])
 
+
 # !FUNCTION - Transport Identity
-#FUNCTION - Transport Serialnumber
-def _transportserialnumber()->int:
+# FUNCTION - Transport Serialnumber
+def _transportserialnumber() -> int:
     """
     Return a static serial number for transport dummy certificates. (ro)
 
@@ -58,6 +60,8 @@ def _transportserialnumber()->int:
               identification.
     """
     return int("42" * 23)
+
+
 # !FUNCTION - Transport Serialnumber
 
 
@@ -111,15 +115,15 @@ def create_ephemeral_cert(
         .not_valid_before(
             datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(minutes=5)
         )
-        .not_valid_after(
-            datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=1)
-            )
+        .not_valid_after(datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=1))
         .sign(signing_key, hashes.SHA256())
     )
     return cert
 
 
 # !FUNCTION - Create Emphemeral Certifikat
+
+
 # FUNCTION - Encrypt Transport Package
 def encrypt_transport_package(
     user_cert: x509.Certificate,
@@ -199,9 +203,10 @@ def decrypt_transport_package(encrypted_data: bytes, private_key: RSAPrivateKey)
                         or the key does not match the envelope.
     :returns: The decrypted binary data, typically a ZIP archive.
     """
-    recipient_cert = create_ephemeral_cert(public_key=private_key.public_key(),
-                                           signing_key=private_key, 
-                                           )
+    recipient_cert = create_ephemeral_cert(
+        public_key=private_key.public_key(),
+        signing_key=private_key,
+    )
     options = []
 
     return pkcs7.pkcs7_decrypt_smime(encrypted_data, recipient_cert, private_key, options)
@@ -228,10 +233,9 @@ def encrypt_bytedata(
     """
     options = [pkcs7.PKCS7Options.Binary]
 
-
     transport_dummy = create_ephemeral_cert(
-        public_key=recipient_cert.public_key(),
-        signing_key=ca_key,   # Hier muss ein Key her
+        public_key=cast(RSAPublicKey, recipient_cert.public_key()),
+        signing_key=ca_key,  # Hier muss ein Key her
     )
 
     builder = pkcs7.PKCS7EnvelopeBuilder().set_data(unencrypted_data)
@@ -239,6 +243,7 @@ def encrypt_bytedata(
     builder = builder.add_recipient(recipient_cert)
 
     return builder.encrypt(Encoding.SMIME, options)
+
 
 # !FUNCTION - Encrypt Bytedata
 
@@ -271,6 +276,7 @@ def decrypt_bytedata(
         return decrypted_data
     except Exception as e:
         raise ValueError(f"Entschlüsselung fehlgeschlagen: {e}")
+
 
 # !FUNCTION - Decrypt Bytedata
 

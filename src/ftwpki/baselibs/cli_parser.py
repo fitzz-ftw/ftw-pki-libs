@@ -345,7 +345,7 @@ class CSRParser(DistinguishedNameParser):
 
         :returns: An object following the CSRProtocol.
         """
-        arg_parsed = super().parse_args(args, namespace)
+        arg_parsed = cast(CSRProtocol,super().parse_args(args, namespace))
         base_name = arg_parsed.key_name
         arg_parsed.private_key = f"{base_name}.key.pem" if base_name else ""
         arg_parsed.public_key = f"{base_name}.pub.pem" if base_name else ""
@@ -566,7 +566,7 @@ class CSRSigningParser(PolicyParser):
 
         :returns: An object following the SignParserProtocol.
         """
-        arg_parsed = super().parse_args(args=args, namespace=namespace)
+        arg_parsed = cast(SignParserProtocol,super().parse_args(args=args, namespace=namespace))
         base_name = arg_parsed.key_name
         arg_parsed.private_key = f"{base_name}.key.pem" if base_name else ""
         return cast(SignParserProtocol, arg_parsed)
@@ -666,7 +666,7 @@ class CertImportParser(ArgparseFix311):
 
         :returns: An object following the CertImportProtocol.
         """
-        arg_parsed = super().parse_args(args, namespace)
+        arg_parsed = cast(CertImportProtocol, super().parse_args(args, namespace))
         base_name = arg_parsed.key_name
         arg_parsed.private_keyfile = f"{base_name}.key.pem" if base_name else ""
         return cast(CertImportProtocol, arg_parsed)

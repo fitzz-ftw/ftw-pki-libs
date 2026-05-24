@@ -310,3 +310,12 @@ Namespace(countryName='match',
         'commonName': 'no'},
      private_key='')
 
+>>> from ftwpki.baselibs.cli_parser import TomlPreParser , get_toml_pre_parser
+
+>>> get_toml_pre_parser() #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+TomlPreParser(prog='...', 
+    usage=None, 
+    description=None, 
+    formatter_class=<class 'argparse.HelpFormatter'>, 
+    conflict_handler='error', 
+    add_help=False)
