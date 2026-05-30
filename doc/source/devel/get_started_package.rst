@@ -86,6 +86,16 @@ ValueError: PKIPackage: Private Key wurde noch nicht zugewiesen.
 >>> pki_pack.recipient_cert #doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
 <Certificate(subject=<Name(...CN=Muster-Verband Hamburg Regional CA...)>, ...)>
 
+>>> pki_pack.own_cert = None
+
+>>> pki_pack.recipient_cert is None
+True
+
+>>> pki_pack.own_cert = cert
+
+>>> pki_pack.own_cert #doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
+<Certificate(subject=<Name(...CN=Muster-Verband Hamburg Regional CA...)>, ...)>
+
 >>> pki_pack.caroot_cert #doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
 <Certificate(subject=<Name(...CN=Muster-Verband Bundesverband Root CA...)>, ...)>
 
@@ -169,6 +179,12 @@ ValueError: PKIPackage: Private Key wurde noch nicht zugewiesen.
 >>> pki_read.caroot_cert #doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
 <Certificate(subject=<Name(...CN=Muster-Verband Bundesverband Root CA...)>, ...)>
 
+>>> pki_read.intermediatechain #doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
+[<Certificate(subject=<Name(...CN=Muster-Verband Bundesverband Root CA...)>, ...)>]
+
+
+
+
 
 Loading an encrypted Package (.spki)
 
@@ -199,6 +215,12 @@ AttributeError: 'NoneType' object has no attribute 'public_key'
 True
 
 >>> recip_pack.load("reg_hh.spki")
+
+
+>>> del recip_pack.private_key
+
+>>> recip_pack.has_private_key
+False
 
 >>> recip_pack.message
 'Here is your signed certificate.'

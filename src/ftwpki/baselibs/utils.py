@@ -19,7 +19,6 @@ These utilities are primarily used for logging, debugging, and user
 interfaces.
 """
 import sys
-import traceback
 from pathlib import Path
 from typing import LiteralString
 

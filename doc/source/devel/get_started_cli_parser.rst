@@ -22,6 +22,17 @@ DistinguishedNameParser(prog=...,
     conflict_handler='error', 
     add_help=True)
 
+>>> no_conf_file_parser = DistinguishedNameParser(no_config_file=True)
+
+>>> no_conf_file_parser.parse_args(["-C", "de" ]) #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+Namespace(countryName='de', 
+    stateOrProvinceName='', 
+    localityName='', 
+    organizationName='', 
+    organizationalUnitName='', 
+    commonName='', 
+    dnsubject={'countryName': 'de'})
+
 >>> dnp.parse_args(["-C", "de" ]) #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
 Namespace(countryName='de', 
     stateOrProvinceName='', 
@@ -79,7 +90,8 @@ Namespace(countryName='de',
     dnsubject={'commonName': 'Mein Name', 
             'countryName': 'de'}, 
     conf_file=None, 
-    key_name='', 
+    key_name='',
+    pki_name='', 
     privatdir='', 
     private_key='', 
     public_key='')
@@ -117,10 +129,14 @@ Namespace(countryName='de',
             'countryName': 'de'}, 
     conf_file=None,  
     key_name='', 
+    pki_name='',
     privatdir='',
     email='test@example.org',
     ip_addresses=['192.168.1.1'], 
-    host_names=[], private_key='', public_key='')
+    host_names=[], 
+    password=None,
+    private_key='', 
+    public_key='')
 
 >>> from ftwpki.baselibs.cli_parser import PolicyParser, get_policy_parser
 

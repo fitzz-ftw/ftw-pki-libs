@@ -24,44 +24,33 @@ Get Stated with ConfigurationcClasses
 >>> reader.read_main_config()
 
 >>> reader._configmain # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
-{'default_config': 'user.toml', 
- 'user': 'user.toml', 
- 'leaf': 'leaf.toml', 
- 'server': 'leaf.toml', 
- 'client': 'leaf.toml', 
- 'clientserver': 'leaf.toml', 
- 'intermediate': 'intermed.toml', 
- 'rootsign': 'rsign.toml'}
+{'private_keys': '#config#.private', 
+ 'zip': '#data#', 
+ 'certs': '#zip#', 
+ 'chains': '#zip#'}
 
 >>> reader.default_config
-'user.toml'
+''
 
 >>> reader.list_mainconfig()  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
-{'user': 'user.toml', 
- 'leaf': 'leaf.toml', 
- 'server': 'leaf.toml', 
- 'client': 'leaf.toml', 
- 'clientserver': 'leaf.toml', 
- 'intermediate': 'intermed.toml', 
- 'rootsign': 'rsign.toml'}
+{'private_keys': '#config#.private', 
+ 'zip': '#data#', 
+ 'certs': '#zip#', 
+ 'chains': '#zip#'}
 
 >>> reader.read_config()
 
 >>> reader._raw_data  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
 {'private_keys': '#config#.private', 
- 'public_data': '#data#', 
- 'certs': '#data#certs', 
- 'chains': '#data#chains', 
- 'ext_cert': '.crt.pem', 
- 'ext_public': '.pub.pem',
- 'ext_chain': '.chain.pem',  
- 'ext_signedcert': '.zip.enc'}
+ 'zip': '#data#', 
+ 'certs': '#zip#', 
+ 'chains': '#zip#'}
 
 >>> reader._paths  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
 {'private_keys': ...Path('.../ftwpki/.private'), 
- 'public_data': ...Path('.../ftwpki'), 
- 'certs': ...Path('.../ftwpki/certs'), 
- 'chains': ...Path('.../ftwpki/chains')}
+ 'zip': ...Path('.../ftwpki'), 
+ 'certs': PosixPath('#zip#'), 
+ 'chains': PosixPath('#zip#')}
 
 >>> reader.private_keys.as_posix()  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
 '.../ftwpki/.private'

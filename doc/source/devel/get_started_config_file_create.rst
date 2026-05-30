@@ -65,14 +65,22 @@ True
 >>> print(conf_file.read_text()) # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE 
 <BLANKLINE>
 [fallback]
-default_config="user.toml"
-user = "user.toml"
-leaf="leaf.toml"
-server="leaf.toml"
-client="leaf.toml"
-clientserver="leaf.toml"
-intermediate = "intermed.toml"
-rootsign = "rsign.toml"
+private_keys = "#config#.private"
+zip          = "#data#"
+certs        = "#zip#"
+chains       = "#zip#"
+<BLANKLINE>
+[caroot]
+private_keys = "#zip#"
+passphrases  = "#config#.private"
+policies     = "#zip#"
+zip          = "#config#.private"
+<BLANKLINE>
+[intermediate]
+private_keys = "#zip#"
+passphrases  = "#config#.private"
+policies     = "#zip#"
+zip          = "#config#.private"
 <BLANKLINE>
 <BLANKLINE>
 

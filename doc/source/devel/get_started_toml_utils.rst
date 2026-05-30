@@ -16,13 +16,7 @@ Utilities for TOML
 >>> pre_parser = TomlPreParser()
 
 
->>> toml2dn(None)
-{}
-
 >>> argv, _ = pre_parser.parse_known_args(["--conf-file", "not_there.toml"])
->>> toml2dn(argv.conf_file)
-File 'not_there.toml' not found!
-{'dnsubject': ''}
 
 
 >>> conf_ca = env.copy2cwd("toml_2_dn_test.toml", "ca_conf.toml" )
@@ -30,7 +24,7 @@ File 'not_there.toml' not found!
 'ca_conf.toml'
 
 >>> argv, _ = pre_parser.parse_known_args(["--conf-file", conf_ca.name])
->>> toml2dn(argv.conf_file) # doctest: +NORMALIZE_WHITESPACE
+>>> toml2dn(Path(argv.conf_file).read_text()) # doctest: +NORMALIZE_WHITESPACE
 {'countryName': 'DE', 
  'organizationName': 'Fitzz TeXnik Welt', 
  'commonName': 'Fitzz Root CA', 
@@ -38,15 +32,18 @@ File 'not_there.toml' not found!
 
 >>> conf_keyerror = env.copy2cwd("toml_2_dn_keyerror.toml", "ca_keyerror.toml" )
 >>> argv, _ = pre_parser.parse_known_args(["--conf-file", conf_keyerror.name])
->>> toml2dn(argv.conf_file)
-No table 'identity.dn' in config file!
-{'dnsubject': ''}
+>>> toml2dn(Path(argv.conf_file).read_text())
+Traceback (most recent call last):
+    ...
+ftwpki.baselibs.exceptions.PKIKeyError: No table 'identity.dn' in config file!
+
 
 >>> conf_dec_error = env.copy2cwd("toml_decode_error.txt", "ca_decode_error.toml" )
 >>> argv, _ = pre_parser.parse_known_args(["--conf-file", conf_dec_error.name])
->>> toml2dn(argv.conf_file)
-Could not decode file ca_decode_error.toml!
-{'dnsubject': ''}
+>>> toml2dn(Path(argv.conf_file).read_text())
+Traceback (most recent call last):
+    ...
+tomllib.TOMLDecodeError: Could not decode file content!
 
 
 >>> from ftwpki.baselibs.toml_utils import list_policy_sections
@@ -62,7 +59,7 @@ True
 >>> _ = env.copy2cwd("toml_2_dn_test.toml")
 >>> argv,_ = pre_parser.parse_known_args(["--conf-file", "toml_2_dn_test.toml"])
 
->>> toml2dn_policy(argv.conf_file)
+>>> toml2dn_policy(Path(argv.conf_file).read_text())
 intermediate
 server
 user
@@ -73,10 +70,10 @@ server_l2
 >>> pre_args , _ = pre_parser.parse_known_args(argv)
 
 
->>> toml2dn_policy(pre_args.conf_file, pre_args.policy_name) # doctest: +ELLIPSIS   
+>>> toml2dn_policy(Path(pre_args.conf_file).read_text(), pre_args.policy_name) # doctest: +ELLIPSIS   
 {'countryName': 'match', 'organizationName': 'match', 'commonName': 'supplied'}
 
->>> toml2dn_policy("toml_2_dn_test.toml", "server") #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+>>> toml2dn_policy(Path("toml_2_dn_test.toml").read_text(), "server") #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
 {'countryName': 'match', 
  'organizationName': 'match', 
  'organizationalUnitName': 'supplied', 
@@ -84,21 +81,26 @@ server_l2
 
 
 >>> toml2dn_policy(None,'') # doctest: +ELLIPSIS   
-{}
+Traceback (most recent call last):
+    ...
+AttributeError: 'NoneType' object has no attribute 'replace'
 
->>> toml2dn_policy(filename="toml_2_dn_test.toml") # doctest: +ELLIPSIS   
+>>> toml2dn_policy(file_content=Path("toml_2_dn_test.toml").read_text()) # doctest: +ELLIPSIS   
 intermediate
 server
 user
 server_l2
 {'commonName': 'error'}
 
->>> toml2dn_policy(filename="not_exists.toml") # doctest: +ELLIPSIS   
-Error loading TOML 'not_exists.toml': [Errno 2] No such file or directory: 'not_exists.toml'
-{}
+>>> toml2dn_policy(file_content=Path("not_exists.toml").read_text()) # doctest: +ELLIPSIS   
+Traceback (most recent call last):
+    ...
+FileNotFoundError: [Errno 2] No such file or directory: 'not_exists.toml'
 
->>> toml2dn_policy("toml_2_dn_test.toml", "secureintermediate") #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
-{}
+>>> toml2dn_policy(Path("toml_2_dn_test.toml").read_text(), "secureintermediate") #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+Traceback (most recent call last):
+    ...
+ftwpki.baselibs.exceptions.PKIKeyError: Key: secureintermediate.dn not found.
 
 >>> from ftwpki.baselibs.toml_utils import toml2ext
 
@@ -182,6 +184,13 @@ secureintermediate
 Traceback (most recent call last):
     ...
 FileNotFoundError: [Errno 2] No such file or directory: '...pkiconfig.toml'
+
+
+>>> from ftwpki.baselibs.toml_utils import _get_toml_policy_data
+>>> _get_toml_policy_data("dn", "hallöli", "test")
+Traceback (most recent call last):
+    ...
+tomllib.TOMLDecodeError: Could not decode file content!
 
 
 For Future Usage

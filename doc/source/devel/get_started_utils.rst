@@ -99,6 +99,12 @@ Extensions:
 exoticOID:
  key_agreement, encipher_only
 
+>>> from ftwpki.baselibs.utils import report_error, print_error
+
+>>> report_error(Exception("You do not see me here, only in terminal."))
+
+>>> print_error(Exception("I will be seen although here."))
+I will be seen although here.
 
 >>> env.clean_home()
 >>> env.teardown()

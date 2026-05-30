@@ -23,7 +23,7 @@ from pathlib import Path
 
 from ftwpki.baselibs.app_dirs import config_file_path
 
-MAIN_CONFIG_DEV = """
+MAIN_CONFIG = """
 [fallback]
 private_keys = "#config#.private"
 zip          = "#data#"
@@ -44,7 +44,7 @@ zip          = "#config#.private"
 """
 
 
-MAIN_CONFIG = """
+OLD_MAIN_CONFIG = """
 [fallback]
 default_config="{file_name}"
 user = "user.toml"

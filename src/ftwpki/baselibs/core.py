@@ -217,6 +217,7 @@ def extract_certs_from_chain(chain_bytes: bytes) -> list[x509.Certificate]:
 
 # !FUNCTION - extract_certs_from_chain
 
+#DOC - new
 def private_key_to_pem(key_obj: RSAPrivateKey) -> bytes:
     key_bytes = key_obj.private_bytes(
         encoding=serialization.Encoding.PEM,
