@@ -25,12 +25,13 @@ import datetime
 import re
 import stat
 from pathlib import Path
-from typing import cast
+from typing import Any, cast
 
 from cryptography import x509
 from cryptography.exceptions import UnsupportedAlgorithm
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey
 from cryptography.x509.oid import NameOID
 
 from ftwpki.baselibs.data import CertificateRecord, CertificateStatus
@@ -216,6 +217,13 @@ def extract_certs_from_chain(chain_bytes: bytes) -> list[x509.Certificate]:
 
 # !FUNCTION - extract_certs_from_chain
 
+def private_key_to_pem(key_obj: RSAPrivateKey) -> bytes:
+    key_bytes = key_obj.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption(),  # Oder BestAlgorithm(password)
+    )
+    return key_bytes
 
 # FUNCTION - load_private_key_from_pem
 def load_private_key_from_pem(pem_data: bytes, passphrase: str | None) -> rsa.RSAPrivateKey:

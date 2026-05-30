@@ -25,9 +25,9 @@ import sys
 from argparse import ArgumentError  # noqa: F401
 from pathlib import Path
 from tomllib import TOMLDecodeError, load, loads
-from typing import cast
 
 from ftwpki.baselibs.app_dirs import config_file_path
+from ftwpki.baselibs.exceptions import PKIFileNotFoundError, PKIKeyError
 
 
 # FUNCTION - list_policy_sections
@@ -50,10 +50,37 @@ def list_policy_sections(data:dict, policy_type:str) -> bool:
     # raise ArgumentError(None,message="No or wrong policyname given")
 # !FUNCTION - list_policy_sections
 
+# FUNCTION - toml2dn_DEV
+# DOC - change: raise TOMLDecodeError, PKIKeyError
+
+def toml2dn_DEV(file_content: str ) -> dict[str, str]:
+    """
+    Extract distinguished name attributes from a TOML configuration file. (ro)
+
+    This is the new standard implementation that operates directly on a
+    file path, bypassing any global sys.argv context.
+
+    :param file_name: The path or name of the TOML configuration file.
+    :returns: A dictionary containing the distinguished name attributes.
+    """
+    try:
+        tomfile = loads(file_content)
+    except TOMLDecodeError:
+        raise TOMLDecodeError("Could not decode file content!")
+    try:
+        dn = tomfile["identity"]["dn"]
+    except KeyError:
+        raise PKIKeyError("No table 'identity.dn' in config file!")
+    dn["dnsubject"] = ""
+    return dn
+
+
+# !FUNCTION - toml2dn_DEV
+
 
 # FUNCTION - toml2dn
 
-
+# DOC - change: raise PKIFileNotFoundError, TOMLDecodeError, PKIKeyError
 def toml2dn(file_name: str | Path| None) -> dict[str, str]:
     """
     Extract distinguished name attributes from a TOML configuration file. (ro)
@@ -64,11 +91,25 @@ def toml2dn(file_name: str | Path| None) -> dict[str, str]:
     :param file_name: The path or name of the TOML configuration file.
     :returns: A dictionary containing the distinguished name attributes.
     """
-    argv = ["filename", str(file_name)] if file_name else None
-    return toml2_dn(argv,"filename")
+    try:
+        tomlfile = Path(file_name)
+        conf_str = tomlfile.read_text()
+        # tomfile = loads(conf_str)
+    except FileNotFoundError:
+        raise PKIFileNotFoundError(f"File '{tomlfile.name}' not found!")
+    try:
+        dn = toml2dn_DEV(conf_str)
+    except TOMLDecodeError:
+        raise TOMLDecodeError(f"Could not decode file {tomlfile.name}!")
+    except PKIKeyError:
+        raise PKIKeyError(f"No table 'identity.dn' in file {tomlfile.name}!")
+    dn["dnsubject"] = ""
+    return dn
+# !FUNCTION - toml2dn
 
-#FIXME - transfer Logik
+
 # FUNCTION - toml2_dn
+
 def toml2_dn(argv: list[str] | None = None, argname: str = "--conf-file") -> dict[str, str]:
     """
     Extract distinguished name attributes from a TOML configuration file. (ro)
@@ -107,12 +148,96 @@ def toml2_dn(argv: list[str] | None = None, argname: str = "--conf-file") -> dic
     dn["dnsubject"] = ""
     return dn
 # !FUNCTION - toml2_dn
-# !FUNCTION - toml2dn
+
+# FUNCTION - toml2dn_
+
+# DOC - change: raise PKIFileNotFoundError, TOMLDecodeError, PKIKeyError
+def toml2dn_(file_name: str | Path| None) -> dict[str, str]:
+    """
+    Extract distinguished name attributes from a TOML configuration file. (ro)
+
+    This is the new standard implementation that operates directly on a
+    file path, bypassing any global sys.argv context.
+
+    :param file_name: The path or name of the TOML configuration file.
+    :returns: A dictionary containing the distinguished name attributes.
+    """
+    try:
+        tomlfile = Path(file_name)
+        conf_str = tomlfile.read_text()
+        tomfile = loads(conf_str)
+    except FileNotFoundError:
+        raise PKIFileNotFoundError(f"File '{tomlfile.name}' not found!")
+    except TOMLDecodeError:
+        raise TOMLDecodeError(f"Could not decode file {tomlfile.name}!")
+        # print(f"Could not decode file {tomlfile.name}!")
+        # return {"dnsubject": ""}
+    try:
+        dn = tomfile["identity"]["dn"]
+    except KeyError:
+        raise PKIKeyError("No table 'identity.dn' in config file!")
+        # print("No table 'identity.dn' in config file!")
+        # return {"dnsubject": ""}
+    dn["dnsubject"] = ""
+    return dn
+
+
+# !FUNCTION - toml2_dn_
+
+# FUNCTION - _get_toml_policy_data_DEV
+def _get_toml_policy_data_DEV(policy_type: str, 
+                              file_content: str, 
+                              section: str | None) -> dict:
+    """
+    Find and load policy data from a TOML configuration file. (ro)
+
+    This internal helper resolves the file path and section name either
+    from direct arguments or command-line flags. It reads the TOML
+    content and extracts specific policy information based on the
+    provided type and section name.
+
+    :param policy_type: The category of policy to extract.
+    :param filename: Direct path to the TOML file, overrides argv.
+    :param section: Direct section name, overrides argv.
+    :raises OSError: If the file exists but cannot be read.
+    :returns: A dictionary containing the requested policy data or
+              an error indicator.
+    """
+    section_name = section
+
+    try:
+        data: dict[str, dict] = loads(file_content)
+    except TOMLDecodeError:
+        raise TOMLDecodeError("Could not decode file content!")
+
+    data = data.get("policy", {})
+    if not section_name:
+        list_policy_sections(data, policy_type)
+        return {"commonName": "error"}
+    else:
+        # section_name = cast(str, section_name)
+        try:
+            if policy_type == "ext":  # for future use
+                extensions = data.get("ext", {}).copy()
+                specific_ext = data.get(section_name, {}).get("ext", {})
+                extensions.update(specific_ext)
+                return extensions
+            else:
+                ret_data = data.get(policy_type, {})
+                ret_data.update(data[section_name][policy_type])
+                return ret_data  #!SECTION[section_name][policy_type]
+        except KeyError:
+            raise PKIKeyError(f"Key: {section_name}.{policy_type} not found.")
+            
+
+
+# !FUNCTION - _get_toml_policy_data_DEV
+
 
 # FUNCTION - _get_toml_policy_data
 def _get_toml_policy_data(policy_type:str,
-                          filename: str | None,
-                          section:str|None
+                          filename: str,
+                          section:str
                           ) -> dict:
     """
     Find and load policy data from a TOML configuration file. (ro)
@@ -132,35 +257,20 @@ def _get_toml_policy_data(policy_type:str,
     :returns: A dictionary containing the requested policy data or
               an error indicator.
     """
-    toml_path_str = filename
-    section_name = section
 
-    if toml_path_str is None:
-        return {}
     try:
-        data:dict[str,dict] = loads(Path(toml_path_str).read_text())
-    except (FileNotFoundError, TOMLDecodeError, Exception) as e:
-        print(f"Error loading TOML '{toml_path_str}': {e}")
-        return {}
-    
-    data = data.get("policy",{})
-    if not section_name:
-        list_policy_sections(data, policy_type)
-        return {"commonName":"error"}
-    else:
-        section_name = cast(str, section_name)
-        try:
-            if policy_type == "ext": # for future use
-                extensions = data.get("ext", {}).copy()
-                specific_ext = data.get(section_name, {}).get("ext", {})
-                extensions.update(specific_ext)
-                return extensions
-            else:
-                ret_data = data.get(policy_type,{})
-                ret_data.update(data[section_name][policy_type])
-                return ret_data  #!SECTION[section_name][policy_type]
-        except KeyError:
-            return {}
+        file_content = Path(filename).read_text()
+    except FileNotFoundError:
+        raise PKIFileNotFoundError(f"File '{filename}' not found!")
+
+    try:
+        data = _get_toml_policy_data_DEV(policy_type=policy_type,
+                                         file_content=file_content,
+                                         section=section)
+    except TOMLDecodeError:
+        raise TOMLDecodeError(f"Could not decode file {filename}!")
+    return data
+
 # !FUNCTION - _get_toml_policy_data
 
 # FUNCTION - toml2ext
@@ -177,12 +287,12 @@ def toml2ext(filename: str | Path, section: str|None=None) -> dict[str, str]:
     """
     # Comments and docstrings are in simple English as requested.
     # Direct and clean call to the internal helper
-    return _get_toml_policy_data("ext", filename=filename, section=section)
+    return _get_toml_policy_data("ext", filename=str(filename), section=section)
 
 # !FUNCTION - toml2ext
 
-# FUNCTION - toml2dn_policy
-def toml2dn_policy(filename: str | Path, section: str|None=None) -> dict[str, str]:
+# FUNCTION - toml2dn_policy_DEV
+def toml2dn_policy_DEV(file_content: str, section: str|None=None) -> dict[str, str]:
     """
     Extract specific policy section data from a TOML configuration file. (ro)
 
@@ -194,8 +304,27 @@ def toml2dn_policy(filename: str | Path, section: str|None=None) -> dict[str, st
     :returns: A dictionary containing the policy attributes.
     """
     # Using the fake_argv array to bridge safely to the legacy parser
-    return _get_toml_policy_data("dn", filename=filename, section=section)
+    return _get_toml_policy_data_DEV("dn", filename=file_content, section=section)
 
+# !FUNCTION - toml2dn_policy_DEV
+
+# FUNCTION - toml2dn_policy
+def toml2dn_policy(filename: str | Path, section: str | None = None) -> dict[str, str]:
+    """
+    Extract specific policy section data from a TOML configuration file. (ro)
+
+    This is the temporary wrapper for the new standard implementation
+    operating directly on a file path and section name.
+
+    :param filename: The path or name of the TOML configuration file.
+    :param policyname: The specific section name of the policy.
+    :returns: A dictionary containing the policy attributes.
+    """
+    # Using the fake_argv array to bridge safely to the legacy parser
+    return _get_toml_policy_data("dn", filename=str(filename), section=section)
+
+
+# !FUNCTION - toml2dn_policy
 
 
 # FUNCTION - toml2ext_policy
@@ -210,7 +339,7 @@ def toml2ext_policy(filename: str | Path, section: str | None = None) -> dict[st
     :param policy_name: The specific section name of the policy.
     :returns: A dictionary containing the extension attributes.
     """
-    return _get_toml_policy_data("ext", filename=filename, section=section)
+    return _get_toml_policy_data("ext", filename=str(filename), section=section)
 
 # !FUNCTION - toml2ext_policy
 
@@ -227,7 +356,7 @@ def toml2san_policy(filename: str | Path, section: str | None = None) -> dict[st
     :param policy_name: The specific section name of the policy.
     :returns: A dictionary containing the SAN attributes.
     """
-    return _get_toml_policy_data("san", filename=filename, section=section)
+    return _get_toml_policy_data("san", filename=str(filename), section=section)
 
 # !FUNCTION - toml2san_policy
 

@@ -131,6 +131,7 @@ FileNotFoundError: [Errno 2] No such file or directory: '...intermed.toml'
 
 
 >>> rsigner_config=RootSignerPKIConfig()
+>>> rsigner_config
 
 >>> reader_3 = ReaderPKIConfig()
 

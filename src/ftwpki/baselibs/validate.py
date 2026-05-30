@@ -17,6 +17,7 @@ from urllib.parse import urlparse
 from cryptography import x509
 
 from ftwpki.baselibs.data import ValidationError, ValidationResult, ValidityDateCheckResult
+from ftwpki.baselibs.exceptions import PKIPolicyValidationError
 from ftwpki.baselibs.protocols import PolicyType
 
 
@@ -43,7 +44,7 @@ class ValidatorDN:
         self._policy = policy
         self._issuer_dn = issuer_dn
 
-    def validate(self, csr_dn: dict[str, str]) -> ValidationResult:
+    def validate(self, csr_dn: dict[str, str], raise_on_error:bool=True) -> ValidationResult:
         """
         Check the CSR's Distinguished Name against the policy rules. (ro)
 
@@ -80,6 +81,8 @@ class ValidatorDN:
                     )
                 )
         if errors:
+            if raise_on_error:
+                raise PKIPolicyValidationError(errors)
             return ValidationResult(False, errors)
         else:
             return ValidationResult(True, [])

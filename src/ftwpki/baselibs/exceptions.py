@@ -19,6 +19,8 @@ Inheritance Summary:
 
 from pathlib import Path
 
+from ftwpki.baselibs.data import ValidationError
+
 
 class PKIError(Exception):
     """
@@ -37,6 +39,13 @@ class PKIError(Exception):
         """
         return f"{self.__class__.__name__}()"
 
+#DOC - new
+class PKIFileNotFoundError(PKIError):
+    ...
+
+# DOC - new
+class PKIKeyError(PKIError):
+    ...
 
 class PKISecurityError(PKIError):
     """
@@ -78,6 +87,21 @@ class PKIEncryptionError(PKISecurityError):
         :returns: String in the format 'ClassName()'.
         """
         return f"{self.__class__.__name__}()"
+
+class PKIPolicyValidationError(PKISecurityError):
+    def __init__(self, errors:list[ValidationError]) -> None:
+        super().__init__()
+        self.errors: list[ValidationError] = errors
+
+    def __str__(self) -> str:
+        ret:str="While policyvalidation following missmatch occurs:"
+        self.errors.sort()
+        for error in self.errors:
+            ret+=f"\n  {error}"
+        return ret
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(Errors: {len(self.errors)})"
 
 
 class PKIValidationError(PKISecurityError):

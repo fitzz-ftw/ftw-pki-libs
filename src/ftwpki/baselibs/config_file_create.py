@@ -23,6 +23,27 @@ from pathlib import Path
 
 from ftwpki.baselibs.app_dirs import config_file_path
 
+MAIN_CONFIG_DEV = """
+[fallback]
+private_keys = "#config#.private"
+zip          = "#data#"
+certs        = "#zip#"
+chains       = "#zip#"
+
+[caroot]
+private_keys = "#zip#"
+passphrases  = "#config#.private"
+policies     = "#zip#"
+zip          = "#config#.private"
+
+[intermediate]
+private_keys = "#zip#"
+passphrases  = "#config#.private"
+policies     = "#zip#"
+zip          = "#config#.private"
+"""
+
+
 MAIN_CONFIG = """
 [fallback]
 default_config="{file_name}"

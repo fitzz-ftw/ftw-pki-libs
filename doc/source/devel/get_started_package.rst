@@ -131,7 +131,7 @@ Traceback (most recent call last):
     ...
 ValueError: Kein Pfad zum Speichern angegeben.
 
->>> pki_pack.save("reg_hh.zip")
+>>> pki_path = pki_pack.save("reg_hh.zip")
 
 >>> Path("reg_hh.pki").is_file()
 True
@@ -140,7 +140,7 @@ True
 
 >>> pki_pack.message = "Here is your signed certificate."
 
->>> pki_pack.save("reg_hh.zip")
+>>> pack_path = pki_pack.save("reg_hh.zip")
 
 >>> Path("reg_hh.spki").is_file()
 True
@@ -225,7 +225,7 @@ True
 
 >>> recip_pack.to_encrypt = False
 
->>> recip_pack.save("local_use.zip")
+>>> pack_path = recip_pack.save("local_use.zip")
 
 
 

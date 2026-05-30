@@ -17,6 +17,7 @@ from typing import Any, cast
 
 from cryptography import x509
 from cryptography.hazmat.primitives.serialization import Encoding
+from cryptography.x509.base import Certificate
 
 from ftwpki.baselibs.core import extract_certs_from_chain, load_certificate_from_pem
 from ftwpki.baselibs.transport import (
@@ -55,7 +56,13 @@ class PKIPackage:
         self._additional_files:dict[str,Any]={}
         self._message:str=""
 
+    @property
+    def fullchain(self) -> list[x509.Certificate]:
+        return self._intermediate_certs
 
+    @property
+    def intermediatechain(self) -> list[x509.Certificate]:
+        return self._old_intermediats_certs
 
     @property
     def recipient_cert(self) -> x509.Certificate:
@@ -80,6 +87,14 @@ class PKIPackage:
         if self._data["user.crt.pem"] is None or self._data["user.crt.pem"] != value:
             self._new_signed_certificate =True
             self._data["user.crt.pem"] = value
+
+    @property
+    def own_cert(self) -> Certificate:
+        return self.recipient_cert
+    
+    @own_cert.setter
+    def own_cert(self, value:x509.Certificate):
+        self.recipient_cert = value
 
     @property
     def ca_cert(self) -> x509.Certificate:
@@ -148,6 +163,11 @@ class PKIPackage:
         :returns: The assigned private key.
         """
         self._private_key = value
+
+    @private_key.deleter
+    def private_key(self) -> None:
+        del self._private_key
+        self._private_key: RSAPrivateKey = cast(RSAPrivateKey, None)
 
     @property
     def has_private_key(self)-> bool:
@@ -244,7 +264,9 @@ class PKIPackage:
                 else:
                     self._additional_files[file_]= zf.read(file_)
 
-    def save(self, file_path: str | Path|None = None) -> None:
+
+    #FIXME - caroot twice in fullchain: ca_root_creator
+    def save(self, file_path: str | Path|None = None) -> Path:
         """
         Save the package data to a file.
 
@@ -258,7 +280,7 @@ class PKIPackage:
             self._intermediate_certs.append(self._data["caroot.crt.pem"])
 
         intermediate_pems = [c.public_bytes(Encoding.PEM) 
-                             for c in self._intermediate_certs] 
+                             for c in self._intermediate_certs if c] 
 
         if self._new_signed_certificate:
             full_chain = validate_and_format_chain(
@@ -294,6 +316,8 @@ class PKIPackage:
         target_path = target_path.with_suffix(".spki" if self._encrypted else ".pki")
         target_path.write_bytes(self._file_content)
 
+        return target_path
+
 
     def encrypt(self) -> None:
         """
@@ -304,7 +328,7 @@ class PKIPackage:
             recipient_cert=self._data["user.crt.pem"],
             ca_key=self._private_key,
         )
-        
+
 
     def decrypt(self) -> None:
         """

@@ -165,12 +165,7 @@ class TomlPreParser(ArgparseFix311):
     ) -> None:
         kwargs["add_help"] = False
         kwargs["allow_abbrev"] = False
-        super().__init__(prog, 
-                         usage, 
-                         description, 
-                         epilog, 
-                         exit_on_error=exit_on_error,
-                         **kwargs)
+        super().__init__(prog, usage, description, epilog, exit_on_error=exit_on_error, **kwargs)
         self._setup_parser()
 
     # DOC - new
@@ -180,11 +175,7 @@ class TomlPreParser(ArgparseFix311):
             default=None,
             dest="conf_file",
         )
-        self.add_argument("-p",
-            "--policy-name", 
-            default=None, 
-            dest="policy_name"
-        )
+        self.add_argument("-p", "--policy-name", default=None, dest="policy_name")
 
 
 # !CLASS - TomlPreParser
@@ -306,6 +297,117 @@ class DistinguishedNameParser(ArgparseFix311):
 # !CLASS - DistinguishedNameParser
 
 
+# CLASS - DistinguishedNameParser_DEV
+class DistinguishedNameParser_DEV(ArgparseFix311):
+    """
+    Parser for X.509 Distinguished Name attributes. (rw)
+
+    This class handles individual DN flags (like -CN, -O) as well as
+    combined subject strings (-subj) and TOML configuration files.
+    """
+
+    def __init__(
+        self,
+        prog: str | None = None,
+        usage: str | None = None,
+        description: str | None = None,
+        epilog: str | None = None,
+        exit_on_error: bool = False,
+        **kwargs,
+    ) -> None:
+        """Initialize the DN parser with default PKI arguments. (rw)"""
+        self._no_conf_file: bool = kwargs.pop("no_config_file", False)
+        super().__init__(prog, usage, description, epilog, exit_on_error=exit_on_error, **kwargs)
+        self._setup_parser()
+
+    def _setup_parser(self) -> None:
+        """Configure the available CLI arguments for DN attributes. (rw)"""
+        self.add_argument(
+            "-C", "--countryName", dest="countryName", default="", help="Land (2 Buchstaben)"
+        )
+        self.add_argument(
+            "-ST",
+            "--stateOrProvinceName",
+            dest="stateOrProvinceName",
+            default="",
+            help="Bundesland/Provinz",
+        )
+        self.add_argument("-L", "--localityName", dest="localityName", default="", help="Stadt/Ort")
+        self.add_argument(
+            "-O",
+            "--organizationName",
+            dest="organizationName",
+            default="",
+            help="Organisation/Firma",
+        )
+        self.add_argument(
+            "-OU",
+            "--organizationalUnitName",
+            dest="organizationalUnitName",
+            default="",
+            help="Abteilung/OU",
+        )
+        self.add_argument(
+            "-CN",
+            "--commonName",
+            dest="commonName",
+            default="",
+            help="Vollqualifizierter Domainname (FQDN)",
+        )
+        self._conf_group = self.add_mutually_exclusive_group()
+        self._conf_group.add_argument(
+            "-subj",
+            dest="dnsubject",
+            default="",
+            action=SubjAction,
+            help="DN im OpenSSL-Format, z.B. /C=DE/O=Firma/CN=Server",
+        )
+        if not self._no_conf_file:
+            self._conf_group.add_argument(
+                "--conf-file",
+                dest="conf_file",
+                type=Path,
+                help="Path to a TOML-Configfile",
+            )
+
+    def sync_arguments(self, parsed_args: DistinguishedNameProtocol) -> DistinguishedNameProtocol:
+        """
+        Synchronize individual DN flags with the dnsubject dictionary. (rw)
+
+        :param parsed_args: The namespace object containing parsed attributes.
+        :returns: The updated protocol-compliant object.
+        """
+        final_dn = getattr(parsed_args, "dnsubject", {}) or {}
+        for arg in ALIAS_MAP.values():
+            arg_v = getattr(parsed_args, arg, "")
+            if arg_v:
+                final_dn[arg] = arg_v
+            else:
+                dn_arg = final_dn.get(arg, "")
+                if dn_arg:
+                    setattr(parsed_args, arg, final_dn[arg])
+        parsed_args.dnsubject = final_dn
+        return parsed_args
+
+    def parse_args(
+        self, args: list[str] | None = None, namespace: Namespace | None = None
+    ) -> DistinguishedNameProtocol:
+        """
+        Parse CLI arguments and return a synchronized DN protocol object. (rw)
+
+        :param args: List of argument strings.
+        :param namespace: Existing namespace to populate.
+        :returns: An object following the DistinguishedNameProtocol.
+        """
+        arg_parsed = cast(
+            DistinguishedNameProtocol, super().parse_args(args=args, namespace=namespace)
+        )
+        return self.sync_arguments(arg_parsed)
+
+
+# !CLASS - DistinguishedNameParser_DEV
+
+
 def get_dn_parser() -> DistinguishedNameParser:
     """
     Factory function to create a DistinguishedNameParser instance.
@@ -314,6 +416,41 @@ def get_dn_parser() -> DistinguishedNameParser:
     """
     return DistinguishedNameParser()
 
+
+# CLASS - CSRParser_DEV
+class CSRParser_DEV(DistinguishedNameParser):
+    """
+    Parser for Certificate Signing Request (CSR) parameters. (rw)
+
+    Extends DN parsing with arguments for key management and storage paths.
+    """
+
+    def _setup_parser(self) -> None:
+        """Configure additional arguments for CSR key paths. (rw)"""
+        super()._setup_parser()
+        self.add_argument("-k", "--key", "--key-name", default="", dest="key_name")
+        self.add_argument("-n", "--name", 
+                          default="", 
+                          dest="pki_name",
+                          help="Name for the Configuration (Default: '%(default)s')")
+        self.add_argument("--private-dir", dest="privatdir", default="")
+
+    def parse_args(
+        self, args: list[str] | None = None, namespace: Namespace | None = None
+    ) -> CSRProtocol:
+        """
+        Parse arguments and return a CSR protocol object. (rw)
+
+        :returns: An object following the CSRProtocol.
+        """
+        arg_parsed = cast(CSRProtocol, super().parse_args(args, namespace))
+        base_name = arg_parsed.key_name
+        arg_parsed.private_key = f"{base_name}.key.pem" if base_name else ""
+        arg_parsed.public_key = f"{base_name}.pub.pem" if base_name else ""
+        return cast(CSRProtocol, arg_parsed)
+
+
+# !CLASS - CSRParser_DEV
 
 # CLASS - CSRParser
 class CSRParser(DistinguishedNameParser):
@@ -345,7 +482,7 @@ class CSRParser(DistinguishedNameParser):
 
         :returns: An object following the CSRProtocol.
         """
-        arg_parsed = cast(CSRProtocol,super().parse_args(args, namespace))
+        arg_parsed = cast(CSRProtocol, super().parse_args(args, namespace))
         base_name = arg_parsed.key_name
         arg_parsed.private_key = f"{base_name}.key.pem" if base_name else ""
         arg_parsed.public_key = f"{base_name}.pub.pem" if base_name else ""
@@ -362,6 +499,76 @@ def get_csr_parser() -> CSRParser:
     :returns: A new instance of the Certificate Signing Request parser.
     """
     return CSRParser()
+
+# CLASS - ServerClientCSRParser_DEV
+class ServerClientCSRParser_DEV(CSRParser_DEV):
+    """
+    Parser for server and client certificate signing requests. (ro)
+
+    This class extends the basic CSR parser to include network-specific
+    arguments like email, IP addresses, and hostnames.
+    """
+
+    def __init__(self, **kwargs) -> None:
+        """
+        Initialize the ServerClient parser.
+
+        :param kwargs: Arbitrary keyword arguments for the parser configuration.
+        :raises KeyError: If required configuration keys are missing in kwargs.
+        """
+        self._type_name: ClientTypeName = kwargs.pop("typename", "server")
+        self._type_name = self._type_name if self._type_name else "server"
+        kwargs.setdefault("exit_on_error", False)
+        super().__init__(**kwargs)
+
+    def _setup_parser(self) -> None:
+        """
+        Configure the argument parser with specific network fields.
+
+        :raises argparse.ArgumentError: If an argument conflict occurs.
+        """
+        super()._setup_parser()
+        self.add_argument("email", help="Email address the signed certificate send to.")
+        self.add_argument(
+            "-ip",
+            "--ip-address",
+            action="append",
+            default=[],
+            dest="ip_addresses",
+            help=f"The ip addresses of the {self._type_name}.",
+        )
+        self.add_argument(
+            "-hn",
+            "--host-name",
+            action="append",
+            default=[],
+            dest="host_names",
+            help=f"The hostnames of the {self._type_name}.",
+        )
+        self.add_argument(
+            "--password",
+            dest="password",
+            help="Password for the private key, on server dont use it."
+        )
+
+    def parse_args(
+        self, args: list[str] | None = None, namespace: Namespace | None = None
+    ) -> ServerClientCSRProtocol:
+        """
+        Parse command line arguments and validate network identity.
+
+        :param args: List of strings to parse. Default is sys.argv.
+        :param namespace: An object to take the attributes.
+        :raises argparse.ArgumentError: If neither an IP address nor a hostname is provided.
+        :returns: An object containing the parsed and validated CSR data.
+        """
+        ret = cast(ServerClientCSRProtocol, super().parse_args(args, namespace))
+        if not ret.ip_addresses and not ret.host_names:
+            raise ArgumentError(None, "At least an ip address or a hostname has to be given")
+        return ret
+
+
+#!CLASS - ServerClientCSRParser_DEV
 
 
 # CLASS - ServerClientCSRParser
@@ -537,7 +744,7 @@ class CSRSigningParser(PolicyParser):
             "--certificate",
             dest="certificate",
             default="",
-            help="Certificate to sign.",
+            help="Certificate used to sign the CSR.",
         )
         self.add_argument(
             "-d",
@@ -566,7 +773,7 @@ class CSRSigningParser(PolicyParser):
 
         :returns: An object following the SignParserProtocol.
         """
-        arg_parsed = cast(SignParserProtocol,super().parse_args(args=args, namespace=namespace))
+        arg_parsed = cast(SignParserProtocol, super().parse_args(args=args, namespace=namespace))
         base_name = arg_parsed.key_name
         arg_parsed.private_key = f"{base_name}.key.pem" if base_name else ""
         return cast(SignParserProtocol, arg_parsed)
@@ -654,7 +861,7 @@ class CertImportParser(ArgparseFix311):
             "--key-name", "-k", dest="key_name", required=True, help="Name des Private Keys"
         )
         # self.add_argument(
-        #             "--keyfile", "-k", 
+        #             "--keyfile", "-k",
         #               dest="private_keyfile", required=True, help="Name des Private Keys"
         #         )
 

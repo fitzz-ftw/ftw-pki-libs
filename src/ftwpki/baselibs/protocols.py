@@ -109,7 +109,10 @@ class ServerClientCSRProtocol(CSRProtocol):
 
     password: str | None
     """The optional password used for the private key or signing."""
-
+    #DOC - new
+    conf_file:str
+    # DOC - new
+    pki_name:str
 
 # !CLASS - ServerClientCSR
 

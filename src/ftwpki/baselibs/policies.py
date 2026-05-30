@@ -171,7 +171,7 @@ class IntermediatePolicy(BasePolicy):
         super().__init__(**kwargs)
         self._basic_constraints = x509.BasicConstraints(ca=True, path_length=self._path_length)
         self._key_usage = x509.KeyUsage(
-            digital_signature=True,
+            digital_signature=False,
             content_commitment=False,
             key_encipherment=False,
             data_encipherment=False,
