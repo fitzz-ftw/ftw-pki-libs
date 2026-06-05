@@ -11,9 +11,9 @@ Utilities for TOML
 
 >>> from ftwpki.baselibs.toml_utils import toml2dn
 
->>> from ftwpki.baselibs.cli_parser import TomlPreParser
+>>> from ftwpki.baselibs.cli_parser import ServerClientCSRParser
 
->>> pre_parser = TomlPreParser()
+>>> pre_parser = ServerClientCSRParser(add_help=False)
 
 
 >>> argv, _ = pre_parser.parse_known_args(["--conf-file", "not_there.toml"])
@@ -23,7 +23,7 @@ Utilities for TOML
 >>> conf_ca.name
 'ca_conf.toml'
 
->>> argv, _ = pre_parser.parse_known_args(["--conf-file", conf_ca.name])
+>>> argv, _ = pre_parser.parse_known_args(["--conf-file", conf_ca.name, "test@example.org"])
 >>> toml2dn(Path(argv.conf_file).read_text()) # doctest: +NORMALIZE_WHITESPACE
 {'countryName': 'DE', 
  'organizationName': 'Fitzz TeXnik Welt', 
@@ -31,7 +31,7 @@ Utilities for TOML
  'dnsubject': ''}
 
 >>> conf_keyerror = env.copy2cwd("toml_2_dn_keyerror.toml", "ca_keyerror.toml" )
->>> argv, _ = pre_parser.parse_known_args(["--conf-file", conf_keyerror.name])
+>>> argv, _ = pre_parser.parse_known_args(["--conf-file", conf_keyerror.name, "test@example.org"])
 >>> toml2dn(Path(argv.conf_file).read_text())
 Traceback (most recent call last):
     ...
@@ -39,7 +39,7 @@ ftwpki.baselibs.exceptions.PKIKeyError: No table 'identity.dn' in config file!
 
 
 >>> conf_dec_error = env.copy2cwd("toml_decode_error.txt", "ca_decode_error.toml" )
->>> argv, _ = pre_parser.parse_known_args(["--conf-file", conf_dec_error.name])
+>>> argv, _ = pre_parser.parse_known_args(["--conf-file", conf_dec_error.name, "test@example.org"])
 >>> toml2dn(Path(argv.conf_file).read_text())
 Traceback (most recent call last):
     ...
@@ -57,7 +57,7 @@ True
 
 >>> from ftwpki.baselibs.toml_utils import toml2dn_policy
 >>> _ = env.copy2cwd("toml_2_dn_test.toml")
->>> argv,_ = pre_parser.parse_known_args(["--conf-file", "toml_2_dn_test.toml"])
+>>> argv,_ = pre_parser.parse_known_args(["--conf-file", "toml_2_dn_test.toml", "test@example.org"])
 
 >>> toml2dn_policy(Path(argv.conf_file).read_text())
 intermediate
@@ -66,9 +66,14 @@ user
 server_l2
 {'commonName': 'error'}
 
->>> argv=["--conf-file", "toml_2_dn_test.toml", "--policy-name", "intermediate"]
+>>> from ftwpki.baselibs.cli_parser import PolicyParser
+
+>>> pre_parser = PolicyParser(add_help=False)
+
+>>> argv=["--conf-file", "toml_2_dn_test.toml", "--policy-name", "intermediate", "test@example.org"]
 >>> pre_args , _ = pre_parser.parse_known_args(argv)
 
+>> pre_args
 
 >>> toml2dn_policy(Path(pre_args.conf_file).read_text(), pre_args.policy_name) # doctest: +ELLIPSIS   
 {'countryName': 'match', 'organizationName': 'match', 'commonName': 'supplied'}

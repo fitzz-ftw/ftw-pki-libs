@@ -28,10 +28,9 @@ from ftwpki.baselibs.protocols import (
 from ftwpki.baselibs.toml_utils import _get_toml_policy_data, toml2config
 
 
-# FIXME - OLD_BasePKIConfig
 # CLASS - BasePKIConfig
 class BasePKIConfig:
-    def __init__(self, file_name: str) -> None:
+    def __init__(self, file_name: str="test") -> None:
         """
         Initialize the configuration directly from a file.
 
@@ -47,6 +46,17 @@ class BasePKIConfig:
             main_content = MAIN_CONFIG
             write_example_config(main_content)
         self._secure_dirs: list[str] = ["private_keys"]
+        self._usable = {"set_config": False,
+                        "set_file_name": bool(file_name), 
+                        "handel_pki_file":False}
+
+
+    #DOC - new
+    def set_file_name(self, value:str| Path):
+        self._file_name: Path = Path(value).with_suffix(".pki")
+        self._usable["set_filename"] = True
+
+
 
     def set_config(self, section: str = "") -> None:
         """
@@ -67,6 +77,11 @@ class BasePKIConfig:
              self._raw_data, self._secure_dirs, *dirs_to_setup
         )
         self._in_zip: list[str] = [k for k, v in self._raw_data.items() if v == "#zip#"]
+        self._usable["set_config"] = True
+
+    #DOC - new
+    def init_completed(self) -> dict[str, bool]:
+        return self._usable.copy()
 
     @property
     def in_zip(self) -> list[str]:
@@ -98,8 +113,11 @@ class BasePKIConfig:
             self._pki_conf.save(self.pki_path/ self._file_name)
             self._file_name.unlink(True)
         self._pki_conf.load(self.pki_path / self._file_name)
+        self._usable["handle_pki_file"] = True
 
-
+    #DOC - new
+    def __bool__(self) -> bool:
+        return all(self._usable.values())
 
     @property
     def config_path(self) -> Path:
@@ -144,9 +162,6 @@ class BasePKIConfig:
     @property
     def fullchain(self) -> list[x509.Certificate]:
         return self._pki_conf.fullchain if "chains" in self.in_zip else []
-
-
-
 
     @property
     def own_cert(self)->x509.Certificate:
@@ -247,7 +262,6 @@ class LeafPKIConfig(BasePKIConfig):
 # !CLASS - Leaf Configuration
 
 
-# FIXME - RootSignerPKIConfig
 # CLASS - Root Signer Configuration
 class RootSignerPKIConfig(BasePKIConfig):
     """
@@ -268,7 +282,10 @@ class RootSignerPKIConfig(BasePKIConfig):
         self.set_config(section=section)
 
     def private_key(self, key_name: str="CA.key.pem") -> bytes:
-        return self._pki_conf.additional_files[key_name]
+        if "private_keys" in self.in_zip:
+            return self._pki_conf.additional_files[key_name]
+        else:
+            return self.private_keys.joinpath(key_name).read_bytes()
 
     @property
     def passphrases(self) -> Path:
@@ -295,7 +312,6 @@ class RootSignerPKIConfig(BasePKIConfig):
 
 # !CLASS - Root Signer Configuration
 
-# FIXME - Intermediate Configuration
 # CLASS - Intermediate Configuration
 class IntermedPKIConfig(RootSignerPKIConfig):
     """

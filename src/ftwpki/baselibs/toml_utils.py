@@ -75,8 +75,6 @@ def toml2dn(file_content: str ) -> dict[str, str]:
 
 
 # !FUNCTION - toml2dn
-# FIXME - toml2dn
-
 
 
 # FUNCTION - _get_toml_policy_data
@@ -124,7 +122,6 @@ def _get_toml_policy_data(policy_type: str,
         except KeyError:
             raise PKIKeyError(f"Key: {section_name}.{policy_type} not found.")
 # !FUNCTION - _get_toml_policy_data
-# FIXME - _get_toml_policy_data
 
 # FUNCTION - toml2ext
 def toml2ext(filename: str | Path, section: str|None=None) -> dict[str, str]:
@@ -160,7 +157,6 @@ def toml2dn_policy(file_content: str, section: str|None=None) -> dict[str, str]:
     return _get_toml_policy_data("dn", file_content=file_content, section=section)
 
 # !FUNCTION - toml2dn_policy
-# FIXME - toml2dn_policy
 
 
 # FUNCTION - toml2ext_policy

@@ -22,7 +22,7 @@ DistinguishedNameParser(prog=...,
     conflict_handler='error', 
     add_help=True)
 
->>> no_conf_file_parser = DistinguishedNameParser(no_config_file=True)
+>>> no_conf_file_parser = DistinguishedNameParser()
 
 >>> no_conf_file_parser.parse_args(["-C", "de" ]) #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
 Namespace(countryName='de', 
@@ -40,8 +40,7 @@ Namespace(countryName='de',
     organizationName='', 
     organizationalUnitName='', 
     commonName='', 
-    dnsubject={'countryName': 'de'}, 
-    conf_file=None)
+    dnsubject={'countryName': 'de'})
 
 >>> dnp.parse_args(["-C", "de", "-subj", "/CN=Mein Name"  ]) #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
 Namespace(countryName='de', 
@@ -51,8 +50,7 @@ Namespace(countryName='de',
     organizationalUnitName='', 
     commonName='Mein Name', 
     dnsubject={'commonName': 'Mein Name', 
-               'countryName': 'de'}, 
-    conf_file=None)
+               'countryName': 'de'})
 
 >>> dnp.parse_args(["-C", "de", "-subj", "/CN:Mein Name"  ]) #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
 Traceback (most recent call last):
@@ -81,6 +79,13 @@ argparse.ArgumentError:
     add_help=True)
 
 >>> csr.parse_args(["-C", "de", "-subj", "/CN=Mein Name"  ]) #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+Traceback (most recent call last):
+    ...
+argparse.ArgumentError: the following arguments are required: --conf-file, -k/--key/--key-name
+
+
+
+>>> csr.parse_args(["-C", "de", "-k", "testkey", "--conf-file", "testfile.toml", "-subj", "/CN=Mein Name"  ]) #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
 Namespace(countryName='de', 
     stateOrProvinceName='', 
     localityName='', 
@@ -89,12 +94,12 @@ Namespace(countryName='de',
     commonName='Mein Name', 
     dnsubject={'commonName': 'Mein Name', 
             'countryName': 'de'}, 
-    conf_file=None, 
-    key_name='',
+    conf_file=...Path('testfile.toml'), 
+    key_name='testkey',
     pki_name='', 
     privatdir='', 
-    private_key='', 
-    public_key='')
+    private_key='testkey.key.pem', 
+    public_key='testkey.pub.pem')
 
 >>> from ftwpki.baselibs.cli_parser import ServerClientCSRParser, get_server_client_csr_parser
 
@@ -113,12 +118,12 @@ ServerClientCSRParser(prog=...,
     conflict_handler='error', 
     add_help=True)
 
->>> sccsr.parse_args(["-C", "de", "-subj", "/CN=Mein Name", "test@example.org"  ]) #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+>>> sccsr.parse_args(["-k", "testkey", "--conf-file", "testfile.toml","-C", "de", "-subj", "/CN=Mein Name", "test@example.org"  ]) #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
 Traceback (most recent call last):
     ...
 argparse.ArgumentError: At least an ip address or a hostname has to be given
 
->>> sccsr.parse_args(["-C", "de","-ip", "192.168.1.1", "-subj", "/CN=Mein Name", "test@example.org"  ]) #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+>>> sccsr.parse_args(["-k", "testkey", "--conf-file", "testfile.toml","-C", "de","-ip", "192.168.1.1", "-subj", "/CN=Mein Name", "test@example.org"  ]) #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
 Namespace(countryName='de', 
     stateOrProvinceName='', 
     localityName='', 
@@ -127,16 +132,15 @@ Namespace(countryName='de',
     commonName='Mein Name', 
     dnsubject={'commonName': 'Mein Name', 
             'countryName': 'de'}, 
-    conf_file=None,  
-    key_name='', 
+    conf_file=PosixPath('testfile.toml'), 
+    key_name='testkey',    
     pki_name='',
     privatdir='',
     email='test@example.org',
     ip_addresses=['192.168.1.1'], 
     host_names=[], 
     password=None,
-    private_key='', 
-    public_key='')
+    private_key='testkey.key.pem', public_key='testkey.pub.pem')
 
 >>> from ftwpki.baselibs.cli_parser import PolicyParser, get_policy_parser
 
@@ -193,7 +197,7 @@ CSRSigningParser(prog='...',
     conflict_handler='error', 
     add_help=True)
 
->>> csp.parse_args(["-C", "match", "passphrasefile", "certificat_sign_request"])  #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+>>> csp.parse_args(["-c", "test.pki","-C", "match", "passphrasefile", "certificat_sign_request"])  #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
 Namespace(countryName='match', 
     stateOrProvinceName='no', 
     localityName='no', 
@@ -204,7 +208,7 @@ Namespace(countryName='match',
     conf_file=None, 
     key_name=None, 
     private_dir=None,
-    certificate='', 
+    certificate='test.pki', 
     validity_days=365, 
     path_length=0, 
     passphrasefile='passphrasefile', 
@@ -301,7 +305,7 @@ CSRMultiSigningParser(prog='...',
     conflict_handler='error', 
     add_help=True)
 
->>> multi_parser.parse_args(["-C", "match", "passphrasefile", "certificat_sign_request"])  #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+>>> multi_parser.parse_args(["-c", "test.pki", "-C", "match", "passphrasefile", "certificat_sign_request"])  #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
 Namespace(countryName='match', 
     stateOrProvinceName='no', 
     localityName='no', 
@@ -312,7 +316,7 @@ Namespace(countryName='match',
     conf_file=None, 
     key_name=None, 
     private_dir=None,
-    certificate='', 
+    certificate='test.pki', 
     validity_days=365, 
     path_length=0, 
     passphrasefile='passphrasefile', 
@@ -326,12 +330,3 @@ Namespace(countryName='match',
         'commonName': 'no'},
      private_key='')
 
->>> from ftwpki.baselibs.cli_parser import TomlPreParser , get_toml_pre_parser
-
->>> get_toml_pre_parser() #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
-TomlPreParser(prog='...', 
-    usage=None, 
-    description=None, 
-    formatter_class=<class 'argparse.HelpFormatter'>, 
-    conflict_handler='error', 
-    add_help=False)

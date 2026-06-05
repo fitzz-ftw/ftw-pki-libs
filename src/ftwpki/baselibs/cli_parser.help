@@ -1,0 +1,96 @@
+[desting-name]
+
+[desting-name.countryName]
+en = "ISO 3166-1 alpha-2 country code (e.g., DE, US). Affects certificate trust and legal jurisdiction. (Default: %(default)s)"
+
+[desting-name.stateOrProvinceName]
+en = "Full name of the state or province. Important for identifying the physical location of the entity. (Default: %(default)s)"
+
+[desting-name.localityName]
+en = "City or town name. Essential for physical identity verification in high-assurance certificates. (Default: %(default)s)"
+
+[desting-name.organizationName]
+en = "Legal name of the organization. Often used in OV (Organization Validated) certificates to prove legal entity existence. (Default: %(default)s)"
+
+[desting-name.organizationalUnitName]
+en = "Department or section name (e.g., IT, Security). Used to distinguish internal responsibilities within the organization. (Default: %(default)s)"
+
+[desting-name.commonName]
+en = "The primary identifier (FQDN or name) the certificate is issued to. Crucial for TLS handshake validation. (Default: %(default)s)"
+
+[desting-name.dnsubject]
+en = "Full Distinguished Name string. Overrides individual flags. Use format: /C=DE/O=Company/CN=example.com. (Default: %(default)s)"
+
+[csrparser]
+[csrparser.conf_file]
+en = "Path to a TOML-Configfile. This file defines the core parameters for the CSR generation."
+[csrparser.key_name]
+en = "Key identifier used to reference the private key. Must correspond to the internal key storage name."
+[csrparser.pki_name]
+en = "Name for the Configuration. Used to group settings in the PKI management system."
+[csrparser.privatdir]
+en = "Directory where the private keys are stored securely. Defaults to the base security folder."
+
+[servclientcsr]
+[servclientcsr.email]
+en = "Email address where the signed certificate will be sent."
+[servclientcsr.ip_addresses]
+en = "IP address(es) to include in the certificate. Can be specified multiple times."
+[servclientcsr.host_names]
+en = "Hostname(s) or FQDN(s) associated with the certificate. Can be specified multiple times."
+[servclientcsr.password]
+en = "Password for protecting the private key. Note: Avoid using this for server-side automated deployments."
+
+
+[policy]
+[policy.countryName]
+en = "Policy for Country Name. Specifies whether the field must match, is optional, supplied, or not allowed."
+[policy.stateOrProvinceName]
+en = "Policy for State or Province Name. Specifies whether the field must match, is optional, supplied, or not allowed."
+[policy.localityName]
+en = "Policy for Locality Name. Specifies whether the field must match, is optional, supplied, or not allowed."
+[policy.organizationName]
+en = "Policy for Organization Name. Specifies whether the field must match, is optional, supplied, or not allowed."
+[policy.organizationalUnitName]
+en = "Policy for Organizational Unit Name. Specifies whether the field must match, is optional, supplied, or not allowed."
+[policy.commonName]
+en = "Policy for Common Name. Specifies whether the field must match, is optional, supplied, or not allowed."
+[policy.policy_name]
+en = "Name of the policy configuration. Used to uniquely identify this policy rule set."
+[policy.conf_file]
+en = "Path to a TOML-Configfile defining the certificate issuance constraints."
+
+[csrsigning]
+[csrsigning.key_name]
+en = "Key identifier used to reference the private key."
+[csrsigning.private_dir]
+en = "Directory where the private keys are stored securely."
+[csrsigning.certificate]
+en = "Certificate file used to sign the CSR."
+[csrsigning.validity_days]
+en = "Validity period of the signed certificate in days."
+[csrsigning.path_length]
+en = "Constraint on the path length for intermediate certificates."
+[csrsigning.passphrasefile]
+en = "Path to a file containing the passphrase for the private key."
+[csrsigning.certificat_sign_request]
+en = "Path to the CSR file that should be signed."
+
+[csrmultisign]
+[csrmultisign.policy_type]
+en = """The type of the policy to apply for the signing operation. Determines \
+        the constraints and requirements for the resulting certificate."""
+
+[certimport]
+[certimport.enc_zipfile]
+en = "Path to the encrypted ZIP archive containing the certificate(s)."
+[certimport.key_name]
+en = "Identifier for the private key. Used to resolve the corresponding key file (e.g., <name>.key.pem)."
+
+[intermcertimport]
+[intermcertimport.passphrase_file]
+en = "Path to the file containing the passphrase for decrypting the archive."
+[intermcertimport.policies]
+en = "Directory containing the policy configuration files to be applied."
+[intermcertimport.policy]
+en = "The name of the policy to be used for this import operation."

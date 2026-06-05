@@ -8,14 +8,6 @@ All avalible Parser in this Package
     :align: center
     :config: {"width": "300px", "height": "300px"}
 
-TomlPreParser
-------------------
-
-.. argparse::
-   :module: ftwpki.baselibs.cli_parser 
-   :func: get_toml_pre_parser
-   :prog: TomlPreParser
-
 
 DistinguishedNameParser
 -----------------------

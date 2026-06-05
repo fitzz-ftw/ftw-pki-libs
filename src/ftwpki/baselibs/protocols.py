@@ -76,7 +76,12 @@ class CSRProtocol(DistinguishedNameProtocol):
 
 # !CLASS - CSRProtocol
 
-ClientTypeName = Literal["server", "client", "clsrvr", "client-server"]
+ClientTypeName = Literal["server", 
+        "client", 
+        "clsrvr", 
+        "client-server",
+        "user",
+        "intermediate"]
 """
 Type alias for the allowed roles in a certificate request.
 
