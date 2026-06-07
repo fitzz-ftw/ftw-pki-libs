@@ -205,12 +205,20 @@ def get_cert_text_from_cert(pem_bytes: bytes) -> str:
     return "\n".join(lines)
 # !FUNCTION - get_cert_text_from_cert
 
-#DOC - new
 def report_error(e:BaseException) -> None:
+    """
+    Print an exception to the standard error stream.
+
+    :param e: The exception instance to report.
+    """
     print(e, file=sys.stderr)
 
-#DOC - new
 def print_error(e: BaseException) -> None:
+    """
+    Print an exception to the standard output.
+
+    :param e: The exception instance to print.
+    """
     print(e)
 
 

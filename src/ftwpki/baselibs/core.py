@@ -199,11 +199,13 @@ def create_chain_bytes(certificates: list[x509.Certificate]) -> bytes:
 
 
 # FUNCTION - extract_certs_from_chain
-# DOC - translate
 def extract_certs_from_chain(chain_bytes: bytes) -> list[x509.Certificate]:
     """
-    Extrahiert Zertifikate mittels Regex, um unabhängig von
-    Zeilenumbrüchen oder Text-Artefakten zu sein.
+    Extract certificates using regex to handle arbitrary line breaks or artifacts.
+
+    :param chain_bytes: The raw bytes containing the certificate chain.
+    :raises cryptography.exceptions.UnsupportedAlgorithm: If the cert format is invalid.
+    :returns: A list of loaded x509 certificate objects.
     """
     pattern = re.compile(rb"-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----", re.DOTALL)
 
@@ -217,14 +219,24 @@ def extract_certs_from_chain(chain_bytes: bytes) -> list[x509.Certificate]:
 
 # !FUNCTION - extract_certs_from_chain
 
-#DOC - new
+# FUNCTION - private_key_to_pem
 def private_key_to_pem(key_obj: RSAPrivateKey) -> bytes:
+    """
+    Convert an RSA private key object to PEM format.
+
+    :param key_obj: The RSA private key object.
+    :raises TypeError: If the provided key object is not a valid RSA key.
+    :returns: The PEM-encoded private key as bytes.
+    """
     key_bytes = key_obj.private_bytes(
         encoding=serialization.Encoding.PEM,
         format=serialization.PrivateFormat.PKCS8,
         encryption_algorithm=serialization.NoEncryption(),  # Oder BestAlgorithm(password)
     )
     return key_bytes
+
+# !FUNCTION - private_key_to_pem
+
 
 # FUNCTION - load_private_key_from_pem
 def load_private_key_from_pem(pem_data: bytes, passphrase: str | None) -> rsa.RSAPrivateKey:
@@ -331,7 +343,6 @@ def convert_pem_to_der(pem_bytes: bytes, is_key: bool = False, password: str = "
 
 
 # FUNCTION - create_csr_name
-# DOC - change
 def create_csr_name(*args: str, suffix: str = ".csr") -> str:
     """
     Create a file name for a Certificate Signing Request. (ro)

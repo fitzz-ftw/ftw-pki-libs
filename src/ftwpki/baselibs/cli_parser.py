@@ -80,58 +80,93 @@ load_help_entries(_HELP, HELP_FILE)
 LANG = "en"
 
 
-# DOC - new
 class ParserHelp:
-    # DOC - new
+    """Manage help text for parser arguments."""
+
     def __init__(
         self,
         parser_id: str,
         help_entries: dict[str, str | dict[str, str]] = _HELP,
         lang: str = LANG,
     ) -> None:
+        """
+        Initialize the help parser for a specific parser ID.
+
+        :param parser_id: The unique identifier for the parser.
+        :param help_entries: Dictionary containing the help content mappings.
+        :param lang: The language code for the requested help text.
+        """
         self._help = help_entries.get(parser_id)
         self._lang = lang
 
-    # DOC - new
     def update(self, parser_id: str, new_help: dict[str, str | dict[str, str]] = _HELP) -> None:
-        # print(parser_id)
-        # print(new_help)
-        self._help.update(new_help.get(parser_id))
+        """
+        Update the existing help entries with new content.
 
-    # DOC - new
+        :param parser_id: The identifier for the help entries to update.
+        :param new_help: The dictionary containing new help mappings.
+        """
+        self._help.update(new_help.get(parser_id))  # type: ignore
+
     def help(self, arg_dest_name: str) -> str:
-        ret = self._help.get(arg_dest_name, "")
-        return ret.get(self._lang, "en") if ret else ret
+        """
+        Retrieve the help text for a specific argument destination.
 
-    # DOC - new
+        :param arg_dest_name: The destination name of the argument.
+        :returns: The help string for the specified language or an empty string.
+        """
+        ret = self._help.get(arg_dest_name, "") # type: ignore
+        return ret.get(self._lang, "en") if ret else ret # type: ignore
+
     def __call__(self, arg_dest_name: str) -> str:
+        """
+        Return the help text for the given argument destination.
+
+        :param arg_dest_name: The destination name of the argument.
+        :returns: The help text.
+        """
         return self.help(arg_dest_name)
 
 
 class AutoHelpParserMixin:
     """
     Mixin to automate help text formatting.
+
     Provides a centralized add_argument method to inject dynamic
     metadata like required flags into the help strings.
     """
 
-    # DOC - new
     def __init__(
         self, *args, help_id: str, help_entries: dict[str, str | dict[str, str]] = _HELP, **kwargs
     ):
-        # Hier injizieren wir unsere Custom-Klasse in den Constructor
-        if args and isinstance(args[0], ArgumentParser):
-            super().__init__(*args, **kwargs)
-        else:
-            self._helpid: str = help_id
-            if hasattr(self, "_help"):
-                self._help.update(help_entries[self._helpid])
-            else:
-                self._help = ParserHelp(self._helpid, help_entries)
-            super().__init__(*args, **kwargs)
+        """
+        Initialize the parser with integrated help functionality.
 
-    # DOC - new
+        :param help_id: The identifier for the help entries.
+        :param help_entries: Mapping of parser IDs to help content.
+        :param args: Positional arguments for the base class constructor.
+        :param kwargs: Keyword arguments for the base class constructor.
+        """
+        # Hier injizieren wir unsere Custom-Klasse in den Constructor
+        # if args and isinstance(args[0], ArgumentParser):
+        #     print("Test")
+        #     super().__init__(*args, **kwargs)
+        # else:
+        self._helpid: str = help_id
+        # if hasattr(self, "_help"):
+        #     self._help.update(help_entries[self._helpid])
+        # else:
+        self._help = ParserHelp(self._helpid, help_entries)
+        super().__init__(*args, **kwargs)
+
     def add_argument(self, *args, **kwargs):
+        """
+        Add an argument to the parser and inject dynamic help text.
+
+        :param args: Positional arguments for the argument definition.
+        :param kwargs: Keyword arguments for the argument definition.
+        :raises ValueError: If the argument destination cannot be resolved.
+        """
         # Wenn dest explizit gegeben ist, nutzen wir es.
         # Sonst suchen wir den Namen aus den Flags.
         dest = kwargs.get("dest") or self._get_dest_from_args(args)
@@ -141,20 +176,19 @@ class AutoHelpParserMixin:
             kwargs["help"] = self._help(dest)
 
         # Formatieren des Hilfe-Textes
-        if "help" in kwargs:
-            is_required = kwargs.get("required", False)
-            kwargs["help"] = kwargs["help"].format(required="(Required)" if is_required else "")
+        # if "help" in kwargs:
+        is_required = kwargs.get("required", False)
+        kwargs["help"] = kwargs["help"].format(required="(Required)" if is_required else "")
 
-        super().add_argument(*args, **kwargs)
+        super().add_argument(*args, **kwargs) # type: ignore
 
-    # DOC - new
     def _get_dest_from_args(self, args):
         """
-        Ermittelt den 'dest'-Namen deterministisch:
-        1. Optionen (-- oder -): Der längste Name gewinnt (für TOML-Lookup).
-        2. Positionals: Das erste Argument.
+        Determine the destination name deterministically from arguments.
+
+        :param args: Positional arguments used to define the option.
+        :returns: The resolved destination name.
         """
-        # Alle Optionen filtern
         options = [a.lstrip("-") for a in args if a.startswith("-")]
 
         if options:
@@ -165,17 +199,24 @@ class AutoHelpParserMixin:
             return args[0] if args else ""
 
 
-class AutoHelpGroup(AutoHelpParserMixin, _ArgumentGroup):
-    """
-    Custom ArgumentGroup that inherits help automation.
-    Allows groups to handle their own help string formatting seamlessly.
-    """
+# class AutoHelpGroup(AutoHelpParserMixin, _ArgumentGroup):
+    # """
+    # Custom ArgumentGroup that inherits help automation.
 
-    # DOC - new
-    def __init__(self, container, *args, **kwargs):
-        super().__init__(container, *args, **kwargs)
-        # Die Gruppe holt sich das ParserHelp Objekt vom Container (Parser)
-        self._help = container._help
+    # Allows groups to handle their own help string formatting seamlessly.
+    # """
+
+    # def __init__(self, container, *args, **kwargs):
+    #     """
+    #     Initialize the argument group and link help functionality from container.
+
+    #     :param container: The parent container (usually an ArgumentParser) providing the help system.
+    #     :param args: Positional arguments for the base class constructor.
+    #     :param kwargs: Keyword arguments for the base class constructor.
+    #     """
+    #     super().__init__(container, *args, **kwargs)
+    #     # Die Gruppe holt sich das ParserHelp Objekt vom Container (Parser)
+    #     self._help = container._help
 
 
 # CLASS - SubjAction
@@ -403,10 +444,14 @@ class CSRParser(DistinguishedNameParser):
     Extends DN parsing with arguments for key management and storage paths.
     """
 
-    # DOC - new
     def __init__(self, *args, run_setup: bool = True, **kwargs):
-        # Das Mixin holt sich die 'help_id' und initialisiert ParserHelp,
-        # wenn es der Haupt-Parser ist.
+        """
+        Initialize the CSR parser and configure help entries.
+
+        :param run_setup: Whether to automatically run the parser configuration.
+        :param args: Positional arguments for the base class constructor.
+        :param kwargs: Keyword arguments for the base class constructor.
+        """
         super().__init__(*args, run_setup=False, **kwargs)
         self._help.update("csrparser")
         if run_setup:
@@ -440,6 +485,9 @@ class CSRParser(DistinguishedNameParser):
         """
         Parse arguments and return a CSR protocol object. (rw)
 
+        :param args: List of argument strings to parse.
+        :param namespace: An optional Namespace object.
+        :raises argparse.ArgumentError: If the arguments are invalid.
         :returns: An object following the CSRProtocol.
         """
         arg_parsed = cast(CSRProtocol, super().parse_args(args, namespace))
@@ -474,6 +522,8 @@ class ServerClientCSRParser(CSRParser):
         """
         Initialize the ServerClient parser.
 
+        :param run_setup: Whether to automatically run the parser configuration.
+        :param args: Positional arguments for the base class constructor.
         :param kwargs: Arbitrary keyword arguments for the parser configuration.
         :raises KeyError: If required configuration keys are missing in kwargs.
         """
@@ -484,14 +534,24 @@ class ServerClientCSRParser(CSRParser):
         if run_setup:
             self._setup_parser()
 
-    #DOC - new
     @property
     def mandantory_san(self)->bool:
+        """
+        Check if Subject Alternative Names are mandatory. (rw)
+
+        :param value: The boolean value to set.
+        :returns: True if SAN entries are required, False otherwise.
+        """
         return self._mandantory_san
 
-    #DOC - new
     @mandantory_san.setter
     def mandantory_san(self, value:bool):
+        """
+        Check if Subject Alternative Names are mandatory. (rw)
+
+        :param value: The boolean value to set.
+        :returns: True if SAN entries are required, False otherwise.
+        """
         self._mandantory_san = value
 
 
@@ -644,10 +704,14 @@ class CSRSigningParser(PolicyParser):
     Handles CA keys, validity periods, and the path to the CSR file.
     """
 
-    # DOC - new
     def __init__(self, *args, run_setup: bool = True, **kwargs):
-        # Das Mixin holt sich die 'help_id' und initialisiert ParserHelp,
-        # wenn es der Haupt-Parser ist.
+        """
+        Initialize the CSR parser and configure help entries.
+
+        :param run_setup: Whether to automatically run the parser configuration.
+        :param args: Positional arguments for the base class constructor.
+        :param kwargs: Keyword arguments for the base class constructor.
+        """
         self._preparser: bool = not kwargs.get("add_help", True)
         super().__init__(*args, run_setup=False, **kwargs)
         self._help.update("csrsigning")
@@ -655,7 +719,7 @@ class CSRSigningParser(PolicyParser):
             self._setup_parser()
 
     def _setup_parser(self) -> None:
-        """Configure arguments for the signing process. (rw)"""
+        """Configure additional arguments for CSR key paths. (rw)"""
         super()._setup_parser()
         self.add_argument("-k", "--key", "--key-name", dest="key_name", help=self._help("key_name"))
         # self.add_argument("-k", "--key", "--private-key", dest="private_key")
@@ -704,9 +768,12 @@ class CSRSigningParser(PolicyParser):
         self, args: list[str] | None = None, namespace: Namespace | None = None
     ) -> SignParserProtocol:
         """
-        Parse arguments and return a signing protocol object. (rw)
+        Parse arguments and return a CSR protocol object. (rw)
 
-        :returns: An object following the SignParserProtocol.
+        :param args: List of argument strings to parse.
+        :param namespace: An optional Namespace object.
+        :raises argparse.ArgumentError: If the arguments are invalid.
+        :returns: An object following the CSRProtocol.
         """
         arg_parsed = cast(SignParserProtocol, super().parse_args(args=args, namespace=namespace))
         base_name = arg_parsed.key_name
@@ -732,10 +799,14 @@ class CSRMultiSigningParser(CSRSigningParser):
     Parser for signing operations involving multiple policy types. (rw)
     """
 
-    # DOC - new
     def __init__(self, *args, run_setup: bool = True, **kwargs):
-        # Das Mixin holt sich die 'help_id' und initialisiert ParserHelp,
-        # wenn es der Haupt-Parser ist.
+        """
+        Initialize the multi-signing parser.
+
+        :param run_setup: Whether to automatically run the parser configuration.
+        :param args: Positional arguments for the base class constructor.
+        :param kwargs: Keyword arguments for the base class constructor.
+        """
         self._preparser: bool = not kwargs.get("add_help", True)
         super().__init__(*args, run_setup=False, **kwargs)
         self._help.update("csrmultisign")
@@ -743,7 +814,11 @@ class CSRMultiSigningParser(CSRSigningParser):
             self._setup_parser()
 
     def _setup_parser(self) -> None:
-        """Add policy type selection to the signing parser. (rw)"""
+        """
+        Add policy type selection to the signing parser. (rw)
+
+        :raises argparse.ArgumentError: If an argument conflict occurs.
+        """
         super()._setup_parser()
         self.add_argument(
             "-t",
@@ -760,6 +835,9 @@ class CSRMultiSigningParser(CSRSigningParser):
         """
         Parse arguments and return a multi-policy signing object. (rw)
 
+        :param args: List of strings to parse.
+        :param namespace: An optional Namespace object.
+        :raises argparse.ArgumentError: If the arguments are invalid.
         :returns: An object following the MultiSignParserProtocol.
         """
         return cast(MultiSignParserProtocol, super().parse_args(args=args, namespace=namespace))
@@ -854,10 +932,14 @@ class IntermedImportParser(CertImportParser):
     Parser for importing intermediate CA certificates. (rw)
     """
 
-    # DOC - new
     def __init__(self, *args, run_setup: bool = True, **kwargs):
-        # Das Mixin holt sich die 'help_id' und initialisiert ParserHelp,
-        # wenn es der Haupt-Parser ist.
+        """
+        Initialize the intermediate certificate import parser.
+
+        :param run_setup: Whether to automatically run the parser configuration.
+        :param args: Positional arguments for the base class constructor.
+        :param kwargs: Keyword arguments for the base class constructor.
+        """
         super().__init__(*args, run_setup=False, **kwargs)
         self._help.update("intermcertimport")
         if run_setup:
@@ -887,6 +969,9 @@ class IntermedImportParser(CertImportParser):
         """
         Parse arguments and return an intermediate import object. (rw)
 
+        :param args: List of strings to parse.
+        :param namespace: An optional Namespace object.
+        :raises argparse.ArgumentError: If the arguments are invalid.
         :returns: An object following the IntermedImportProtocol.
         """
         return cast(IntermedImportProtocol, super().parse_args(args, namespace))

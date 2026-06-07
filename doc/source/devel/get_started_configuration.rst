@@ -39,7 +39,11 @@ Windows:
 /testhome/AppData/Local/FitzzTeXnikWelt/ftwpki/pkiconfig.toml
 
 
+>>> base_conf.init_completed()
+{'set_config': False, 'set_filename': True, 'handel_pki_file': False}
 
+>>> bool(base_conf)
+False
 
 >>> base_conf.set_config()
 
@@ -190,9 +194,18 @@ b'-----BEGIN ENCRYPTED PRIVATE KEY----...
 
 >>> root_pki= env.copy2cwd("tests_pki_root/ca_root_wop.pki", "ca_root_wop.pki")
 
->>> root_wop_conf= RootSignerPKIConfig("ca_root_wop.pki")
+>>> root_wop_conf= RootSignerPKIConfig("ca_root_wop.pki", section="")
 
 >>> root_wop_conf.handle_pki_file()
+
+>>> root_wop_conf.in_zip
+['certs', 'chains']
+
+>>> root_wop_conf.private_key("not_there.key.pem") #doctest: +ELLIPSIS 
+Traceback (most recent call last):
+    ...
+FileNotFoundError: [Errno 2] No such file or directory: '.../ftwpki/.private/not_there.key.pem'
+
 
 >>> from ftwpki.baselibs.configuration import IntermedPKIConfig
 

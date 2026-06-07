@@ -50,8 +50,6 @@ def list_policy_sections(data:dict, policy_type:str) -> bool:
 # !FUNCTION - list_policy_sections
 
 # FUNCTION - toml2dn
-# DOC - change: raise TOMLDecodeError, PKIKeyError
-
 def toml2dn(file_content: str ) -> dict[str, str]:
     """
     Extract distinguished name attributes from a TOML configuration file. (ro)
@@ -59,7 +57,9 @@ def toml2dn(file_content: str ) -> dict[str, str]:
     This is the new standard implementation that operates directly on a
     file path, bypassing any global sys.argv context.
 
-    :param file_name: The path or name of the TOML configuration file.
+    :param file_content: The content of the TOML configuration file.
+    :raises TOMLDecodeError: If the TOML content cannot be parsed.
+    :raises PKIKeyError: If the required 'identity.dn' table is missing.
     :returns: A dictionary containing the distinguished name attributes.
     """
     try:
@@ -72,7 +72,6 @@ def toml2dn(file_content: str ) -> dict[str, str]:
         raise PKIKeyError("No table 'identity.dn' in config file!")
     dn["dnsubject"] = ""
     return dn
-
 
 # !FUNCTION - toml2dn
 

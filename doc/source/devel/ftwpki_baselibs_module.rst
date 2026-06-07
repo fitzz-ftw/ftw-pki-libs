@@ -26,6 +26,7 @@ FTW PKI Baselibraries
     ftwpki.baselibs.app_dirs
     ftwpki.baselibs.configuration
     ftwpki.baselibs.package
+    ftwpki.baselibs.workflows
 
 
 

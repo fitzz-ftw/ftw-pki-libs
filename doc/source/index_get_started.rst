@@ -28,6 +28,7 @@ supported Python versions (3.11 - 3.15).
    devel/get_started_app_dirs
    devel/get_started_configuration
    devel/get_started_package
+   devel/get_started_workflows
 
    
 

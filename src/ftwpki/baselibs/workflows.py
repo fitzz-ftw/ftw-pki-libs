@@ -6,8 +6,12 @@
 workflows
 ===============================
 
+Handling of the certificate signing request workflow for PKI entities.
 
-Modul workflows documentation
+This module provides the CSRWorkflow class to manage the lifecycle of
+CSR creation, including configuration parsing, key pair generation,
+and packaging of PKI configuration data.
+
 """
 
 from pathlib import Path
@@ -31,7 +35,16 @@ from ftwpki.baselibs.toml_utils import toml2dn
 
 
 class CSRWorkflow:
+    """
+    Control the Certificate Signing Request (CSR) lifecycle.
+
+    This class orchestrates the configuration, key pair generation,
+    CSR creation, and package preparation for PKI-based workflows.
+    """
     def __init__(self) -> None:
+        """
+        Initialize the CSR workflow controller.
+        """
         self._config: BasePKIConfig = BasePKIConfig()
         self._password: str = ""
         self._policy: BasePolicy = UserPolicy()
@@ -40,21 +53,50 @@ class CSRWorkflow:
 
     @property
     def policy(self) -> BasePolicy:
+        """
+        The policy applied to the CSR creation process **(rw)**.
+
+        :param value: The policy to be applied.
+        :return: The current BasePolicy instance.
+        """
         return self._policy
 
     @policy.setter
     def policy(self, value: BasePolicy) -> None:
+        """
+        The policy applied to the CSR creation process **(rw)**.
+
+        :param value: The policy to be applied.
+        :return: The current BasePolicy instance.
+        """
         self._policy = value
 
     @property
     def mandantory_san(self) -> bool:
+        """
+        Toggle the requirement for Subject Alternative Names **(rw)**.
+
+        :param value: The boolean state to enable or disable SAN requirements.
+        :return: The current state of the SAN requirement.
+        """
         return self._mandantory_san
 
     @mandantory_san.setter
     def mandantory_san(self, value:bool)->None:
+        """
+        Toggle the requirement for Subject Alternative Names **(rw)**.
+
+        :param value: The boolean state to enable or disable SAN requirements.
+        :return: The current state of the SAN requirement.
+        """
         self._mandantory_san = value
 
-    def configuration(self, argv: list[str] | None = None):
+    def configuration(self, argv: list[str] | None = None) -> None:
+        """
+        Parse arguments and configure the PKI environment.
+
+        :param argv: Optional list of command line arguments.
+        """
         # SECTION - Configuration
         pre_parser = ServerClientCSRParser(add_help=False, allow_abbrev=False)
         pre_parser.mandantory_san = self.mandantory_san
@@ -74,6 +116,9 @@ class CSRWorkflow:
         # !SECTION - Configuration
 
     def csr_creation(self) -> None:
+        """
+        Generate the certificate signing request based on configured arguments.
+        """
         # SECTION - CSR Creation
         self._san_args = {
             "ip_addresses": self._args.ip_addresses,
@@ -96,10 +141,16 @@ class CSRWorkflow:
 
         # !SECTION - CSR Creation
 
-    def create_password(self):
+    def create_password(self) -> None:
+        """
+        Prompt the user to create and confirm a password.
+        """
         self._password = PasswordDoubleCheck(min_delay=1.5, require_terminal=False)()
 
     def key_pair_creation(self) -> None:
+        """
+        Create a new RSA key pair.
+        """
         # SECTION - Keypair Creation
         self._private_key, _ = generate_rsa_key_pair(
             passphrase=self._password if self._password else None, key_size=4096
@@ -107,6 +158,9 @@ class CSRWorkflow:
         # !SECTION - Keypair Creation
 
     def save_keys(self) -> None:
+        """
+        Save the generated private key to the configured location.
+        """
         # SECTION - Save Keys
         save_pem(
             self._private_key, self._config.private_keys / self._args.private_key, is_private=True
@@ -114,6 +168,11 @@ class CSRWorkflow:
         # !SECTION - Save private Key
 
     def save_csr(self) -> None:
+        """
+        Build and save the CSR to a PEM file.
+
+        :raises RuntimeError: If no CSR has been generated yet.
+        """
         # SECTION - Save CSR
         # san_args = {"ip_addresses": self._args.ip_addresses, "dns_names": self._args.host_names}
         if not hasattr(self, "_csr"):
@@ -130,7 +189,10 @@ class CSRWorkflow:
         )
         # !SECTION - Save CSR
 
-    def process_pki_container(self):
+    def process_pki_container(self) -> None:
+        """
+        Pack the configuration into a PKI container.
+        """
         # SECTION - pki- Container
         pki_pack = PKIPackage()
         self._conf_file = Path(self._args.conf_file)
@@ -139,6 +201,9 @@ class CSRWorkflow:
         # !SECTION - pki- Container
 
     def cleanup(self) -> None:
+        """
+        Remove temporary configuration files.
+        """
         # SECTION - Cleanup
         self._conf_file.unlink() if self._conf_file else ...
         # !SECTION - Cleanup
@@ -159,7 +224,7 @@ if __name__ == "__main__":  # pragma: no cover
     # Pfad zu den dokumentierenden Tests
     testfiles_dir = Path(__file__).parents[3] / "doc/source/devel"
     test_files = [
-        "workflows.rst",
+        "get_started_workflows.rst",
     ]
     for file in test_files:
         test_file = testfiles_dir / file

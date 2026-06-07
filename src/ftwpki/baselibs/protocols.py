@@ -114,10 +114,12 @@ class ServerClientCSRProtocol(CSRProtocol):
 
     password: str | None
     """The optional password used for the private key or signing."""
-    #DOC - new
+
     conf_file:str
-    # DOC - new
+    """The path to the configuration file."""
+
     pki_name:str
+    """The name of the PKI configuration."""
 
 # !CLASS - ServerClientCSR
 
@@ -178,8 +180,8 @@ class SigningProtocol(PolicyProtocol):
     It ensures that objects used for issuing certificates provide all
     necessary paths, keys, and validity constraints.
     """
-    #DOC - new
     key_name:str
+    """The base name of the cryptographic key."""
     private_key: str #Deprecated
     """The filename or path of the CA private key."""
     private_dir: str
@@ -246,8 +248,8 @@ class CertImportProtocol(Protocol):
     processing.
     """
 
-    #DOC - new
     key_name:str
+    """The base name of the cryptographic key."""
 
     private_keyfile: str
     """The filename or path to the private key

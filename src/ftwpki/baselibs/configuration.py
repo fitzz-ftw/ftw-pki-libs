@@ -30,6 +30,12 @@ from ftwpki.baselibs.toml_utils import _get_toml_policy_data, toml2config
 
 # CLASS - BasePKIConfig
 class BasePKIConfig:
+    """
+    Base class for managing PKI configurations and directory structures.
+
+    This class provides the core functionality to initialize PKI paths,
+    handle TOML configuration files, and manage the PKI package state.
+    """
     def __init__(self, file_name: str="test") -> None:
         """
         Initialize the configuration directly from a file.
@@ -39,20 +45,27 @@ class BasePKIConfig:
                                  the configuration or directories.
         """
         self._mainconfig:Path = config_file_path()
-        self._file_name: Path = Path(file_name).with_suffix(".pki")
+        self._usable = {
+            "set_config": False,
+            "set_filename": False,
+            "handel_pki_file": False,
+        }
+        # self._file_name: Path = Path(file_name).with_suffix(".pki")
+        self.set_file_name(file_name)
         self._path: Path = self._mainconfig
         self._pki_conf = PKIPackage()
         if not self._mainconfig.is_file():
             main_content = MAIN_CONFIG
             write_example_config(main_content)
         self._secure_dirs: list[str] = ["private_keys"]
-        self._usable = {"set_config": False,
-                        "set_file_name": bool(file_name), 
-                        "handel_pki_file":False}
 
 
-    #DOC - new
-    def set_file_name(self, value:str| Path):
+    def set_file_name(self, value:str| Path) -> None:
+        """
+        Set the filename for the configuration and adjust the extension.
+
+        :param value: Filename or path to set.
+        """
         self._file_name: Path = Path(value).with_suffix(".pki")
         self._usable["set_filename"] = True
 
@@ -79,23 +92,46 @@ class BasePKIConfig:
         self._in_zip: list[str] = [k for k, v in self._raw_data.items() if v == "#zip#"]
         self._usable["set_config"] = True
 
-    #DOC - new
+    #FIXME - as property
     def init_completed(self) -> dict[str, bool]:
+        """
+        Return the initialization status of the configuration components.
+
+        :returns: A dictionary indicating which components are initialized.
+        """
         return self._usable.copy()
 
     @property
     def in_zip(self) -> list[str]:
+        """
+        Retrieve the list of configuration keys that are marked to be stored in a ZIP file **(ro)**.
+
+        :returns: A list of configuration keys.
+        """
         return self._in_zip
 
     @property
-    def pki_path(self):
+    def pki_path(self) -> Path:
+        """
+        Retrieve the path to the main PKI ZIP archive directory **(ro)**.
+
+        :returns: The absolute Path object to the ZIP directory.
+        """
         return self._paths["zip"]
 
     @property
     def passphrases_path(self) -> Path|None:
+        """
+        Retrieve the path to the directory containing passphrase files **(ro)**.
+
+        :returns: The Path object to the passphrases directory or None if not configured.
+        """
         return self._paths.get("passphrases", None)
 
     def handle_pki_file(self) -> None:
+        """
+        Load and process the PKI configuration file, including secure passphrase extraction.
+        """
         if not (self.pki_path / self._file_name).is_file():
             self._pki_conf.load(self._file_name)
             passphrase_conf_file = self._pki_conf.message
@@ -115,8 +151,12 @@ class BasePKIConfig:
         self._pki_conf.load(self.pki_path / self._file_name)
         self._usable["handle_pki_file"] = True
 
-    #DOC - new
     def __bool__(self) -> bool:
+        """
+        Check if the configuration is fully initialized.
+
+        :returns: True if all components are initialized, False otherwise.
+        """
         return all(self._usable.values())
 
     @property
@@ -147,6 +187,12 @@ class BasePKIConfig:
         return self._paths.get("private_keys", self.pki_path)
 
     def private_key(self, key_name: str) -> bytes:
+        """
+        Read the content of a specific private key file.
+
+        :param key_name: Name of the private key file.
+        :returns: The content of the private key file as bytes.
+        """
         return self.private_keys.joinpath(key_name).read_bytes()
 
     @property
@@ -158,21 +204,39 @@ class BasePKIConfig:
         """
         return self._paths["data_path"]
 
-    #DOC - 
     @property
     def fullchain(self) -> list[x509.Certificate]:
+        """
+        Retrieve the full certificate chain if available **(ro)**.
+
+        :returns: A list of x509 certificates.
+        """
         return self._pki_conf.fullchain if "chains" in self.in_zip else []
 
     @property
     def own_cert(self)->x509.Certificate:
+        """
+        Retrieve the primary user certificate **(ro)**.
+
+        :returns: The x509 user certificate object.
+        """
         return self._pki_conf._data["user.crt.pem"]
 
     def get_certs(self)->dict[str, x509.Certificate]:
+        """
+        Retrieve all loaded certificates.
+
+        :returns: A dictionary mapping certificate names to x509 objects.
+        """
         return self._pki_conf._data
     
-    #DOC - new
     @property
     def pki(self) -> PKIPackage:
+        """
+        Access the internal PKI package object **(ro)**.
+
+        :returns: The PKIPackage instance.
+        """
         return self._pki_conf
 
     def resolve(self, name: str, category: PathCategoryType | None = None) -> Path:
@@ -282,6 +346,12 @@ class RootSignerPKIConfig(BasePKIConfig):
         self.set_config(section=section)
 
     def private_key(self, key_name: str="CA.key.pem") -> bytes:
+        """
+        Retrieve the content of a private key.
+
+        :param key_name: The filename of the private key.
+        :return: The binary content of the private key.
+        """
         if "private_keys" in self.in_zip:
             return self._pki_conf.additional_files[key_name]
         else:
@@ -299,13 +369,32 @@ class RootSignerPKIConfig(BasePKIConfig):
 
     @property
     def policy_files(self):
+        """
+        List of all policy files available in the configuration **(ro)**.
+
+        :return: A list of filenames ending with .policy.
+        """
         return [f for f in self._pki_conf.additional_files.keys() if f.endswith(".policy")]
 
     def get_dn_policies(self, policyname: str, section: str = ""):
+        """
+        Extract DN policies from a specific policy file.
+
+        :param policyname: The name of the policy file.
+        :param section: The section within the TOML file.
+        :return: Dictionary containing the DN policy data.
+        """
         toml = self._pki_conf.additional_files[policyname].decode("utf-8")
         return _get_toml_policy_data("dn", file_content=toml, section=section)
 
     def get_extentions(self, policyname:str, section:str=""):
+        """
+        Extract extensions from a specific policy file.
+
+        :param policyname: The name of the policy file.
+        :param section: The section within the TOML file.
+        :return: Dictionary containing the extension data.
+        """
         toml = self._pki_conf.additional_files[policyname].decode("utf-8")
         return _get_toml_policy_data("ext", file_content=toml, section=section)
 

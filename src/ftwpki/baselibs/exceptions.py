@@ -39,13 +39,27 @@ class PKIError(Exception):
         """
         return f"{self.__class__.__name__}()"
 
-#DOC - new
 class PKIFileNotFoundError(PKIError):
-    ...
+    """
+    Exception raised when a required PKI file is missing.
 
-# DOC - new
+    Catch Order:
+        1. PKIFileNotFoundError
+        2. PKIError
+        3. Exception
+
+    """
+
 class PKIKeyError(PKIError):
-    ...
+    """
+    Exception raised when a required key or configuration entry is missing.
+
+    Catch Order:
+        1. PKIKeyError
+        2. PKIError
+        3. Exception
+
+    """
 
 class PKISecurityError(PKIError):
     """
