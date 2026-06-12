@@ -69,10 +69,11 @@ class BasePolicy(ABC):
         san_entries = []
 
         # 1. DNS Namen (alt_names)
+        # workflow, 
         for name in kwargs.get("dns_names", []):
             if "." not in name and name.lower() != "localhost":
                 raise ValueError(f"Hostname '{name}' is not a FQDN (missing dot).")
-            san_entries.append(x509.DNSName(name))
+            san_entries.append(x509.DNSName(name)) if isinstance(name, str) else ...
 
         # 2. IP Adressen (alt_ips) - Trennung spart die Exception
         for ip_str in kwargs.get("ip_addresses", []):

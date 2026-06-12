@@ -19,6 +19,7 @@ from pathlib import Path
 from cryptography import x509
 from securify.input.password import PasswordDoubleCheck
 
+from ftwpki.baselibs._cli_parser import server_client_parser
 from ftwpki.baselibs.cert_request import CertificateRequest
 from ftwpki.baselibs.cli_parser import ServerClientCSRParser
 from ftwpki.baselibs.configuration import BasePKIConfig
@@ -98,7 +99,7 @@ class CSRWorkflow:
         :param argv: Optional list of command line arguments.
         """
         # SECTION - Configuration
-        pre_parser = ServerClientCSRParser(add_help=False, allow_abbrev=False)
+        pre_parser = server_client_parser(allow_abbrev=False)
         pre_parser.mandantory_san = self.mandantory_san
         pre_args, _ = pre_parser.parse_known_args(argv)
         pre_conf ={}
@@ -106,10 +107,11 @@ class CSRWorkflow:
             pki_name = Path(pre_args.conf_file).stem
             pre_conf = toml2dn(Path(pre_args.conf_file).read_text())
             pre_conf["pki_name"] = pki_name
-        ca_parser: ServerClientCSRParser = ServerClientCSRParser()
+        ca_parser = server_client_parser(pre_parser=False,add_help=True)
+        # print(ca_parser)
         ca_parser.set_defaults(**pre_conf)
         ca_parser.mandantory_san = self.mandantory_san
-        self._args: ServerClientCSRProtocol = ca_parser.parse_args(argv)
+        self._args = ca_parser.parse_args(argv)
         self._config.set_config(self._config_type)
         self._config.set_file_name(self._args.conf_file)
         self._password = self._args.password if self._args.password is not None else ""

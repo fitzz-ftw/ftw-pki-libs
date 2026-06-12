@@ -24,7 +24,6 @@ from argparse import (
     ArgumentError,
     ArgumentParser,
     Namespace,
-    _ArgumentGroup,
 )
 from pathlib import Path
 from tomllib import load
@@ -311,6 +310,8 @@ class ArgparseFix311(ArgumentParser):
 # !CLASS - ArgparseFix311
 
 
+
+
 # CLASS - DistinguishedNameParser
 class DistinguishedNameParser(AutoHelpParserMixin, ArgparseFix311):
     """
@@ -346,6 +347,7 @@ class DistinguishedNameParser(AutoHelpParserMixin, ArgparseFix311):
     def _setup_parser(self) -> None:
         """Configure the available CLI arguments for DN attributes. (rw)"""
         help = self._help
+
         self.dn = self.add_argument_group("Destinguish Name Entires")
         self.dn.add_argument(
             "-C", "--countryName", dest="countryName", default="", help=help("countryName")

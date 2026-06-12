@@ -56,6 +56,8 @@ git_dif*
 _build
 git-diff.txt
 gitdiff.txt
-git-log.txt
+git-log*.txt
 doc/TODO_baselibs.md
 doc/TODO.TXT
+git-diff*.txt
+coverage_script.py
