@@ -15,7 +15,6 @@ Main Features:
     * Specific policies for CAs (Root/Intermediate) and End-Entities.
     * Support for Subject Alternative Names (SAN) via dynamic kwargs.
 """
-
 import ipaddress
 from abc import ABC, abstractmethod
 from pathlib import Path
@@ -158,7 +157,7 @@ class IntermediatePolicy(BasePolicy):
     constraint to limit the depth of the subsequent CA hierarchy.
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, path_length= 0,  **kwargs):
         """
         Initialize the intermediate policy. (rw)
 
@@ -166,9 +165,10 @@ class IntermediatePolicy(BasePolicy):
         initializing BasicConstraints (CA:True) and KeyUsage
         (Digital Signature, Cert/CRL Sign).
 
+        #DOC - path_length
         :param kwargs: Supports 'path_length' (int).
         """
-        self._path_length = kwargs.pop("path_length", 0)
+        self._path_length = path_length
         super().__init__(**kwargs)
         self._basic_constraints = x509.BasicConstraints(ca=True, path_length=self._path_length)
         self._key_usage = x509.KeyUsage(

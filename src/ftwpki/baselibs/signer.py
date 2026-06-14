@@ -46,6 +46,10 @@ class CertificateSigner:
         csr: x509.CertificateSigningRequest,
         policy: BasePolicy,
         validity_days: int = 365,
+        *,
+        ocspURI:str="",
+        crlURI:str="",
+        caIssuerURI:str="",
         **kwargs,
     ) -> x509.Certificate:
         """
@@ -53,7 +57,7 @@ class CertificateSigner:
 
         Generates a new certificate using subject info from the CSR and
         extensions from the policy. Signs the result with the CA key.
-
+        #DOC - ocspURI:str="",crlURI:str="", caIssuerURI:str="",
         :param csr: The request to be signed.
         :param policy: The policy used to generate final extensions.
         :param validity_days: Number of days the certificate is valid.
@@ -61,9 +65,9 @@ class CertificateSigner:
                 unsupported.
         :returns: The signed certificate object.
         """
-        authority_info_access = kwargs.pop("ocspURI", "")
-        crl_uri = kwargs.pop("crlURI", "")
-        ca_issuer_uri = kwargs.pop("caIssuerURI", "")
+        authority_info_access = ocspURI
+        crl_uri = crlURI
+        ca_issuer_uri = caIssuerURI
 
         public_key = csr.public_key()
 

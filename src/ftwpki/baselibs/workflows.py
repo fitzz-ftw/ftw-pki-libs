@@ -21,7 +21,6 @@ from securify.input.password import PasswordDoubleCheck
 
 from ftwpki.baselibs._cli_parser import server_client_parser
 from ftwpki.baselibs.cert_request import CertificateRequest
-from ftwpki.baselibs.cli_parser import ServerClientCSRParser
 from ftwpki.baselibs.configuration import BasePKIConfig
 from ftwpki.baselibs.core import (
     create_distinguished_name,
@@ -31,7 +30,7 @@ from ftwpki.baselibs.core import (
 )
 from ftwpki.baselibs.package import PKIPackage
 from ftwpki.baselibs.policies import BasePolicy, UserPolicy
-from ftwpki.baselibs.protocols import ClientTypeName, ServerClientCSRProtocol
+from ftwpki.baselibs.protocols import ClientTypeName
 from ftwpki.baselibs.toml_utils import toml2dn
 
 
@@ -99,7 +98,7 @@ class CSRWorkflow:
         :param argv: Optional list of command line arguments.
         """
         # SECTION - Configuration
-        pre_parser = server_client_parser(allow_abbrev=False)
+        pre_parser = server_client_parser(pre_parser=True,allow_abbrev=False)
         pre_parser.mandantory_san = self.mandantory_san
         pre_args, _ = pre_parser.parse_known_args(argv)
         pre_conf ={}
@@ -108,7 +107,6 @@ class CSRWorkflow:
             pre_conf = toml2dn(Path(pre_args.conf_file).read_text())
             pre_conf["pki_name"] = pki_name
         ca_parser = server_client_parser(pre_parser=False,add_help=True)
-        # print(ca_parser)
         ca_parser.set_defaults(**pre_conf)
         ca_parser.mandantory_san = self.mandantory_san
         self._args = ca_parser.parse_args(argv)

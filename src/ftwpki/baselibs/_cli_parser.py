@@ -28,7 +28,7 @@ from argparse import (
 from copy import deepcopy
 from pathlib import Path
 from tomllib import load
-from typing import Any, Generic, TypeAlias, TypeVar
+from typing import Any, Callable, Generic, TypeAlias, TypeVar
 
 ALIAS_MAP = {
     "C": "countryName",
@@ -53,7 +53,7 @@ argument synchronization.
 HELP_FILE = Path(__file__).parent.joinpath("cli_parser.help")
 
 
-def load_help_entries(constance: dict[str, Any], help_file: Path):
+def load_help_entries(constance: dict[str, Any], help_file: Path) -> None:
     # if not constance:
     with help_file.open("rb") as f:
         constance.update(load(f))
@@ -70,8 +70,7 @@ load_help_entries(_HELP, HELP_FILE)
 LANG = "en"
 
 
-def parser_factory_creator(arg_type:type['BaseArguments']):  # noqa: F821
-    # print(okwargs)
+def parser_factory_creator(arg_type:type['BaseArguments']) -> Callable[..., Any]:  
     def parser_factory(pre_parser:bool=False, **kwargs) -> PKIBaseParser:
         kwargs["arg_conf"] = arg_type
         parser = PKIBaseParser(pre_parser=pre_parser, **kwargs)
@@ -204,9 +203,7 @@ class KeyNames:
 
 # CLASS - BaseArguments
 class BaseArguments:
-    __slots__ = []
-    inst_types: dict[str, dict[str, dict[str, type | str]]] = {}
-    arguments: list[tuple[list[str], dict[str, Any]]] = []
+    __slots__: list[str] = ["_arguments"]
     helpid: list[str] = []
     arg_data = {}
 
@@ -222,42 +219,43 @@ class BaseArguments:
         cls.__slots__ = base_slots
         cls.arg_data = base_data
         cls.helpid = base_helpid
-        cls.inst_types: dict[str, dict[str, dict[str, type | str]]] = {}
-        cls.arguments: list[tuple[list[str], dict[str, Any]]] = []
 
-    @classmethod
-    def setup_args(cls, pre_parser: bool = False):
+    @property
+    def arguments(self) -> list[tuple[list[str], dict[str,Any]]]:
+        if hasattr(self, "_arguments"):
+            return self._arguments
+        else:
+            return []
+
+    def setup_args(self, pre_parser: bool = False):
+        types = self.get_types()
+        if hasattr(self, "_arguments"):
+            del self._arguments
+        self._arguments:list[tuple(list[str], dict[str, Any])] = []
         pre: bool = pre_parser
-        help = ParserHelp(cls.helpid[0], _HELP)
-        for helpname in cls.helpid[1:]:
-            # print(f"{helpname=}")
+        help = ParserHelp(self.helpid[0], _HELP)
+        for helpname in self.helpid[1:]:
             help.update(helpname)
-        # cls.arg_data.update(cls.inst_types)
-        for name in cls.arg_data:
+        for name in self.arg_data:
             args = []
             kwargs = {}
-            cls.arg_data[name]["kws"].update(cls.inst_types[name]["kws"])
-            args = cls.arg_data[name]["flags"]
-            kwargs = cls.arg_data[name]["kws"]
+            self.arg_data[name]["kws"].update(types[name]["kws"])
+            args = self.arg_data[name]["flags"].copy()
+            kwargs = deepcopy(self.arg_data[name]["kws"])
             if pre:
-                kwargs.update(cls.arg_data[name]["pre"])
+                kwargs.update(self.arg_data[name]["pre"])
             kwargs["help"] = help(name)
             if not args:
                 args.append(name)
             else:
-                if args[0].startswith("-"):
-                    kwargs["dest"] = name
+                kwargs["dest"] = name if args[0].startswith("-") else None
             entry = (args, kwargs)
-            if entry not in cls.arguments:
-                cls.arguments.append((args, kwargs))
+            self._arguments.append(entry)
 
-    @classmethod
-    def set_types(cls, value: dict[str, dict[str, dict[str, type | str]]]):
-        cls.inst_types = value
 
     def get_types(self):
         values: dict[str, dict[str, dict[str, type | str]]] = {}
-        for name in self.__slots__:
+        for name in [arg for arg in self.__slots__ if not arg.startswith("_")]:
             if name == "dnsubject":
                 values[name] = {"kws": {"type": str}}
             else:
@@ -271,14 +269,14 @@ class BaseArguments:
                     type_hint = type(curr_type)
                 values[name] = {
                     "kws": {"type": type_hint}
-                }  # type(getattr(self,name))
+                }  
             del name
-        self.set_types(values)
+        return values
 
     def __repr__(self) -> str:
         names: list[str] = []
         self.__slots__.sort()
-        for name in self.__slots__:
+        for name in [arg for arg in self.__slots__ if not arg.startswith("_")]:
             if name in ["dnsubject", "host_names", "ip_addresses"]:
                 names.append(f"{name}={getattr(self, name)}")
             else:
@@ -402,23 +400,23 @@ class DistinguishedNameArguments(BaseArguments):
                     setattr(self, arg, final_dn[arg])
         self.dnsubject = final_dn
 
-    def __repr__(self) -> str:
+    # def __repr__(self) -> str:
 
-        names: list[str] = []
-        self.__slots__.sort()
-        for name in self.__slots__:
-            if name in ["dnsubject", "host_names", "ip_addresses"]:
-                names.append(f"{name}={getattr(self, name)}")
-            else:
-                names.append(f"{name}='{getattr(self, name)}'")
-        ret = "".join(
-            [
-                f"{self.__class__.__name__}(",
-                "\n".join(names),
-                ")",
-            ]
-        )
-        return ret
+    #     names: list[str] = []
+    #     self.__slots__.sort()
+    #     for name in self.__slots__:
+    #         if name in ["dnsubject", "host_names", "ip_addresses"]:
+    #             names.append(f"{name}={getattr(self, name)}")
+    #         else:
+    #             names.append(f"{name}='{getattr(self, name)}'")
+    #     ret = "".join(
+    #         [
+    #             f"{self.__class__.__name__}(",
+    #             "\n".join(names),
+    #             ")",
+    #         ]
+    #     )
+    #     return ret
 
 
 # !CLASS - DistinguishedNameArguments
@@ -561,20 +559,20 @@ class CertImportArguments(BaseArguments, KeyNames):
         self.enc_zipfile: str = ""
         self.key_name: str = ""
 
-    def __repr__(self) -> str:
+    # def __repr__(self) -> str:
 
-        names: list[str] = []
-        self.__slots__.sort()
-        for name in self.__slots__:
-            names.append(f"{name}='{getattr(self, name)}'")
-        ret = "".join(
-            [
-                f"{self.__class__.__name__}(",
-                "\n".join(names),
-                ")",
-            ]
-        )
-        return ret
+    #     names: list[str] = []
+    #     self.__slots__.sort()
+    #     for name in self.__slots__:
+    #         names.append(f"{name}='{getattr(self, name)}'")
+    #     ret = "".join(
+    #         [
+    #             f"{self.__class__.__name__}(",
+    #             "\n".join(names),
+    #             ")",
+    #         ]
+    #     )
+    #     return ret
 
 
 # !CLASS - CertImportArguments
@@ -687,21 +685,6 @@ class PolicyArguments(BaseArguments):
         self.commonName: str = "no"
         self.policy_name: str = ""
         self.conf_file: Path = Path()
-
-    def __repr__(self) -> str:
-
-        names: list[str] = []
-        self.__slots__.sort()
-        for name in self.__slots__:
-            names.append(f"{name}='{getattr(self, name)}'")
-        ret = "".join(
-            [
-                f"{self.__class__.__name__}(",
-                "\n".join(names),
-                ")",
-            ]
-        )
-        return ret
 
     def policy(self, entryname: str):
         return getattr(self, entryname)
@@ -859,9 +842,9 @@ class PKIBaseParser(ArgparseFix311,Generic[AT]):
 
     def __init__(
         self,
-        arg_conf: AT = BaseArguments,  
         pre_parser: bool = False,
         *,
+        arg_conf: AT = BaseArguments,
         exit_on_error: bool = False,
         **kwargs,
     ) -> None:
@@ -875,10 +858,13 @@ class PKIBaseParser(ArgparseFix311,Generic[AT]):
         super().__init__(**kwargs)
         self._conf: AT = arg_conf()
         self._conf.get_types()
+        # print(f"{self._preparser=}")
         self._conf.setup_args(pre_parser=self._preparser)
         self._san = self.add_argument_group("SAN Entries")
         self._dn = self.add_argument_group("Destinguish Name Entires")
         self._mandantory_san = True
+        self._start_o_s_a = deepcopy(self._option_string_actions)
+        self._start_actions =deepcopy(self._actions)
         self._setup_parser()
 
     def _setup_parser(self) -> None:
@@ -887,15 +873,15 @@ class PKIBaseParser(ArgparseFix311,Generic[AT]):
 
         Sets up the positional and optional arguments for the CLI.
         """
-        for args, kwargs in self._conf.arguments:
-            sub = kwargs.pop("sub_parser", None)
+        for name_flags, parser_config in self._conf.arguments:
+            sub = parser_config.pop("sub_parser", None)
             match sub:
                 case "dn":
-                    self._dn.add_argument(*args, **kwargs)
+                    self._dn.add_argument(*name_flags, **parser_config)
                 case "san":
-                    self._san.add_argument(*args, **kwargs)
+                    self._san.add_argument(*name_flags, **parser_config)
                 case _:
-                    self.add_argument(*args, **kwargs)
+                    self.add_argument(*name_flags, **parser_config)
 
     def parse_known_args(self, 
                          args: list[str] | None = None, 
@@ -930,6 +916,10 @@ class PKIBaseParser(ArgparseFix311,Generic[AT]):
         return ret
 
     @property
+    def pre_parser(self)->bool:
+        return self._preparser
+
+    @property
     def mandantory_san(self) -> bool:
         """
         Check if Subject Alternative Names are mandatory. (rw)
@@ -954,13 +944,6 @@ class PKIBaseParser(ArgparseFix311,Generic[AT]):
 
 server_client_parser = parser_factory_creator(ServerClientCSRArguments)
 
-def get_cert_import_parser() -> PKIBaseParser:
-    """
-    Factory function to create a CertImportParser instance.
-
-    :returns: A new instance of the certificate import parser.
-    """
-    return PKIBaseParser()
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -978,8 +961,9 @@ if __name__ == "__main__":  # pragma: no cover
     testfiles_dir = Path(__file__).parents[3] / "doc/source/devel"
 
     test_files = [
-        "new_parser.rst",
-        # "get_started_cli_parser.rst",
+        "debug_parser.rst",
+        "get_started_new_parser.rst",
+        "get_started_cli_parser.rst",
     ]
     for file in test_files:
         test_file = testfiles_dir / file

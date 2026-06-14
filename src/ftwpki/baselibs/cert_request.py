@@ -41,7 +41,7 @@ class CertificateRequest:
         self._csr = None
 
     def verify_input_arguments(
-        self, **kwargs
+        self, keep:bool = False, **extentions
     ) -> x509.CertificateSigningRequestBuilder | None:
         """
         Verify input arguments and optionally prepare a CSR builder.
@@ -54,11 +54,11 @@ class CertificateRequest:
                        receive the builder.
         :return: A configured builder if 'keep' is True, otherwise None.
         """
-        keep = kwargs.pop("keep", None)
-        keep = keep if isinstance(keep, bool) and keep else False
+        # keep = extentions.pop("keep", None)
+        # keep = keep if isinstance(keep, bool) and keep else False
         builder = x509.CertificateSigningRequestBuilder().subject_name(self._subject)
 
-        for ext, critical in self._policy.get_extensions(**kwargs):
+        for ext, critical in self._policy.get_extensions(**extentions):
             builder = builder.add_extension(ext, critical=critical)
 
         if keep:
