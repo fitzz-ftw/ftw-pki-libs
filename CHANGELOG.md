@@ -5,24 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
 ###### [0.0.4] - 2026-06-17
 
 ###### Added
-- Add pack CLI parser and specialized exceptions in baselibs
-- Implement core logic for intermediate and leaf signing
+- Add pack CLI parser and specialized exception classes in baselibs
+- Implement core logic for intermediate and leaf certificate signing
+- Add 'securify' to project dependencies in pyproject.toml
 
 ###### Changed
-- Refactor CLI parser architecture to use a factory pattern
+- Refactor CLI parser architecture to use the factory pattern
 - Standardize TOML utility interfaces and CLI pre-parsing logic
 - Unify CLI key-name parameters and transition to kebab-case flags
 - Refactor transport logic and enhance base library protocols
 - Improve PKI configuration, parsers, and workflow logic components
+- Adjust CSR name building logic and implement configuration fallbacks
+- Update and fix package name in pyproject.toml
 
 ###### Fixed
 - Generalize protocol roles and refine utility logic in baselibs
 
 ###### Testing
-- Achieve 100% total coverage across all core configuration components
+- Increase total coverage across core configuration components to 99.76%
 
 
 ## [0.0.3a2] - 2026-05-18
