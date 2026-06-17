@@ -44,17 +44,6 @@ zip          = "#config#.private"
 """
 
 
-OLD_MAIN_CONFIG = """
-[fallback]
-default_config="{file_name}"
-user = "user.toml"
-leaf="leaf.toml"
-server="leaf.toml"
-client="leaf.toml"
-clientserver="leaf.toml"
-intermediate = "intermed.toml"
-rootsign = "rsign.toml"
-"""
 
 toml_conf_str = """
 [fallback]
@@ -84,78 +73,9 @@ ext_signedcert= ".zip.enc"
 policies     = "#config#/policies/intermediate"
 """
 
-USER_CONFIG = """[fallback]
-# Identity (encrypted & hidden)
-private_keys = "#config#.private"
-
-# Public data
-public_data  = "#data#"
-certs        = "#data#certs"
-chains       = "#data#chains"
-
-# File extensions for public/semi-private data only
-ext_cert     = ".crt.pem"
-ext_public   = ".pub.pem"
-ext_chain    = ".chain.pem"
-ext_signedcert= ".zip.enc"
-"""
-
-LEAF_CONFIG = """[fallback]
-# Identity (encrypted & hidden)
-private_keys = "#config#.private"
-
-# Public data
-public_data  = "#data#"
-certs        = "#data#certs"
-chains       = "#data#chains"
-
-# File extensions for public/semi-private data only
-ext_cert     = ".crt"
-ext_public   = ".pub.pem"
-ext_chain    = ".chain.pem"
-ext_signedcert= ".zip.enc"
-"""
-
-INTERMED_CONFIG = """[fallback]
-# Identity (encrypted & hidden)
-private_keys = "#config#.private"
-passphrases  = "#config#.private"
 
 
-# Infrastructure resources
-policies     = "#config#policies"
 
-
-# Public data
-public_data  = "#data#"
-certs        = "#data#certs"
-chains       = "#data#chains"
-
-# File extensions for public/semi-private data only
-ext_cert     = ".crt.pem"
-ext_public   = ".pub.pem"
-ext_chain    = ".chain.pem"
-ext_policy   = ".policy"
-ext_signedcert= ".zip.enc"
-
-"""
-
-ROOT_SIGNER_CONFIG = """[fallback]
-# Identity (encrypted & hidden)
-private_keys = "#config#.private"
-passphrases  = "#config#.private"
-
-# Public data
-public_data  = "#data#"
-certs        = "#data#certs"
-chains       = "#data#chains"
-
-# File extensions for public/semi-private data only
-ext_cert     = ".crt.pem"
-ext_public   = ".pub.pem"
-ext_chain    = ".chain.pem"
-
-"""
 
 # FUNCTION - write_example_config
 def write_example_config(content:str,file_name:str|None=None) -> None:

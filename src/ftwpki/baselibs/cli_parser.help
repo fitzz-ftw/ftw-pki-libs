@@ -94,3 +94,10 @@ en = "Path to the file containing the passphrase for decrypting the archive."
 en = "Directory containing the policy configuration files to be applied."
 [intermcertimport.policy]
 en = "The name of the policy to be used for this import operation."
+
+[package]
+
+[package.configname]
+en = "Name of the configuration to pack for remote."
+[package.key_name]
+en = "Key identifier used to reference the private key. Must correspond to the internal key storage name."

@@ -70,7 +70,7 @@ load_help_entries(_HELP, HELP_FILE)
 LANG = "en"
 
 
-def parser_factory_creator(arg_type:type['BaseArguments']) -> Callable[..., Any]:  
+def parser_factory_creator(arg_type: type["BaseArguments"]) -> Callable[..., 'PKIBaseParser']:  
     def parser_factory(pre_parser:bool=False, **kwargs) -> PKIBaseParser:
         kwargs["arg_conf"] = arg_type
         parser = PKIBaseParser(pre_parser=pre_parser, **kwargs)
@@ -190,12 +190,12 @@ class SubjAction(Action):
 # CLASS - KeyNames Mixin
 class KeyNames:
     @property
-    def private_key(self):
-        return f"{self.key_name}.key.pem" if hasattr(self, "key_name") else None  # type: ignore
+    def private_key(self) -> str:
+        return f"{self.key_name}.key.pem" if hasattr(self, "key_name") else ""  # type: ignore
 
     @property
-    def public_key(self):
-        return f"{self.key_name}.pub.pem" if hasattr(self, "key_name") else None  # type: ignore
+    def public_key(self) -> str:
+        return f"{self.key_name}.pub.pem" if hasattr(self, "key_name") else ""  # type: ignore
 
 
 # !CLASS - KeyNames Mixin
@@ -240,6 +240,8 @@ class BaseArguments:
             args = []
             kwargs = {}
             self.arg_data[name]["kws"].update(types[name]["kws"])
+            if self.arg_data[name]["kws"].get("action", None) in ["store_true", "store_false"]:
+                self.arg_data[name]["kws"].pop("type", None)
             args = self.arg_data[name]["flags"].copy()
             kwargs = deepcopy(self.arg_data[name]["kws"])
             if pre:
@@ -293,6 +295,28 @@ class BaseArguments:
 
 # !CLASS - BaseArguments
 
+# CLASS - PackArguments
+
+class PackArguments(BaseArguments,KeyNames):
+    __slots__ = ["configname", "key_name"]
+    helpid = ["package"]
+    arg_data = {
+        "configname": {"flags": [], "kws": {}, "pre": {"nargs": "?"}},
+        "key_name": {
+            "flags": ["-k", "--key", "--key-name"],
+            "kws": {"default": "", "required": True},
+            "pre": {"required": False},
+        },
+    }
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.configname: str = ""
+        self.key_name: str = ""
+
+Pack: TypeAlias = PackArguments
+
+# !CLASS - PackArguments
 
 # CLASS - DistinguishedNameArguments
 class DistinguishedNameArguments(BaseArguments):
@@ -944,6 +968,7 @@ class PKIBaseParser(ArgparseFix311,Generic[AT]):
 
 server_client_parser = parser_factory_creator(ServerClientCSRArguments)
 
+package_cli_parser = parser_factory_creator(PackArguments)
 
 
 if __name__ == "__main__":  # pragma: no cover

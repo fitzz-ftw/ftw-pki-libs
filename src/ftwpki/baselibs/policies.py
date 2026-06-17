@@ -165,8 +165,8 @@ class IntermediatePolicy(BasePolicy):
         initializing BasicConstraints (CA:True) and KeyUsage
         (Digital Signature, Cert/CRL Sign).
 
-        #DOC - path_length
-        :param kwargs: Supports 'path_length' (int).
+        :param path_length: The number of allowed intermediate CAs in the chain.
+        :param kwargs: Additional keyword arguments for the parent class.
         """
         self._path_length = path_length
         super().__init__(**kwargs)

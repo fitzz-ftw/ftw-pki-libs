@@ -25,7 +25,7 @@ import datetime
 import re
 import stat
 from pathlib import Path
-from typing import Any, cast
+from typing import cast
 
 from cryptography import x509
 from cryptography.exceptions import UnsupportedAlgorithm

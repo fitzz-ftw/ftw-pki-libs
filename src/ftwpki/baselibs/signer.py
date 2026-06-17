@@ -53,17 +53,21 @@ class CertificateSigner:
         **kwargs,
     ) -> x509.Certificate:
         """
-        Sign a CSR and return a valid certificate. (rw)
+        Sign a certificate signing request and return a valid certificate.
 
-        Generates a new certificate using subject info from the CSR and
-        extensions from the policy. Signs the result with the CA key.
-        #DOC - ocspURI:str="",crlURI:str="", caIssuerURI:str="",
-        :param csr: The request to be signed.
-        :param policy: The policy used to generate final extensions.
-        :param validity_days: Number of days the certificate is valid.
-        :raises cryptography.exceptions.UnsupportedAlgorithm: If the signature algorithm is
-                unsupported.
-        :returns: The signed certificate object.
+        This method creates a new certificate using the subject information
+        from the request. It adds extensions based on the provided policy
+        and signs the final object with the certificate authority key.
+
+        :param csr: The certificate signing request to be processed.
+        :param policy: The set of rules used to generate certificate extensions.
+        :param validity_days: The number of days the certificate remains valid.
+        :param ocspURI: The online certificate status protocol address.
+        :param crlURI: The certificate revocation list address.
+        :param caIssuerURI: The address of the certificate authority issuer.
+        :param kwargs: Extra settings for the policy extension generation.
+        :raises UnsupportedAlgorithm: If the signature algorithm is not supported.
+        :returns: The newly created and signed certificate object.
         """
         authority_info_access = ocspURI
         crl_uri = crlURI

@@ -50,6 +50,17 @@ class PKIFileNotFoundError(PKIError):
 
     """
 
+class PKIMissingExportPathError(PKIError):
+    """
+    Raised when a required path for the export process is missing or empty.
+
+    Catch Order:
+        1. PKIMissingExportPathError
+        2. PKIError
+        3. Exception
+
+    """
+
 class PKIKeyError(PKIError):
     """
     Exception raised when a required key or configuration entry is missing.
@@ -60,6 +71,13 @@ class PKIKeyError(PKIError):
         3. Exception
 
     """
+
+class PKIEncodingError(PKIError):
+    """
+    Exception raised when a wrong encodinge is given.
+    """
+
+
 
 class PKISecurityError(PKIError):
     """
