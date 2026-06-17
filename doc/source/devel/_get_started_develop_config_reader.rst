@@ -49,8 +49,8 @@ Get Stated with ConfigurationcClasses
 >>> reader._paths  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
 {'private_keys': ...Path('.../ftwpki/.private'), 
  'zip': ...Path('.../ftwpki'), 
- 'certs': PosixPath('#zip#'), 
- 'chains': PosixPath('#zip#')}
+ 'certs': ...Path('#zip#'), 
+ 'chains': ...Path('#zip#')}
 
 >>> reader.private_keys.as_posix()  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
 '.../ftwpki/.private'
