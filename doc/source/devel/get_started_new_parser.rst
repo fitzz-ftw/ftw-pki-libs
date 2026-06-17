@@ -121,7 +121,8 @@ PKIBaseParser(prog=...,
     conflict_handler='error', 
     add_help=True)
 
->>> tp.print_help() #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+>>> tp.print_help(file=sys.stderr) #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE 
+
 usage: ... [-h] --key-name KEY_NAME [--policies-dir POLICIES] -p POLICY
                         encrypted-zip-file
 <BLANKLINE>
@@ -227,8 +228,8 @@ pki_name=''
 privatdir=''
 stateOrProvinceName='')
 
->>> csr_args.get_types()
-{'commonName': {'kws': {'type': <class 'str'>}}, 'conf_file': {'kws': {'type': <class 'pathlib.PosixPath'>}}, 'countryName': {'kws': {'type': <class 'str'>}}, 'dnsubject': {'kws': {'type': <class 'str'>}}, 'key_name': {'kws': {'type': <class 'str'>}}, 'localityName': {'kws': {'type': <class 'str'>}}, 'organizationName': {'kws': {'type': <class 'str'>}}, 'organizationalUnitName': {'kws': {'type': <class 'str'>}}, 'pki_name': {'kws': {'type': <class 'str'>}}, 'privatdir': {'kws': {'type': <class 'str'>}}, 'stateOrProvinceName': {'kws': {'type': <class 'str'>}}}
+>>> csr_args.get_types() #doctest: +ELLIPSIS
+{'commonName': {'kws': {'type': <class 'str'>}}, 'conf_file': {'kws': {'type': <class '...Path'>}}, 'countryName': {'kws': {'type': <class 'str'>}}, 'dnsubject': {'kws': {'type': <class 'str'>}}, 'key_name': {'kws': {'type': <class 'str'>}}, 'localityName': {'kws': {'type': <class 'str'>}}, 'organizationName': {'kws': {'type': <class 'str'>}}, 'organizationalUnitName': {'kws': {'type': <class 'str'>}}, 'pki_name': {'kws': {'type': <class 'str'>}}, 'privatdir': {'kws': {'type': <class 'str'>}}, 'stateOrProvinceName': {'kws': {'type': <class 'str'>}}}
 
 >>> csr_args.setup_args()
 
@@ -285,7 +286,7 @@ stateOrProvinceName='')
    'dest': 'dnsubject'}),
  (['--conf-file'], 
   {'required': True, 
-   'type': <class 'pathlib.PosixPath'>, 
+   'type': <class '...Path'>, 
    'help': 'Path to a TOML-Configfile. This file defines the core parameters for the CSR generation.', 
    'dest': 'conf_file'}), 
  (['-k', '--key', '--key-name'], 
@@ -326,8 +327,52 @@ pki_name=''
 privatdir=''
 stateOrProvinceName='')
 
->>> cs_csr_args.get_types()
-{'commonName': {'kws': {'type': <class 'str'>}}, 'conf_file': {'kws': {'type': <class 'pathlib.PosixPath'>}}, 'countryName': {'kws': {'type': <class 'str'>}}, 'dnsubject': {'kws': {'type': <class 'str'>}}, 'email': {'kws': {'type': <class 'str'>}}, 'host_names': {'kws': {'type': <class 'str'>}}, 'ip_addresses': {'kws': {'type': <class 'str'>}}, 'key_name': {'kws': {'type': <class 'str'>}}, 'localityName': {'kws': {'type': <class 'str'>}}, 'organizationName': {'kws': {'type': <class 'str'>}}, 'organizationalUnitName': {'kws': {'type': <class 'str'>}}, 'password': {'kws': {'type': <class 'str'>}}, 'pki_name': {'kws': {'type': <class 'str'>}}, 'privatdir': {'kws': {'type': <class 'str'>}}, 'stateOrProvinceName': {'kws': {'type': <class 'str'>}}}
+>>> cs_csr_args.get_types() #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+{'commonName': 
+  {'kws': 
+    {'type': <class 'str'>}}, 
+ 'conf_file': 
+  {'kws': 
+    {'type': <class '...Path'>}}, 
+ 'countryName': 
+  {'kws': 
+    {'type': <class 'str'>}}, 
+ 'dnsubject': 
+  {'kws': 
+    {'type': <class 'str'>}}, 
+ 'email': 
+  {'kws': 
+    {'type': <class 'str'>}}, 
+ 'host_names': 
+  {'kws': 
+    {'type': <class 'str'>}}, 
+ 'ip_addresses': 
+  {'kws': 
+    {'type': <class 'str'>}}, 
+'key_name': 
+  {'kws': 
+    {'type': <class 'str'>}}, 
+'localityName': 
+  {'kws': 
+    {'type': <class 'str'>}}, 
+'organizationName': 
+  {'kws': 
+    {'type': <class 'str'>}}, 
+'organizationalUnitName': 
+  {'kws': 
+    {'type': <class 'str'>}}, 
+'password': 
+  {'kws':
+    {'type': <class 'str'>}}, 
+'pki_name': 
+  {'kws': 
+    {'type': <class 'str'>}}, 
+'privatdir': 
+  {'kws': 
+    {'type': <class 'str'>}}, 
+'stateOrProvinceName': 
+  {'kws': 
+  {'type': <class 'str'>}}}
 
 >>> cs_csr_args.arguments
 []
@@ -380,7 +425,7 @@ stateOrProvinceName='')
    'dest': 'dnsubject'}), 
  (['--conf-file'], 
   {'required': True, 
-   'type': <class 'pathlib.PosixPath'>, 
+   'type': <class '...Path'>, 
    'help': 'Path to a TOML-Configfile. This file defines the core parameters for the CSR generation.', 
    'dest': 'conf_file'}), 
  (['-k', '--key', '--key-name'], 
@@ -454,8 +499,8 @@ organizationalUnitName='no'
 policy_name=''
 stateOrProvinceName='no')
 
->>> pol_args.get_types()
-{'commonName': {'kws': {'type': <class 'str'>}}, 'conf_file': {'kws': {'type': <class 'pathlib.PosixPath'>}}, 'countryName': {'kws': {'type': <class 'str'>}}, 'localityName': {'kws': {'type': <class 'str'>}}, 'organizationName': {'kws': {'type': <class 'str'>}}, 'organizationalUnitName': {'kws': {'type': <class 'str'>}}, 'policy_name': {'kws': {'type': <class 'str'>}}, 'stateOrProvinceName': {'kws': {'type': <class 'str'>}}}
+>>> pol_args.get_types() # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+{'commonName': {'kws': {'type': <class 'str'>}}, 'conf_file': {'kws': {'type': <class '...Path'>}}, 'countryName': {'kws': {'type': <class 'str'>}}, 'localityName': {'kws': {'type': <class 'str'>}}, 'organizationName': {'kws': {'type': <class 'str'>}}, 'organizationalUnitName': {'kws': {'type': <class 'str'>}}, 'policy_name': {'kws': {'type': <class 'str'>}}, 'stateOrProvinceName': {'kws': {'type': <class 'str'>}}}
 
 >>> pol_args.setup_args()
 
@@ -505,7 +550,7 @@ stateOrProvinceName='no')
   'help': 'Name of the policy configuration. Used to uniquely identify this policy rule set.', 
   'dest': 'policy_name'}), 
  (['--conf-file'], 
-  {'type': <class 'pathlib.PosixPath'>, 
+  {'type': <class '...Path'>, 
    'help': 'Path to a TOML-Configfile defining the certificate issuance constraints.', 
    'dest': 'conf_file'})]
 
@@ -543,11 +588,9 @@ Fragment 'CN:Mein Name' does not contain '=' (Expected format: Key=Value)
 
 >>> csr_sign_args = CSRSigningArguments()
 
->>> csr_sign_args.get_types()
-{'countryName': {'kws': {'type': <class 'str'>}}, 'stateOrProvinceName': {'kws': {'type': <class 'str'>}}, 'localityName': {'kws': {'type': <class 'str'>}}, 'organizationName': {'kws': {'type': <class 'str'>}}, 'organizationalUnitName': {'kws': {'type': <class 'str'>}}, 'commonName': {'kws': {'type': <class 'str'>}}, 'policy_name': {'kws': {'type': <class 'str'>}}, 'conf_file': {'kws': {'type': <class 'pathlib.PosixPath'>}}, 'key_name': {'kws': {'type': <class 'str'>}}, 'private_dir': {'kws': {'type': <class 'str'>}}, 'certificate': {'kws': {'type': <class 'str'>}}, 'validity_days': {'kws': {'type': <class 'int'>}}, 'path_length': {'kws': {'type': <class 'int'>}}, 'passphrasefile': {'kws': {'type': <class 'str'>}}, 'certificat_sign_request': {'kws': {'type': <class 'str'>}}}
+>>> csr_sign_args.get_types()  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+{'countryName': {'kws': {'type': <class 'str'>}}, 'stateOrProvinceName': {'kws': {'type': <class 'str'>}}, 'localityName': {'kws': {'type': <class 'str'>}}, 'organizationName': {'kws': {'type': <class 'str'>}}, 'organizationalUnitName': {'kws': {'type': <class 'str'>}}, 'commonName': {'kws': {'type': <class 'str'>}}, 'policy_name': {'kws': {'type': <class 'str'>}}, 'conf_file': {'kws': {'type': <class '...Path'>}}, 'key_name': {'kws': {'type': <class 'str'>}}, 'private_dir': {'kws': {'type': <class 'str'>}}, 'certificate': {'kws': {'type': <class 'str'>}}, 'validity_days': {'kws': {'type': <class 'int'>}}, 'path_length': {'kws': {'type': <class 'int'>}}, 'passphrasefile': {'kws': {'type': <class 'str'>}}, 'certificat_sign_request': {'kws': {'type': <class 'str'>}}}
 
->>> csr_sign_args.get_types()
-{'countryName': {'kws': {'type': <class 'str'>}}, 'stateOrProvinceName': {'kws': {'type': <class 'str'>}}, 'localityName': {'kws': {'type': <class 'str'>}}, 'organizationName': {'kws': {'type': <class 'str'>}}, 'organizationalUnitName': {'kws': {'type': <class 'str'>}}, 'commonName': {'kws': {'type': <class 'str'>}}, 'policy_name': {'kws': {'type': <class 'str'>}}, 'conf_file': {'kws': {'type': <class 'pathlib.PosixPath'>}}, 'key_name': {'kws': {'type': <class 'str'>}}, 'private_dir': {'kws': {'type': <class 'str'>}}, 'certificate': {'kws': {'type': <class 'str'>}}, 'validity_days': {'kws': {'type': <class 'int'>}}, 'path_length': {'kws': {'type': <class 'int'>}}, 'passphrasefile': {'kws': {'type': <class 'str'>}}, 'certificat_sign_request': {'kws': {'type': <class 'str'>}}}
 
 
 

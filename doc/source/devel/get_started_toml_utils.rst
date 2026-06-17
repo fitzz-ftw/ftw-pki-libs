@@ -43,6 +43,8 @@ ftwpki.baselibs.exceptions.PKIKeyError: No table 'identity.dn' in config file!
 >>> toml2dn(Path(argv.conf_file).read_text())
 Traceback (most recent call last):
     ...
+ftwpki.baselibs.exceptions.PKIConfigError: Could not decode file content!
+
 tomllib.TOMLDecodeError: Could not decode file content!
 
 
@@ -88,6 +90,8 @@ server_l2
 >>> toml2dn_policy(None,'') # doctest: +ELLIPSIS   
 Traceback (most recent call last):
     ...
+TypeError: Expected str object, not 'NoneType'
+
 AttributeError: 'NoneType' object has no attribute 'replace'
 
 >>> toml2dn_policy(file_content=Path("toml_2_dn_test.toml").read_text()) # doctest: +ELLIPSIS   
@@ -195,6 +199,8 @@ FileNotFoundError: [Errno 2] No such file or directory: '...pkiconfig.toml'
 >>> _get_toml_policy_data("dn", "hallöli", "test")
 Traceback (most recent call last):
     ...
+ftwpki.baselibs.exceptions.PKIConfigError: Could not decode file content!
+
 tomllib.TOMLDecodeError: Could not decode file content!
 
 

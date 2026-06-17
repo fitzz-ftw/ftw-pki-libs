@@ -39,6 +39,18 @@ class PKIError(Exception):
         """
         return f"{self.__class__.__name__}()"
 
+class PKIConfigError(PKIError):
+    """
+    Exception raised when a PKI config could not be read.
+
+    Catch Order:
+        1. PKIConfigError
+        2. PKIError
+        3. Exception
+
+    """
+
+
 class PKIFileNotFoundError(PKIError):
     """
     Exception raised when a required PKI file is missing.

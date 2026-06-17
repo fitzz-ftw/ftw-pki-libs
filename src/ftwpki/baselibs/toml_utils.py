@@ -26,7 +26,7 @@ from pathlib import Path
 from tomllib import TOMLDecodeError, load, loads
 
 from ftwpki.baselibs.app_dirs import config_file_path
-from ftwpki.baselibs.exceptions import PKIKeyError
+from ftwpki.baselibs.exceptions import PKIConfigError, PKIKeyError
 
 
 # FUNCTION - list_policy_sections
@@ -65,7 +65,7 @@ def toml2dn(file_content: str ) -> dict[str, str]:
     try:
         tomfile = loads(file_content)
     except TOMLDecodeError:
-        raise TOMLDecodeError("Could not decode file content!")
+        raise PKIConfigError("Could not decode file content!")
     try:
         dn = tomfile["identity"]["dn"]
     except KeyError:
@@ -97,10 +97,15 @@ def _get_toml_policy_data(policy_type: str,
     """
     section_name = section
 
+    if not isinstance(file_content, str):
+       raise TypeError(
+        f"Expected str object, not '{type(file_content).__qualname__}'"
+        ) 
+
     try:
         data: dict[str, dict] = loads(file_content)
     except TOMLDecodeError:
-        raise TOMLDecodeError("Could not decode file content!")
+        raise PKIConfigError("Could not decode file content!")
 
     data = data.get("policy", {})
     if not section_name:
