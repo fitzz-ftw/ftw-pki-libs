@@ -72,11 +72,16 @@ class CSRProtocol(DistinguishedNameProtocol):
     """The filename or path of the private key."""
     privatdir: str
     """The directory where sensitive key material is stored."""
-
+    key_name:str
 
 # !CLASS - CSRProtocol
 
-ClientTypeName = Literal["server", "client", "clsrvr", "client-server"]
+ClientTypeName = Literal["server", 
+        "client", 
+        "clsrvr", 
+        "client-server",
+        "user",
+        "intermediate"]
 """
 Type alias for the allowed roles in a certificate request.
 
@@ -110,6 +115,11 @@ class ServerClientCSRProtocol(CSRProtocol):
     password: str | None
     """The optional password used for the private key or signing."""
 
+    conf_file:str
+    """The path to the configuration file."""
+
+    pki_name:str
+    """The name of the PKI configuration."""
 
 # !CLASS - ServerClientCSR
 
@@ -170,8 +180,9 @@ class SigningProtocol(PolicyProtocol):
     It ensures that objects used for issuing certificates provide all
     necessary paths, keys, and validity constraints.
     """
-
-    private_key: str
+    key_name:str
+    """The base name of the cryptographic key."""
+    private_key: str #Deprecated
     """The filename or path of the CA private key."""
     private_dir: str
     """The directory where the private key is located."""
@@ -237,6 +248,9 @@ class CertImportProtocol(Protocol):
     processing.
     """
 
+    key_name:str
+    """The base name of the cryptographic key."""
+
     private_keyfile: str
     """The filename or path to the private key
                                associated with the import."""
@@ -249,7 +263,7 @@ class CertImportProtocol(Protocol):
 
 
 # CLASS - IntermedImportProtocol
-class IntermedImportProtocol(Protocol):
+class IntermedImportProtocol(CertImportProtocol):
     """
     Structural interface for intermediate certificate import operations. (ro)
 

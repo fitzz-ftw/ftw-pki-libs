@@ -79,7 +79,7 @@ b'CERT_DATACERT_DATA'
 
 Fehlgeschlagene Entschlüsselung wirft einen sauberen ValueError.
 
->>> from ftwpki.baselibs.core import load_private_key_from_pem
+>>> from ftwpki.baselibs.core import load_private_key_from_pem, private_key_to_pem
 >>> load_private_key_from_pem(priv_pem, "falsches_passwort")
 Traceback (most recent call last):
     ...
@@ -87,6 +87,12 @@ ftwpki.baselibs.exceptions.PKIEncryptionError: Could not decrypt or load the pri
 
 
 >>> private_key_obj= load_private_key_from_pem(priv_pem, passw)
+
+>>> private_key_to_pem(private_key_obj) #doctest: +ELLIPSIS
+b'-----BEGIN PRIVATE KEY-----...
+
+
+
 
 >>> from pathlib import Path
 >>> from fitzzftw.devtools.testinfra import TestHomeEnvironment

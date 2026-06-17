@@ -1,0 +1,22 @@
+[identity.dn]
+countryName = "DE"
+organizationName = "Muster-Verband e.V."
+commonName = "Muster-Verband Bundesverband Root CA"
+localityName = "Berlin"
+organizationalUnitName = "Zentraler PKI-Dienst"
+
+[policy.ext]
+ocspURI = "http://ocsp.example.org/root"
+crlURI = "http://pki.example.org/root/root.crl"
+caIssuerURI = "http://pki.example.org/root/root.crt"
+
+[policy.intermediate.dn]
+countryName = "match"
+organizationName = "match"
+commonName = "supplied"
+localityName = "supplied"           # Zwingend für die Stadtebene (z. B. Remscheid)
+organizationalUnitName = "optional"
+stateOrProvinceName = "optional"
+
+[policy.intermediate.ext]
+crlURI = "http://pki.example.org/rsm/regional.crl"

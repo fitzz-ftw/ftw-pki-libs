@@ -101,7 +101,7 @@ class PasswordManager:
         except Exception as err:
             raise PKIEncryptionError() from err
 
-    def decrypt_password_file(self, encrypted_filename: str, password: str) -> str:
+    def decrypt_password_file(self, encrypted_filename: str|Path, password: str) -> str:
         """
         Decrypt an encrypted file and return the stored passphrase. (rw)
 
@@ -118,7 +118,7 @@ class PasswordManager:
         """
         file_path = self._private_dir / encrypted_filename
         if not file_path.exists():
-            raise FileNotFoundError(f"Encrypted file {encrypted_filename} not found.")
+            raise FileNotFoundError(f"Encrypted file {str(encrypted_filename)} not found.")
 
         try:
             raw_data = file_path.read_bytes().rstrip(b"\r\n \x00")

@@ -15,7 +15,6 @@ Main Features:
     * Specific policies for CAs (Root/Intermediate) and End-Entities.
     * Support for Subject Alternative Names (SAN) via dynamic kwargs.
 """
-
 import ipaddress
 from abc import ABC, abstractmethod
 from pathlib import Path
@@ -69,10 +68,11 @@ class BasePolicy(ABC):
         san_entries = []
 
         # 1. DNS Namen (alt_names)
+        # workflow, 
         for name in kwargs.get("dns_names", []):
             if "." not in name and name.lower() != "localhost":
                 raise ValueError(f"Hostname '{name}' is not a FQDN (missing dot).")
-            san_entries.append(x509.DNSName(name))
+            san_entries.append(x509.DNSName(name)) if isinstance(name, str) else ...
 
         # 2. IP Adressen (alt_ips) - Trennung spart die Exception
         for ip_str in kwargs.get("ip_addresses", []):
@@ -157,7 +157,7 @@ class IntermediatePolicy(BasePolicy):
     constraint to limit the depth of the subsequent CA hierarchy.
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, path_length= 0,  **kwargs):
         """
         Initialize the intermediate policy. (rw)
 
@@ -165,13 +165,14 @@ class IntermediatePolicy(BasePolicy):
         initializing BasicConstraints (CA:True) and KeyUsage
         (Digital Signature, Cert/CRL Sign).
 
-        :param kwargs: Supports 'path_length' (int).
+        :param path_length: The number of allowed intermediate CAs in the chain.
+        :param kwargs: Additional keyword arguments for the parent class.
         """
-        self._path_length = kwargs.pop("path_length", 0)
+        self._path_length = path_length
         super().__init__(**kwargs)
         self._basic_constraints = x509.BasicConstraints(ca=True, path_length=self._path_length)
         self._key_usage = x509.KeyUsage(
-            digital_signature=True,
+            digital_signature=False,
             content_commitment=False,
             key_encipherment=False,
             data_encipherment=False,

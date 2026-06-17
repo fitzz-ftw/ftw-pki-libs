@@ -73,3 +73,17 @@ PKIValidationError()
 Traceback (most recent call last):
     ...
 ftwpki.baselibs.exceptions.PKIValidationError: No match OU MATCH IT
+
+
+>>> from ftwpki.baselibs.exceptions import PKIPolicyValidationError
+
+>>> ppve = PKIPolicyValidationError(["test1", "test2"])
+>>> ppve
+PKIPolicyValidationError(Errors: 2)
+
+>>> raise ppve
+Traceback (most recent call last):
+    ...
+ftwpki.baselibs.exceptions.PKIPolicyValidationError: While policyvalidation following missmatch occurs:
+  test1
+  test2

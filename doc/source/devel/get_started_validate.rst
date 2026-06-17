@@ -23,10 +23,16 @@ ValidationResult(is_valid=True, errors=[])
 
 
 >>> val_dn.validate(csr2)
-ValidationResult(is_valid=False, errors=[ValidationError(field='C:de', message='MATCH', invalid_value='en')])
+Traceback (most recent call last):
+    ...
+ftwpki.baselibs.exceptions.PKIPolicyValidationError: While policyvalidation following missmatch occurs:
+    - [C:de]: MATCH (Got: 'en')
 
 >>> val_dn.validate(csr3)
-ValidationResult(is_valid=False, errors=[ValidationError(field='D', message='DISALLOWED', invalid_value='')])
+Traceback (most recent call last):
+    ...
+ftwpki.baselibs.exceptions.PKIPolicyValidationError: While policyvalidation following missmatch occurs:
+    - [D]: DISALLOWED
 
 >>> val_dn.validate(csr4)
 ValidationResult(is_valid=True, errors=[])
@@ -38,7 +44,16 @@ True
 ValidatorDN({'C': 'match', 'B': 'supplied'})
 
 >>> val_dn2.validate(csr1)
-ValidationResult(is_valid=False, errors=[ValidationError(field='B', message='SUPPLIED', invalid_value='')])
+Traceback (most recent call last):
+    ...
+ftwpki.baselibs.exceptions.PKIPolicyValidationError: While policyvalidation following missmatch occurs:
+    - [B]: SUPPLIED
+
+
+>>> val_dn2.validate(csr1, raise_on_error=False)  #doctest: +NORMALIZE_WHITESPACE
+ValidationResult(is_valid=False, 
+    errors=[ValidationError(field='B', message='SUPPLIED', invalid_value='')])
+
 
 >>> val_dn2.validate(csr5)
 ValidationResult(is_valid=True, errors=[])
@@ -50,7 +65,11 @@ True
 ValidatorDN({'C': 'mach'})
 
 >>> val_dn3.validate(csr1)
-ValidationResult(is_valid=False, errors=[ValidationError(field='C', message='UNKNOWN_POLICY_MODE', invalid_value='mach')])
+Traceback (most recent call last):
+    ...
+ftwpki.baselibs.exceptions.PKIPolicyValidationError: While policyvalidation following missmatch occurs:
+    - [C]: UNKNOWN_POLICY_MODE (Got: 'mach')
+
 
 
 >>> from ftwpki.baselibs.validate import validate_uri

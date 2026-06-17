@@ -22,6 +22,7 @@ of all cryptographic primitives.
 """
 
 import datetime
+import re
 import stat
 from pathlib import Path
 from typing import cast
@@ -30,6 +31,7 @@ from cryptography import x509
 from cryptography.exceptions import UnsupportedAlgorithm
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey
 from cryptography.x509.oid import NameOID
 
 from ftwpki.baselibs.data import CertificateRecord, CertificateStatus
@@ -37,7 +39,7 @@ from ftwpki.baselibs.exceptions import PKIEncryptionError
 
 
 # FUNCTION - generate_rsa_key_pair
-def generate_rsa_key_pair(passphrase: str|None, key_size: int = 4096) -> tuple[bytes, bytes]:
+def generate_rsa_key_pair(passphrase: str | None, key_size: int = 4096) -> tuple[bytes, bytes]:
     """
     Generate a standard-compliant RSA key pair. (rw)
 
@@ -75,7 +77,10 @@ def generate_rsa_key_pair(passphrase: str|None, key_size: int = 4096) -> tuple[b
     )
 
     return private_pem, public_pem
+
+
 # !FUNCTION - generate_rsa_key_pair
+
 
 # FUNCTION - create_distinguished_name
 def create_distinguished_name(
@@ -122,7 +127,10 @@ def create_distinguished_name(
     attributes.append(x509.NameAttribute(NameOID.COMMON_NAME, common_name))
 
     return x509.Name(attributes)
+
+
 # !FUNCTION - create_distinguished_name
+
 
 # FUNCTION - save_pem
 def save_pem(data: bytes, target_path: Path, is_private: bool = False) -> None:
@@ -141,12 +149,15 @@ def save_pem(data: bytes, target_path: Path, is_private: bool = False) -> None:
     """
     target_path.parent.mkdir(parents=True, exist_ok=True)
     target_path.write_bytes(data)
-    
+
     if is_private:
         target_path.chmod(stat.S_IREAD | stat.S_IWRITE)
+
+
 # !FUNCTION - save_pem
 
-#FUNCTION - get_pem_bytes
+
+# FUNCTION - get_pem_bytes
 def get_pem_bytes(item: x509.Certificate | x509.CertificateSigningRequest) -> bytes:
     """
     Convert a cryptography object to PEM encoded bytes. (ro)
@@ -159,9 +170,12 @@ def get_pem_bytes(item: x509.Certificate | x509.CertificateSigningRequest) -> by
     :returns: The content of the object as PEM encoded bytes.
     """
     return item.public_bytes(serialization.Encoding.PEM)
+
+
 # !FUNCTION - get_pem_bytes
 
-#FUNCTION - create_chain_bytes
+
+# FUNCTION - create_chain_bytes
 def create_chain_bytes(certificates: list[x509.Certificate]) -> bytes:
     """
     Combine multiple certificate objects into a single PEM byte string. (ro)
@@ -179,10 +193,53 @@ def create_chain_bytes(certificates: list[x509.Certificate]) -> bytes:
     for cert in certificates:
         chain_data += get_pem_bytes(cert)
     return chain_data
+
+
 # !FUNCTION - create_chain_bytes
 
+
+# FUNCTION - extract_certs_from_chain
+def extract_certs_from_chain(chain_bytes: bytes) -> list[x509.Certificate]:
+    """
+    Extract certificates using regex to handle arbitrary line breaks or artifacts.
+
+    :param chain_bytes: The raw bytes containing the certificate chain.
+    :raises cryptography.exceptions.UnsupportedAlgorithm: If the cert format is invalid.
+    :returns: A list of loaded x509 certificate objects.
+    """
+    pattern = re.compile(rb"-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----", re.DOTALL)
+
+    certs = []
+    for match in pattern.finditer(chain_bytes):
+        cert_data = match.group(0)
+        certs.append(x509.load_pem_x509_certificate(cert_data))
+
+    return certs
+
+
+# !FUNCTION - extract_certs_from_chain
+
+# FUNCTION - private_key_to_pem
+def private_key_to_pem(key_obj: RSAPrivateKey) -> bytes:
+    """
+    Convert an RSA private key object to PEM format.
+
+    :param key_obj: The RSA private key object.
+    :raises TypeError: If the provided key object is not a valid RSA key.
+    :returns: The PEM-encoded private key as bytes.
+    """
+    key_bytes = key_obj.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption(),  # Oder BestAlgorithm(password)
+    )
+    return key_bytes
+
+# !FUNCTION - private_key_to_pem
+
+
 # FUNCTION - load_private_key_from_pem
-def load_private_key_from_pem(pem_data: bytes, passphrase: str|None) -> rsa.RSAPrivateKey:
+def load_private_key_from_pem(pem_data: bytes, passphrase: str | None) -> rsa.RSAPrivateKey:
     """
     Load an encrypted RSA private key from PEM data. (ro)
 
@@ -198,16 +255,20 @@ def load_private_key_from_pem(pem_data: bytes, passphrase: str|None) -> rsa.RSAP
     :returns: A private key object used for cryptographic operations.
     """
     try:
-
-        key = serialization.load_pem_private_key(pem_data, 
-                                            password=passphrase.encode() if passphrase else None)
+        key = serialization.load_pem_private_key(
+            pem_data, password=passphrase.encode() if passphrase else None
+        )
     except (ValueError, TypeError, UnsupportedAlgorithm) as e:
         # Wir mappen die Library-Fehler auf einen sauberen ValueError für die UI/Logik
-        raise PKIEncryptionError("Could not decrypt or load the private key. Check your passphrase.") from e  # noqa: E501
+        raise PKIEncryptionError(
+            "Could not decrypt or load the private key. Check your passphrase."
+        ) from e  # noqa: E501
 
     if not isinstance(key, rsa.RSAPrivateKey):
         raise ValueError("The provided key is not an RSA private key.")
     return key
+
+
 # !FUNCTION - load_private_key_from_pem
 
 
@@ -225,6 +286,8 @@ def load_certificate_from_pem(pem_data: bytes) -> x509.Certificate:
     :returns: A certificate object used for cryptographic operations.
     """
     return x509.load_pem_x509_certificate(pem_data)
+
+
 # !FUNCTION - load_certificate_from_pem
 
 
@@ -242,6 +305,8 @@ def load_csr_from_pem(pem_data: bytes) -> x509.CertificateSigningRequest:
     :returns: A CSR object used for cryptographic operations.
     """
     return x509.load_pem_x509_csr(pem_data)
+
+
 # !FUNCTION - load_csr_from_pem
 
 
@@ -261,26 +326,24 @@ def convert_pem_to_der(pem_bytes: bytes, is_key: bool = False, password: str = "
     if is_key:
         # Falls password leer ist (""), wird pw_bytes zu None für die Library
         pw_bytes = password.encode() if password else None
-        
-        key = serialization.load_pem_private_key(
-            pem_bytes,
-            password=pw_bytes
-        )
-        
+
+        key = serialization.load_pem_private_key(pem_bytes, password=pw_bytes)
+
         return key.private_bytes(
             encoding=serialization.Encoding.DER,
             format=serialization.PrivateFormat.PKCS8,
-            encryption_algorithm=serialization.NoEncryption()
+            encryption_algorithm=serialization.NoEncryption(),
         )
     else:
         cert = x509.load_pem_x509_certificate(pem_bytes)
         return cert.public_bytes(serialization.Encoding.DER)
 
+
 #!FUNCTION - convert_pem_to_der
 
 
 # FUNCTION - create_csr_name
-def create_csr_name(*args: str) -> str:
+def create_csr_name(*args: str, suffix: str = ".csr") -> str:
     """
     Create a file name for a Certificate Signing Request. (ro)
 
@@ -292,7 +355,9 @@ def create_csr_name(*args: str) -> str:
     :raises TypeError: If any of the provided arguments is not a string.
     :returns: A formatted string suitable for a CSR file name.
     """
-    return "_".join(args).replace(" ", "-") + ".csr"
+    return "_".join(args).replace(" ", "-").replace(".", "") + suffix
+
+
 # !FUNCTION - create_csr_name
 
 
@@ -311,12 +376,14 @@ def cert_to_record(cert: x509.Certificate, status: CertificateStatus = "V") -> C
     :returns: A structured record containing the certificate information.
     """
     return CertificateRecord(
-        status=cast(CertificateStatus,status.upper()),
+        status=cast(CertificateStatus, status.upper()),
         expiry=cert.not_valid_after_utc,
         revocation_date="",
         serial=format(cert.serial_number, "02X"),
         subject=cert.subject.rfc4514_string(),
     )
+
+
 # !FUNCTION - cert_to_record
 
 
@@ -344,6 +411,8 @@ def revoke_record(record: CertificateRecord, reason: str = "") -> CertificateRec
 
     # Da CertificateRecord ein NamedTuple (immutable) ist, nutzen wir _replace
     return record._replace(status="R", revocation_date=rev_field)
+
+
 # !FUNCTION - revoke_record
 
 
@@ -418,6 +487,8 @@ def create_crl(
         builder = builder.add_revoked_certificate(rev_builder.build())
 
     return builder.sign(ca_key, hashes.SHA512())
+
+
 # !FUNCTION - create_crl
 
 
@@ -437,22 +508,24 @@ def get_subject_dict(item: x509.Certificate | x509.CertificateSigningRequest) ->
               are the corresponding data.
     """
     return {attr.oid._name: str(attr.value) for attr in item.subject}
+
+
 # !FUNCTION - get_subject_dict
 
-if __name__ == "__main__": # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     from doctest import FAIL_FAST, testfile
-    
+
     be_verbose = False
     be_verbose = True
     option_flags = 0
     option_flags = FAIL_FAST
     test_sum = 0
     test_failed = 0
-    
+
     # Pfad zu den dokumentierenden Tests
     testfiles_dir = Path(__file__).parents[3] / "doc/source/devel"
     test_file = testfiles_dir / "get_started_core.rst"
-    
+
     if test_file.exists():
         print(f"--- Running Doctest for {test_file.name} ---")
         doctestresult = testfile(

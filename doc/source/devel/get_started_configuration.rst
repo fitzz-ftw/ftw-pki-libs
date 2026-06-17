@@ -23,13 +23,11 @@ Get Stated with ConfigurationcClasses
 
 
 >>> BasePKIConfig("wrong.toml") #doctest: +ELLIPSIS
-file_name='wrong.toml'
-BasePKIConfig(Path=...ftwpki/wrong.toml)
-
+BasePKIConfig(Path=.../ftwpki/pkiconfig.toml)
 >>> base_conf = BasePKIConfig(file_name="user.toml") 
 
 >>> base_conf  #doctest: +ELLIPSIS
-BasePKIConfig(Path=...ftwpki/user.toml)
+BasePKIConfig(Path=...ftwpki/pkiconfig.toml)
 
 Linux:
 /testhome/.config/ftwpki/pkiconfig.toml
@@ -41,7 +39,11 @@ Windows:
 /testhome/AppData/Local/FitzzTeXnikWelt/ftwpki/pkiconfig.toml
 
 
+>>> base_conf.init_completed()
+{'set_config': False, 'set_filename': True, 'handel_pki_file': False}
 
+>>> bool(base_conf)
+False
 
 >>> base_conf.set_config()
 
@@ -60,11 +62,13 @@ True
 >>> base_conf.data_path == shared_data_path
 True
 
->>> (shared_data_path /"certs").exists()
-True
+>>> base_conf.private_key("ca.key.pem") #doctest: +ELLIPSIS
+Traceback (most recent call last):
+    ...
+FileNotFoundError: [Errno 2] No such file or directory: '.../ftwpki/.private/ca.key.pem'
 
->>> (shared_data_path /"certs").is_dir()
-True
+>> base_conf.
+
 
 >>> base_conf.private_keys.as_posix() # doctest: +ELLIPSIS
 '...ftwpki/.private'
@@ -72,20 +76,11 @@ True
 >>> base_conf.public_data.as_posix() # doctest: +ELLIPSIS
 '.../ftwpki'
 
->>> base_conf.certs.as_posix() # doctest: +ELLIPSIS
-'.../ftwpki/certs'
+>>> base_conf.get_certs() # doctest: +ELLIPSIS
+{'ca.crt.pem': None, 'user.crt.pem': None, 'caroot.crt.pem': None}
 
->>> base_conf.chains.as_posix() # doctest: +ELLIPSIS
-'.../ftwpki/chains'
-
->>> base_conf.ext_cert
-'.crt.pem'
-
->>> base_conf.ext_public
-'.pub.pem'
-
->>> base_conf.ext_signedcert
-'.zip.enc'
+>>> base_conf.fullchain # doctest: +ELLIPSIS
+[]
 
 >>> base_conf.resolve("test").as_posix()  #doctest: +ELLIPSIS
 '.../testhome/testoutput/test'
@@ -113,20 +108,21 @@ KeyError: "Pfad-Kategorie 'wrong_name' nicht konfiguriert."
 >>> base_conf.resolve("/opt/test", "wrong_name").as_posix() 
 '/opt/test'
 
+>>> base_conf.pki
+PKIPackage()
 
 .. !SECTION Test für CI entfernen Laufen nur auf Linux
 
 >>> base_conf.current_configfile_entries # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
 {'private_keys': '#config#.private', 
- 'public_data': '#data#', 
- 'certs': '#data#certs', 
- 'chains': '#data#chains', 
- 'ext_cert': '.crt.pem', 
- 'ext_public': '.pub.pem', 
- 'ext_chain': '.chain.pem', 
- 'ext_signedcert': '.zip.enc',
+ 'zip': '#data#', 
+ 'certs': '#zip#', 
+ 'chains': '#zip#', 
  'config_path': '#config#', 
  'data_path': '#data#'}
+
+>>> base_conf.set_config()
+
 
 
 >>> from ftwpki.baselibs.configuration import UserPKIConfig
@@ -136,7 +132,7 @@ KeyError: "Pfad-Kategorie 'wrong_name' nicht konfiguriert."
 file_name='user.toml'
 
 >>> user_conf #doctest: +ELLIPSIS
-UserPKIConfig(Path=.../ftwpki/user.toml)
+UserPKIConfig(Path=.../ftwpki/pkiconfig.toml)
 
 
 
@@ -145,31 +141,80 @@ UserPKIConfig(Path=.../ftwpki/user.toml)
 
 >>> leaf_conf= LeafPKIConfig()
 >>> leaf_conf #doctest: +ELLIPSIS
-LeafPKIConfig(Path=.../ftwpki/leaf.toml)
+LeafPKIConfig(Path=.../ftwpki/pkiconfig.toml)
 
+>>> root_pki= env.copy2cwd("tests_pki_root/ca_root.pki", "ca_root.pki")
 
 >>> from ftwpki.baselibs.configuration import RootSignerPKIConfig
 
->>> root_signer_conf= RootSignerPKIConfig()
+>>> root_signer_conf= RootSignerPKIConfig("ca_root.pki")
 >>> root_signer_conf #doctest: +ELLIPSIS
-RootSignerPKIConfig(Path=.../ftwpki/rsign.toml)
+RootSignerPKIConfig(Path=.../ftwpki/pkiconfig.toml)
 
 >>> root_signer_conf.passphrases.as_posix()  #doctest: +ELLIPSIS
 '.../ftwpki/.private'
 
->>> root_signer_conf.ext_chain
-'.chain.pem'
+>>> root_signer_conf.fullchain
+[]
 
+>>> root_signer_conf.handle_pki_file()
+
+>>> root_signer_conf.fullchain #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+[<Certificate(subject=<Name(...CN=Muster-Verband Bundesverband Root CA...)>, ...)>, 
+ <Certificate(subject=<Name(...CN=Muster-Verband Bundesverband Root CA...)>, ...)>]
+
+>>> root_signer_conf.handle_pki_file()
+
+>>> root_signer_conf.own_cert #doctest: +ELLIPSIS 
+<Certificate(subject=<Name(...CN=Muster-Verband Bundesverband Root CA...)>, ...)>
+
+>>> root_signer_conf.private_key("caroot.key.pem") #doctest: +ELLIPSIS 
+b'-----BEGIN ENCRYPTED PRIVATE KEY----...
+
+
+>>> root_signer_conf.policy_files
+['ca_root.policy']
+
+>>> root_signer_conf.get_dn_policies(  #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+...     policyname='ca_root.policy', 
+...     section = "intermediate")
+{'countryName': 'match', 
+ 'organizationName': 'match', 
+ 'commonName': 'supplied', 
+ 'localityName': 'supplied', 
+ 'organizationalUnitName': 'optional', 
+ 'stateOrProvinceName': 'optional'}
+
+>>> root_signer_conf.get_extentions(  #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+...     policyname='ca_root.policy', 
+...     section = "intermediate")
+{'ocspURI': 'http://ocsp.example.org/root', 
+ 'crlURI': 'http://pki.example.org/rsm/regional.crl', 
+ 'caIssuerURI': 'http://pki.example.org/root/root.crt'}
+
+>>> root_pki= env.copy2cwd("tests_pki_root/ca_root_wop.pki", "ca_root_wop.pki")
+
+>>> root_wop_conf= RootSignerPKIConfig("ca_root_wop.pki", section="")
+
+>>> root_wop_conf.handle_pki_file()
+
+>>> root_wop_conf.in_zip
+['certs', 'chains']
+
+>>> root_wop_conf.private_key("not_there.key.pem") #doctest: +ELLIPSIS 
+Traceback (most recent call last):
+    ...
+FileNotFoundError: [Errno 2] No such file or directory: '.../ftwpki/.private/not_there.key.pem'
 
 
 >>> from ftwpki.baselibs.configuration import IntermedPKIConfig
 
 >>> intermed_conf= IntermedPKIConfig()
 >>> intermed_conf #doctest: +ELLIPSIS
-IntermedPKIConfig(Path=.../ftwpki/intermed.toml)
+IntermedPKIConfig(Path=.../ftwpki/pkiconfig.toml)
 
 >>> intermed_conf.policies.as_posix()  #doctest: +ELLIPSIS
-'.../ftwpki/policies'
+'.../ftwpki/.private'
 
 >>> intermed_conf.ext_policy
 '.policy'
@@ -177,8 +222,7 @@ IntermedPKIConfig(Path=.../ftwpki/intermed.toml)
 >>> intermed2_conf=IntermedPKIConfig()
 
 
-
->>> env.clean_home()
+>> env.clean_home()
 >>> env.teardown()
 
 

@@ -410,7 +410,8 @@ autosummary_ignore_module_all = True
 autosummary_context = {}
 
 inherit_diagramm: list[str] = ["ftwpki.baselibs.exceptions",
-                               "ftwpki.baselibs.policies"]
+                               "ftwpki.baselibs.policies",
+                               "ftwpki.baselibs.cli_parser"]
 exclude_inherit_diagramm: list[str] = []
 
 class_extention_context = {

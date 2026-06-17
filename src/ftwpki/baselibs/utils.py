@@ -18,7 +18,7 @@ Main Features:
 These utilities are primarily used for logging, debugging, and user
 interfaces.
 """
-
+import sys
 from pathlib import Path
 from typing import LiteralString
 
@@ -204,6 +204,22 @@ def get_cert_text_from_cert(pem_bytes: bytes) -> str:
 
     return "\n".join(lines)
 # !FUNCTION - get_cert_text_from_cert
+
+def report_error(e:BaseException) -> None:
+    """
+    Print an exception to the standard error stream.
+
+    :param e: The exception instance to report.
+    """
+    print(e, file=sys.stderr)
+
+def print_error(e: BaseException) -> None:
+    """
+    Print an exception to the standard output.
+
+    :param e: The exception instance to print.
+    """
+    print(e)
 
 
 if __name__ == "__main__": # pragma: no cover

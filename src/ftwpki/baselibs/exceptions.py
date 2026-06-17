@@ -19,6 +19,8 @@ Inheritance Summary:
 
 from pathlib import Path
 
+from ftwpki.baselibs.data import ValidationError
+
 
 class PKIError(Exception):
     """
@@ -36,6 +38,57 @@ class PKIError(Exception):
         :returns: String in the format 'ClassName()'.
         """
         return f"{self.__class__.__name__}()"
+
+class PKIConfigError(PKIError):
+    """
+    Exception raised when a PKI config could not be read.
+
+    Catch Order:
+        1. PKIConfigError
+        2. PKIError
+        3. Exception
+
+    """
+
+
+class PKIFileNotFoundError(PKIError):
+    """
+    Exception raised when a required PKI file is missing.
+
+    Catch Order:
+        1. PKIFileNotFoundError
+        2. PKIError
+        3. Exception
+
+    """
+
+class PKIMissingExportPathError(PKIError):
+    """
+    Raised when a required path for the export process is missing or empty.
+
+    Catch Order:
+        1. PKIMissingExportPathError
+        2. PKIError
+        3. Exception
+
+    """
+
+class PKIKeyError(PKIError):
+    """
+    Exception raised when a required key or configuration entry is missing.
+
+    Catch Order:
+        1. PKIKeyError
+        2. PKIError
+        3. Exception
+
+    """
+
+class PKIEncodingError(PKIError):
+    """
+    Exception raised when a wrong encodinge is given.
+    """
+
 
 
 class PKISecurityError(PKIError):
@@ -78,6 +131,21 @@ class PKIEncryptionError(PKISecurityError):
         :returns: String in the format 'ClassName()'.
         """
         return f"{self.__class__.__name__}()"
+
+class PKIPolicyValidationError(PKISecurityError):
+    def __init__(self, errors:list[ValidationError]) -> None:
+        super().__init__()
+        self.errors: list[ValidationError] = errors
+
+    def __str__(self) -> str:
+        ret:str="While policyvalidation following missmatch occurs:"
+        self.errors.sort()
+        for error in self.errors:
+            ret+=f"\n  {error}"
+        return ret
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(Errors: {len(self.errors)})"
 
 
 class PKIValidationError(PKISecurityError):

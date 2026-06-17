@@ -2,6 +2,16 @@ Command Line Interface Parsers
 ================================
 
 
+.. CLASS - AutoHelpParserMixin
+
+>>> from ftwpki.baselibs.cli_parser import AutoHelpParserMixin
+
+
+.. !CLASS - AutoHelpParserMixin
+
+
+.. CLASS - DistinguishedNameParser
+
 >>> from ftwpki.baselibs.cli_parser import DistinguishedNameParser,get_dn_parser
 
 >>> dnp=DistinguishedNameParser()
@@ -22,6 +32,19 @@ DistinguishedNameParser(prog=...,
     conflict_handler='error', 
     add_help=True)
 
+>>> no_conf_file_parser = DistinguishedNameParser()
+
+>>> no_conf_file_parser.parse_args(["-C", "de" ]) #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+Namespace(countryName='de', 
+    stateOrProvinceName='', 
+    localityName='', 
+    organizationName='', 
+    organizationalUnitName='', 
+    commonName='', 
+    dnsubject={'countryName': 'de'})
+
+>>> no_conf_file_parser.add_argument("-f","--file")
+
 >>> dnp.parse_args(["-C", "de" ]) #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
 Namespace(countryName='de', 
     stateOrProvinceName='', 
@@ -29,8 +52,7 @@ Namespace(countryName='de',
     organizationName='', 
     organizationalUnitName='', 
     commonName='', 
-    dnsubject={'countryName': 'de'}, 
-    conf_file=None)
+    dnsubject={'countryName': 'de'})
 
 >>> dnp.parse_args(["-C", "de", "-subj", "/CN=Mein Name"  ]) #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
 Namespace(countryName='de', 
@@ -40,8 +62,7 @@ Namespace(countryName='de',
     organizationalUnitName='', 
     commonName='Mein Name', 
     dnsubject={'commonName': 'Mein Name', 
-               'countryName': 'de'}, 
-    conf_file=None)
+               'countryName': 'de'})
 
 >>> dnp.parse_args(["-C", "de", "-subj", "/CN:Mein Name"  ]) #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
 Traceback (most recent call last):
@@ -51,6 +72,9 @@ argparse.ArgumentError:
         Ungültiges Subj-Format: 
     Fragment 'CN:Mein Name' does not contain '=' (Expected format: Key=Value)
 
+.. !CLASS - DistinguishedNameParser
+
+.. CLASS - CSRParser
 
 >>> from ftwpki.baselibs.cli_parser import CSRParser, get_csr_parser
 
@@ -70,6 +94,13 @@ argparse.ArgumentError:
     add_help=True)
 
 >>> csr.parse_args(["-C", "de", "-subj", "/CN=Mein Name"  ]) #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+Traceback (most recent call last):
+    ...
+argparse.ArgumentError: the following arguments are required: --conf-file, -k/--key/--key-name
+
+
+
+>>> csr.parse_args(["-C", "de", "-k", "testkey", "--conf-file", "testfile.toml", "-subj", "/CN=Mein Name"  ]) #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
 Namespace(countryName='de', 
     stateOrProvinceName='', 
     localityName='', 
@@ -78,10 +109,16 @@ Namespace(countryName='de',
     commonName='Mein Name', 
     dnsubject={'commonName': 'Mein Name', 
             'countryName': 'de'}, 
-    conf_file=None,  
-    private_key='', 
-    public_key='', 
-    privatdir='')
+    conf_file=...Path('testfile.toml'), 
+    key_name='testkey',
+    pki_name='', 
+    privatdir='', 
+    private_key='testkey.key.pem', 
+    public_key='testkey.pub.pem')
+
+.. !CLASS - CSRParser
+
+.. CLASS - ServerClientCSRParser
 
 >>> from ftwpki.baselibs.cli_parser import ServerClientCSRParser, get_server_client_csr_parser
 
@@ -100,12 +137,12 @@ ServerClientCSRParser(prog=...,
     conflict_handler='error', 
     add_help=True)
 
->>> sccsr.parse_args(["-C", "de", "-subj", "/CN=Mein Name", "test@example.org"  ]) #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+>>> sccsr.parse_args(["-k", "testkey", "--conf-file", "testfile.toml","-C", "de", "-subj", "/CN=Mein Name", "test@example.org"  ]) #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
 Traceback (most recent call last):
     ...
 argparse.ArgumentError: At least an ip address or a hostname has to be given
 
->>> sccsr.parse_args(["-C", "de","-ip", "192.168.1.1", "-subj", "/CN=Mein Name", "test@example.org"  ]) #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+>>> sccsr.parse_args(["-k", "testkey", "--conf-file", "testfile.toml","-C", "de","-ip", "192.168.1.1", "-subj", "/CN=Mein Name", "test@example.org"  ]) #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
 Namespace(countryName='de', 
     stateOrProvinceName='', 
     localityName='', 
@@ -114,13 +151,35 @@ Namespace(countryName='de',
     commonName='Mein Name', 
     dnsubject={'commonName': 'Mein Name', 
             'countryName': 'de'}, 
-    conf_file=None,  
-    private_key='', 
-    public_key='', 
+    conf_file=PosixPath('testfile.toml'), 
+    key_name='testkey',    
+    pki_name='',
     privatdir='',
     email='test@example.org',
     ip_addresses=['192.168.1.1'], 
-    host_names=[])
+    host_names=[], 
+    password=None,
+    private_key='testkey.key.pem', public_key='testkey.pub.pem')
+
+>>> sccsr.mandantory_san
+True
+
+>>> sccsr.mandantory_san = False
+
+>>> sccsr.mandantory_san
+False
+
+>>> sccsr = ServerClientCSRParser(run_setup=False)
+>>> args, unknown = sccsr.parse_known_args(["-k", "testkey", "--conf-file", "testfile.toml","-C", "de", "-subj", "/CN=Mein Name", "test@example.org"  ]) #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+>>> args
+Namespace()
+
+>>> len(unknown)
+9
+
+.. !CLASS - ServerClientCSRParser
+
+.. CLASS - PolicyParser
 
 >>> from ftwpki.baselibs.cli_parser import PolicyParser, get_policy_parser
 
@@ -157,6 +216,10 @@ Namespace(countryName='match',
         'organizationalUnitName': 'no', 
         'commonName': 'no'})
 
+.. !CLASS - PolicyParser
+
+.. CLASS - CSRSigningParser
+
 >>> from ftwpki.baselibs.cli_parser import CSRSigningParser, get_csr_signing_parser
 
 >>> csp=CSRSigningParser()
@@ -177,7 +240,7 @@ CSRSigningParser(prog='...',
     conflict_handler='error', 
     add_help=True)
 
->>> csp.parse_args(["-C", "match", "passphrasefile", "certificat_sign_request"])  #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+>>> csp.parse_args(["-c", "test.pki","-C", "match", "passphrasefile", "certificat_sign_request"])  #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
 Namespace(countryName='match', 
     stateOrProvinceName='no', 
     localityName='no', 
@@ -186,9 +249,9 @@ Namespace(countryName='match',
     commonName='no', 
     policy_name=None,
     conf_file=None, 
-    private_key=None, 
+    key_name=None, 
     private_dir=None,
-    certificate='', 
+    certificate='test.pki', 
     validity_days=365, 
     path_length=0, 
     passphrasefile='passphrasefile', 
@@ -198,7 +261,12 @@ Namespace(countryName='match',
         'localityName': 'no', 
         'organizationName': 'no', 
         'organizationalUnitName': 'no', 
-        'commonName': 'no'})
+        'commonName': 'no'},
+    private_key='')
+
+.. !CLASS - CSRSigningParser
+
+.. CLASS - CertImportParser
 
 >>> from ftwpki.baselibs.cli_parser import CertImportParser, get_cert_import_parser
 
@@ -222,7 +290,7 @@ CertImportParser(prog='...',
 >>> cip.parse_args([ "signed_certificat.zip.enc"])  #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
 Traceback (most recent call last):
     ...
-argparse.ArgumentError: the following arguments are required: --keyfile/-k
+argparse.ArgumentError: the following arguments are required: --key-name/-k
 
 SystemExit: 2
 
@@ -230,8 +298,13 @@ usage: cli_parser.py [-h] --keyfile PRIVATE_KEYFILE enc-zipfile
 cli_parser.py: error: the following arguments are required: --keyfile/-k
 
 >>> cip.parse_args([ "-k", "my-private-key",  "signed_certificat.zip.enc"])  #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
-Namespace(enc_zipfile='signed_certificat.zip.enc', 
-    private_keyfile='my-private-key')
+Namespace(enc_zipfile='signed_certificat.zip.enc',
+    key_name='my-private-key',
+    private_keyfile='my-private-key.key.pem')
+
+.. !CLASS - CertImportParser
+
+.. CLASS - IntermedImportParser
 
 >>> from ftwpki.baselibs.cli_parser import IntermedImportParser , get_intermed_import_parser
 
@@ -259,10 +332,30 @@ IntermedImportParser(prog='...',
 ...     )  #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
 Namespace(passphrase_file='mypassphrasefile', 
     enc_zipfile='signed_certificat.zip.enc', 
-    private_keyfile='my-private-key', 
+    key_name='my-private-key', 
     policies='', 
-    policy='server')
+    policy='server', 
+    private_keyfile='my-private-key.key.pem')
 
+>>> iip= IntermedImportParser(run_setup=False)
+>>> args, unknown=iip.parse_known_args([ "-k", "my-private-key", 
+...     "-p", "server", 
+...     "mypassphrasefile",
+...     "signed_certificat.zip.enc"]
+...     )  #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+
+>>> args
+Namespace()
+
+>>> len(unknown)
+6
+
+
+
+.. !CLASS - IntermedImportParser
+
+
+.. CLASS - CSRMultiSigningParser
 
 >>> from ftwpki.baselibs.cli_parser import CSRMultiSigningParser, get_csr_multi_sign_parser
 >>> multi_parser = CSRMultiSigningParser()
@@ -282,7 +375,7 @@ CSRMultiSigningParser(prog='...',
     conflict_handler='error', 
     add_help=True)
 
->>> multi_parser.parse_args(["-C", "match", "passphrasefile", "certificat_sign_request"])  #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+>>> multi_parser.parse_args(["-c", "test.pki", "-C", "match", "passphrasefile", "certificat_sign_request"])  #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
 Namespace(countryName='match', 
     stateOrProvinceName='no', 
     localityName='no', 
@@ -291,9 +384,9 @@ Namespace(countryName='match',
     commonName='no', 
     policy_name=None,
     conf_file=None, 
-    private_key=None, 
+    key_name=None, 
     private_dir=None,
-    certificate='', 
+    certificate='test.pki', 
     validity_days=365, 
     path_length=0, 
     passphrasefile='passphrasefile', 
@@ -304,5 +397,18 @@ Namespace(countryName='match',
         'localityName': 'no', 
         'organizationName': 'no', 
         'organizationalUnitName': 'no', 
-        'commonName': 'no'})
+        'commonName': 'no'},
+     private_key='')
 
+>>> multi_parser = CSRMultiSigningParser(run_setup=False)
+
+>>> args, unknown = multi_parser.parse_known_args(["-c", "test.pki", "-C", "match", "passphrasefile", "certificat_sign_request"])  #doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+
+>>> args
+Namespace()
+
+>>> len(unknown)
+6
+
+
+.. !CLASS - CSRMultiSigningParser

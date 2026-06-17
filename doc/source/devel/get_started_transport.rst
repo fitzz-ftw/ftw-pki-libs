@@ -148,21 +148,26 @@ True
 
 1. Inhalt prüfen: Ist unsere Kette drin?
 
+>> with zipfile.ZipFile(io.BytesIO(decrypted_zip_bytes)) as zf:
+...     zf.namelist()
+
+
+
 >>> with zipfile.ZipFile(io.BytesIO(decrypted_zip_bytes)) as zf:
-...     "certificate_chain.pem" in zf.namelist()
+...     "all.chain.pem" in zf.namelist()
 True
 
 1. Kette extrahieren und Typ-Check
 
 >>> with zipfile.ZipFile(io.BytesIO(decrypted_zip_bytes)) as zf:
-...     extracted_chain = zf.read("certificate_chain.pem")
+...     extracted_chain = zf.read("all.chain.pem")
 
 >>> b"-----BEGIN CERTIFICATE-----" in extracted_chain
 True
 
 >>> with zipfile.ZipFile(io.BytesIO(decrypted_zip_bytes)) as zf:
 ...     zf.namelist()
-['user.crt', 'certificate_chain.pem', 'ca.crt']
+['user.crt.pem', 'all.chain.pem', 'ca.crt.pem']
 
 >>> p7m_bytes_with_info = encrypt_transport_package(
 ...     ca_cert, 
@@ -183,7 +188,7 @@ True
 
 >>> with zipfile.ZipFile(io.BytesIO(decrypted_zip_bytes_with_info)) as zf:
 ...     zf.namelist()
-['user.crt', 'certificate_chain.pem', 'ca.crt', 'message.txt', 'readme.txt']
+['user.crt.pem', 'all.chain.pem', 'ca.crt.pem', 'message.txt', 'readme.txt']
 
 >>> decrypted_zip_bytes_with_info = decrypt_bytedata(
 ...     p7m_bytes_with_info[:-10],
