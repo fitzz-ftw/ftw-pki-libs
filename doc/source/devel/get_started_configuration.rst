@@ -65,7 +65,7 @@ True
 >>> base_conf.private_key("ca.key.pem") #doctest: +ELLIPSIS
 Traceback (most recent call last):
     ...
-FileNotFoundError: [Errno 2] No such file or directory: '.../ftwpki/.private/ca.key.pem'
+FileNotFoundError: [Errno 2] No such file or directory: '...ca.key.pem'
 
 >> base_conf.
 
@@ -204,7 +204,7 @@ b'-----BEGIN ENCRYPTED PRIVATE KEY----...
 >>> root_wop_conf.private_key("not_there.key.pem") #doctest: +ELLIPSIS 
 Traceback (most recent call last):
     ...
-FileNotFoundError: [Errno 2] No such file or directory: '.../ftwpki/.private/not_there.key.pem'
+FileNotFoundError: [Errno 2] No such file or directory: '...not_there.key.pem'
 
 
 >>> from ftwpki.baselibs.configuration import IntermedPKIConfig
