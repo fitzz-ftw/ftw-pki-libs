@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+###### [0.0.4] - 2026-06-17
+
+###### Added
+- Add pack CLI parser and specialized exceptions in baselibs
+- Implement core logic for intermediate and leaf signing
+
+###### Changed
+- Refactor CLI parser architecture to use a factory pattern
+- Standardize TOML utility interfaces and CLI pre-parsing logic
+- Unify CLI key-name parameters and transition to kebab-case flags
+- Refactor transport logic and enhance base library protocols
+- Improve PKI configuration, parsers, and workflow logic components
+
+###### Fixed
+- Generalize protocol roles and refine utility logic in baselibs
+
+###### Testing
+- Achieve 100% total coverage across all core configuration components
+
+
 ## [0.0.3a2] - 2026-05-18
 
 ### Added
